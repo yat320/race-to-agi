@@ -109,8 +109,12 @@ const ERAS=[
 const PROTOS=[
   {id:'carrera',name:'Carrera a la obra',what:'Por turnos: mapa con niebla, tecnologías y un rival que corre hacia la misma obra.',file:'carrera.html',save:'rtagi-carrera-v1',
     state:s=>s&&s.G&&s.G.tiles&&!s.G.over?'En curso · turno '+s.G.turn+' de 30':null},
-  {id:'mundo',name:'Mundo abierto',what:'Prehistoria libre: explorá, juntá recursos, sumá aldeanos y construí el ábaco.',file:'mundo.html',save:'rtagi-mundo-v1',
-    state:s=>s&&s.st?(s.st.won?'Ábaco terminado':'En curso')+' · día '+(Math.floor((s.st.time||0)/150)+1):null}];
+  {id:'mundo',name:'Mundo abierto',what:'Explorá, juntá recursos y sumá aldeanos: Prehistoria hasta el ábaco y Antigüedad hasta el mecanismo de Anticitera.',save:'rtagi-mundo-v1',
+    // Si ya pasaste a la Antigüedad, el botón te lleva ahí.
+    file:()=>mundo2()?'mundo2.html':'mundo.html',
+    state:s=>{const a=mundo2();if(a)return(a.won?'Antigüedad · Anticitera terminado':'Antigüedad')+' · día '+(Math.floor((a.time||0)/160)+1);
+      return s&&s.st?'Prehistoria · '+(s.st.won?'ábaco terminado':'día '+(Math.floor((s.st.time||0)/150)+1)):null;}}];
+function mundo2(){try{const d=JSON.parse(get('rtagi-mundo2-v1'));return d&&Array.isArray(d.obj)?d:null;}catch(e){return null;}}
 const $=id=>document.getElementById(id);
 function get(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function set(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
@@ -175,7 +179,7 @@ function loadPage(file,txt){
 }
 function alertMsg(id,txt,err){const m=$(id);m.textContent=txt;m.classList.toggle('err',!!err);}
 $('eras').addEventListener('click',ev=>{const b=ev.target.closest('[data-go]');if(b)goEra(+b.dataset.go);});
-$('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(p.file,'Cargando '+p.name.toLowerCase()+'…');});
+$('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(typeof p.file==='function'?p.file():p.file,'Cargando '+p.name.toLowerCase()+'…');});
 $('copy').addEventListener('click',()=>{
   const v=$('code').value;
   const ok=()=>alertMsg('copyMsg','Copiado');
