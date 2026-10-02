@@ -38,6 +38,9 @@ h2{margin:0;font:700 20px var(--f-display)}
 .era.open .num{color:var(--signal)}
 .era.locked .name,.era.soon .name{color:var(--muted)}
 .era-body{display:grid;min-width:0}
+.era.proto{grid-template-columns:minmax(0,1fr) auto}
+.era.proto .state{color:var(--signal)}
+.note{margin:4px 0 10px;color:var(--muted);font-size:13px}
 .btn{font:600 14px var(--f-display);background:var(--ochre);color:var(--ink);border:0;border-bottom:3px solid var(--ochre-deep);padding:8px 14px 6px;cursor:pointer;white-space:nowrap}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--bone)}
 .btn:disabled{opacity:.5;cursor:default}
@@ -69,6 +72,12 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
     <ol class="eras" id="eras"></ol>
   </section>
 
+  <section>
+    <h2>Prototipos</h2>
+    <p class="note">Mecánicas en prueba: pueden cambiar o desaparecer.</p>
+    <ul class="eras" id="protos"></ul>
+  </section>
+
   <section class="legacy" aria-labelledby="legTitle">
     <h2 id="legTitle">Código de legado</h2>
     <p>El progreso se guarda en este navegador. Copiá el código para no perderlo o para seguir en otro dispositivo.</p>
@@ -96,6 +105,12 @@ const ERAS=[
   {n:8,name:'Internet',when:'1990 – 2015'},
   {n:9,name:'Inteligencia artificial',when:'2015 – 2030'},
   {n:10,name:'AGI',when:'¿?'}];
+// state: texto de la partida guardada, o null si no hay una en curso.
+const PROTOS=[
+  {id:'carrera',name:'Carrera a la obra',what:'Por turnos: mapa con niebla, tecnologías y un rival que corre hacia la misma obra.',file:'carrera.html',save:'rtagi-carrera-v1',
+    state:s=>s&&s.G&&s.G.tiles&&!s.G.over?'En curso · turno '+s.G.turn+' de 30':null},
+  {id:'mundo',name:'Mundo abierto',what:'Prehistoria libre: explorá, juntá recursos, sumá aldeanos y construí el ábaco.',file:'mundo.html',save:'rtagi-mundo-v1',
+    state:s=>s&&s.st?(s.st.won?'Ábaco terminado':'En curso')+' · día '+(Math.floor((s.st.time||0)/150)+1):null}];
 const $=id=>document.getElementById(id);
 function get(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function set(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
@@ -130,17 +145,24 @@ function render(){
     li.innerHTML='<span class="num">'+String(e.n).padStart(2,'0')+'</span><div class="era-body"><span class="name">'+e.name+'</span><span class="when">'+e.when+'</span><span class="state">'+state+'</span></div>'+action;
     list.appendChild(li);
   });
+  const pl=$('protos');pl.innerHTML='';
+  PROTOS.forEach(p=>{let st=null;try{st=p.state(JSON.parse(get(p.save)));}catch(x){}
+    const li=document.createElement('li');li.className='era proto';
+    li.innerHTML='<div class="era-body"><span class="name">'+p.name+'</span><span class="when">'+p.what+'</span><span class="state">'+(st||'Lista para empezar')+'</span></div><button class="btn" data-proto="'+p.id+'">'+(st?'Continuar':'Jugar')+'</button>';
+    pl.appendChild(li);});
   $('code').value=Object.keys(l.eras).length?enc(l):'Todavía no hay eras completas.';
   $('copy').disabled=!Object.keys(l.eras).length;
 }
-function goEra(n){
-  const e=ERAS.find(x=>x.n===n);if(!e||!e.file)return;
-  $('loading').hidden=false;
-  fetch(e.file).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();})
-    .catch(()=>{$('loading').hidden=true;alertMsg('loadMsg','No se pudo cargar la era. Probá de nuevo.',true);});
+function goEra(n){const e=ERAS.find(x=>x.n===n);if(e&&e.file)loadPage(e.file,'Cargando era…');}
+// Las eras y los prototipos se cargan sobre esta página: así su botón "Todas las eras" (location.reload) vuelve al hub.
+function loadPage(file,txt){
+  $('loading').textContent=txt;$('loading').hidden=false;
+  fetch(file).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();})
+    .catch(()=>{$('loading').hidden=true;alertMsg('loadMsg','No se pudo cargar. Probá de nuevo.',true);});
 }
 function alertMsg(id,txt,err){const m=$(id);m.textContent=txt;m.classList.toggle('err',!!err);}
 $('eras').addEventListener('click',ev=>{const b=ev.target.closest('[data-go]');if(b)goEra(+b.dataset.go);});
+$('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(p.file,'Cargando '+p.name.toLowerCase()+'…');});
 $('copy').addEventListener('click',()=>{
   const v=$('code').value;
   const ok=()=>alertMsg('copyMsg','Copiado');
