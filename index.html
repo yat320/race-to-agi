@@ -79,12 +79,12 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
   </section>
 
   <section class="legacy" aria-labelledby="legTitle">
-    <h2 id="legTitle">Código de legado</h2>
-    <p>El progreso se guarda en este navegador. Copiá el código para no perderlo o para seguir en otro dispositivo.</p>
-    <textarea id="code" readonly aria-label="Tu código de legado"></textarea>
+    <h2 id="legTitle">Tu progreso</h2>
+    <p>Todo se guarda en este navegador: eras, estrellas, mejoras y prototipos, y sigue ahí cuando el juego se actualiza. Copiá el código para tener una copia o para seguir en otro dispositivo.</p>
+    <textarea id="code" readonly aria-label="Código de tu progreso"></textarea>
     <div class="row"><button class="btn" id="copy">Copiar código</button><span class="msg" id="copyMsg"></span></div>
     <p>¿Tenés un código de antes? Pegalo acá.</p>
-    <textarea id="paste" aria-label="Pegar código de legado" placeholder="RTAGI-…"></textarea>
+    <textarea id="paste" aria-label="Pegar código de progreso" placeholder="RTAGI-…"></textarea>
     <div class="row"><button class="btn ghost" id="load">Cargar código</button><span class="msg" id="loadMsg"></span></div>
   </section>
 </div>
@@ -109,14 +109,17 @@ const ERAS=[
 const PROTOS=[
   {id:'carrera',name:'Carrera a la obra',what:'Por turnos: mapa con niebla, tecnologías y un rival que corre hacia la misma obra.',file:'carrera.html',save:'rtagi-carrera-v1',
     state:s=>s&&s.G&&s.G.tiles&&!s.G.over?'En curso · turno '+s.G.turn+' de 30':null},
-  {id:'mundo',name:'Mundo abierto',what:'Prehistoria libre: explorá, juntá recursos, sumá aldeanos y construí el ábaco.',file:'mundo.html',save:'rtagi-mundo-v1',
-    state:s=>s&&s.st?(s.st.won?'Ábaco terminado':'En curso')+' · día '+(Math.floor((s.st.time||0)/150)+1):null}];
+  {id:'mundo',name:'Mundo abierto',what:'Explorá, juntá recursos y sumá aldeanos: Prehistoria hasta el ábaco y Antigüedad hasta el mecanismo de Anticitera.',save:'rtagi-mundo-v1',
+    // Si ya pasaste a la Antigüedad, el botón te lleva ahí.
+    file:()=>mundo2()?'mundo2.html':'mundo.html',
+    state:s=>{const a=mundo2();if(a)return(a.won?'Antigüedad · Anticitera terminado':'Antigüedad')+' · día '+(Math.floor((a.time||0)/160)+1);
+      return s&&s.st?'Prehistoria · '+(s.st.won?'ábaco terminado':'día '+(Math.floor((s.st.time||0)/150)+1)):null;}}];
+function mundo2(){try{const d=JSON.parse(get('rtagi-mundo2-v1'));return d&&Array.isArray(d.obj)?d:null;}catch(e){return null;}}
 const $=id=>document.getElementById(id);
 function get(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function set(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
 function legGet(){try{const l=JSON.parse(get(LEG));if(l&&l.eras)return l;}catch(e){}return{v:1,eras:{}};}
 function legSet(l){set(LEG,JSON.stringify(l));}
-const enc=o=>'RTAGI-'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 function dec(s){s=(s||'').trim().replace(/\s+/g,'');if(!s.startsWith('RTAGI-'))return null;try{const o=JSON.parse(decodeURIComponent(escape(atob(s.slice(6)))));return o&&o.eras?o:null;}catch(e){return null;}}
 
 // Si la Prehistoria se ganó antes de que existiera el legado, lo armamos desde la partida guardada.
@@ -125,6 +128,21 @@ function backfill(){
   if(!l.eras['1']){try{const s=JSON.parse(get('race-to-agi-save-v1'));if(s&&s.won){l.eras['1']={done:true,dia:Math.floor((s.time||0)/150)+1,aldeanos:(s.vil||[]).length,ideas:Math.floor((s.res&&s.res.ideas)||0),techs:Object.keys(s.techs||{})};legSet(l);}}catch(e){}}
   return l;
 }
+// Copia de todo el progreso: cada clave rtagi-* del navegador, en JSON comprimido (deflate) y en base64.
+// RTAGI2- es comprimido, RTAGI2J- sin comprimir (navegadores sin CompressionStream). RTAGI- es el código viejo, solo eras.
+function allKeys(){const ks=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('rtagi-'))ks.push(k);}}catch(e){}return ks.sort();}
+const toB64=u=>{let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s);};
+const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const pipe=(bytes,tr)=>new Response(new Blob([bytes]).stream().pipeThrough(tr)).arrayBuffer().then(b=>new Uint8Array(b));
+async function packAll(){const o={v:2,keys:{}};for(const k of allKeys())o.keys[k]=get(k);if(!Object.keys(o.keys).length)return null;
+  const raw=new TextEncoder().encode(JSON.stringify(o));
+  if(window.CompressionStream){try{return 'RTAGI2-'+toB64(await pipe(raw,new CompressionStream('deflate-raw')));}catch(e){}}
+  return 'RTAGI2J-'+toB64(raw);}
+async function unpackAll(s){s=(s||'').trim().replace(/\s+/g,'');let bytes;
+  if(s.startsWith('RTAGI2J-'))bytes=fromB64(s.slice(8));
+  else if(s.startsWith('RTAGI2-')){if(!window.DecompressionStream)throw new Error('old');bytes=await pipe(fromB64(s.slice(7)),new DecompressionStream('deflate-raw'));}
+  else return null;
+  const o=JSON.parse(new TextDecoder().decode(bytes));return o&&o.v===2&&o.keys?o:null;}
 function starsOf(e){try{const s=JSON.parse(get(e.save));if(s&&s.best)return Object.values(s.best).reduce((a,b)=>a+b,0);}catch(x){}return null;}
 function render(){
   const l=backfill();
@@ -150,8 +168,7 @@ function render(){
     const li=document.createElement('li');li.className='era proto';
     li.innerHTML='<div class="era-body"><span class="name">'+p.name+'</span><span class="when">'+p.what+'</span><span class="state">'+(st||'Lista para empezar')+'</span></div><button class="btn" data-proto="'+p.id+'">'+(st?'Continuar':'Jugar')+'</button>';
     pl.appendChild(li);});
-  $('code').value=Object.keys(l.eras).length?enc(l):'Todavía no hay eras completas.';
-  $('copy').disabled=!Object.keys(l.eras).length;
+  packAll().then(c=>{$('code').value=c||'Todavía no hay progreso guardado.';$('copy').disabled=!c;});
 }
 function goEra(n){const e=ERAS.find(x=>x.n===n);if(e&&e.file)loadPage(e.file,'Cargando era…');}
 // Las eras y los prototipos se cargan sobre esta página: así su botón "Todas las eras" (location.reload) vuelve al hub.
@@ -162,16 +179,26 @@ function loadPage(file,txt){
 }
 function alertMsg(id,txt,err){const m=$(id);m.textContent=txt;m.classList.toggle('err',!!err);}
 $('eras').addEventListener('click',ev=>{const b=ev.target.closest('[data-go]');if(b)goEra(+b.dataset.go);});
-$('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(p.file,'Cargando '+p.name.toLowerCase()+'…');});
+$('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(typeof p.file==='function'?p.file():p.file,'Cargando '+p.name.toLowerCase()+'…');});
 $('copy').addEventListener('click',()=>{
   const v=$('code').value;
   const ok=()=>alertMsg('copyMsg','Copiado');
   const fallback=()=>{$('code').focus();$('code').select();alertMsg('copyMsg','Seleccionado: copialo con el menú del teclado');};
   try{navigator.clipboard.writeText(v).then(ok,fallback);}catch(e){fallback();}
 });
-$('load').addEventListener('click',()=>{
-  const o=dec($('paste').value);
-  if(!o){alertMsg('loadMsg','Ese código no es válido. Tiene que empezar con RTAGI-.',true);return;}
+// Un código completo reemplaza el progreso de este navegador: se pide un segundo toque para confirmar.
+let loadArmed=false;
+$('paste').addEventListener('input',()=>{loadArmed=false;$('load').textContent='Cargar código';});
+$('load').addEventListener('click',async()=>{
+  const txt=$('paste').value;let full=null;
+  try{full=await unpackAll(txt);}catch(e){alertMsg('loadMsg',e.message==='old'?'Este navegador no puede abrir el código. Probá con uno más nuevo.':'Ese código está incompleto o dañado.',true);return;}
+  if(full){
+    if(!loadArmed){loadArmed=true;$('load').textContent='Tocá de nuevo para reemplazar';alertMsg('loadMsg','Esto reemplaza el progreso de este navegador por el del código.',true);return;}
+    for(const k of allKeys())if(!(k in full.keys))try{localStorage.removeItem(k);}catch(e){}
+    for(const k in full.keys)if(k.startsWith('rtagi-'))set(k,full.keys[k]);
+    loadArmed=false;$('load').textContent='Cargar código';$('paste').value='';alertMsg('loadMsg','Progreso cargado.');render();return;}
+  const o=dec(txt);
+  if(!o){alertMsg('loadMsg','Ese código no es válido. Tiene que empezar con RTAGI.',true);return;}
   const l=legGet();
   for(const k in o.eras){const a=l.eras[k],b=o.eras[k];if(!a||(!a.done&&b.done)||(b.done&&b.dia<a.dia))l.eras[k]=b;}
   legSet(l);$('paste').value='';alertMsg('loadMsg','Legado cargado.');render();

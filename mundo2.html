@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Race to AGI · Antigüedad</title>
+<title>Race to AGI · Mundo abierto · Antigüedad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700&family=Pixelify+Sans:wght@400;600;700&display=swap">
@@ -150,16 +150,16 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
 <script>
 (function(){
 'use strict';
-const ERA_ID='era2-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
-const T=16,MW=64,MH=64,DAY=160,KEY='race-to-agi-era2-v1',LEG='rtagi-legacy-v1';
+const ERA_ID='mundo2-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
+const T=16,MW=64,MH=64,DAY=160,KEY='rtagi-mundo2-v1';
 const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
 const $=id=>document.getElementById(id);
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:1});
 const inb=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH;
-function legGet(){try{const l=JSON.parse(localStorage.getItem(LEG));if(l&&l.eras)return l;}catch(e){}return{v:1,eras:{}};}
-function legSet(l){try{localStorage.setItem(LEG,JSON.stringify(l));}catch(e){}}
+// Lo que trae la tribu desde la Prehistoria del mundo abierto, si terminó el ábaco. No usa el legado de las eras.
+function prehistoria(){try{const d=JSON.parse(localStorage.getItem('rtagi-mundo-v1'));if(d&&d.st&&d.st.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor((d.st.res&&d.st.res.ideas)||0),techs:Object.keys(d.st.techs||{})};}catch(e){}return null;}
 
 /* ---------- sprites ---------- */
 const PAL={k:'#1b1a24',g:'#2f6b3a',G:'#3f8f47',l:'#6cbf5a',b:'#7a5434',B:'#4f3522',s:'#5d6270',S:'#8a8f9c',w:'#c3c7cf',r:'#c8413b',R:'#f08a7c',f:'#f08a24',F:'#ffd35a',o:'#c43d20',h:'#d4ae62',H:'#9a7a3a',p:'#e3ab7d',P:'#b97a55',c:'#8b5a2b',C:'#63401f',y:'#3a2418',d:'#7a5634',D:'#5a3d24',n:'#8fd06a',N:'#5aa347',W:'#f6f1e4',u:'#5fe3d0',x:'#ecd67e',
@@ -304,7 +304,7 @@ const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,re
 const vil=[];
 let floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
-  const e1=legGet().eras['1'];const out={has:!!e1,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
+  const e1=prehistoria();const out={has:!!e1,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e1){
     out.aldeanos=clamp(e1.aldeanos|0,2,6);out.ideas=clamp(e1.ideas|0,0,150);
     const t=new Set(e1.techs||[]);
@@ -341,7 +341,11 @@ function load(d){
 function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
 
 /* ---------- reglas ---------- */
-const passable=(x,y)=>inb(x,y)&&ground[y*MW+x]!==WATER&&!obj[y*MW+x];
+// Los recursos agotados se pueden pisar.
+const spent=o=>!!(o&&RES[o.t]&&o.hp<=0);
+const passable=(x,y)=>inb(x,y)&&ground[y*MW+x]!==WATER&&(!obj[y*MW+x]||spent(obj[y*MW+x]));
+// Alguien parado en el casillero: ahí un recurso no vuelve a crecer hasta que quede libre.
+const occupied=(x,y)=>{const on=e=>Math.round(e.x)===x&&Math.round(e.y)===y;return on(P)||vil.some(on);};
 const canGather=o=>!!o&&!!RES[o.t]&&o.hp>0;
 const cap=k=>k==='ideas'?Infinity:150+150*(counts.deposito||0);
 const add=(k,v)=>{st.res[k]=Math.min(cap(k),st.res[k]+v);};
@@ -480,7 +484,7 @@ function update(dt){
     const p=prodOf(b);for(const k in p)add(k,p[k]*dt);
     if(b.use)for(const k in b.use)st.res[k]=Math.max(0,st.res[k]-b.use[k]*counts[b.id]*dt);
   }
-  for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&RES[o.t]&&o.hp<=0){o.regen-=dt;if(o.regen<=0)o.hp=RES[o.t].hp;}}
+  for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&RES[o.t]&&o.hp<=0){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
   updatePlayer(dt);
   for(const v of vil)updateVillager(v,dt);
   for(const f of floats){f.t-=dt;f.y-=dt*10;}
@@ -650,11 +654,10 @@ $('sheetBody').addEventListener('click',e=>{
   if(b&&!b.disabled)startPlace(b.dataset.build);
   if(p){st.prio=p.dataset.prio;vil.forEach(v=>{if(v.state==='go'){v.state='idle';v.t=0.2;v.target=null;v.path=[];}});renderSheet();toast(st.prio==='auto'?'Aldeanos en automático':'Aldeanos priorizan '+RN[st.prio].toLowerCase());}
 });
-function recordWin(){const l=legGet(),prev=l.eras['2'],day=Math.floor(st.time/DAY)+1;l.eras['2']={done:true,dia:prev&&prev.dia?Math.min(prev.dia,day):day,aldeanos:vil.length,ideas:Math.floor(st.res.ideas),techs:Object.keys(st.techs),edificios:Object.values(counts).reduce((a,b)=>a+b,0)};legSet(l);}
 function research(id){
   const t=TECH[id];if(st.techs[id]||!t.req.every(r=>st.techs[r])||!afford(t.cost))return;
   pay(t.cost);st.techs[id]=true;toast('Investigaste: '+t.name);renderSheet();hud();
-  if(id==='anticitera'&&!st.won){st.won=true;recordWin();if(sheetMode){sheetMode=null;$('sheet').hidden=true;skipPush=true;}showWin();}
+  if(id==='anticitera'&&!st.won){st.won=true;save();if(sheetMode){sheetMode=null;$('sheet').hidden=true;skipPush=true;}showWin();}
   save();
 }
 function startPlace(id){if(sheetMode){sheetMode=null;$('sheet').hidden=true;}else navPush();placing=id;$('place').hidden=false;$('placeTxt').textContent='Tocá un lugar libre para: '+BUILD[id].name.toLowerCase()+(BUILD[id].water?' (junto al agua)':'');}
@@ -692,10 +695,10 @@ const erasHTML=done=>'<div class="eras">'+ERAS.map((e,i)=>'<span class="'+(i<don
 function showIntro(){
   const L=st.legacy;
   const leg=L.has?'<div class="kicker">Tu legado de la Prehistoria</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">No hay legado de la Prehistoria en este navegador: arrancás con 2 aldeanos. Podés cargar un código desde la pantalla de eras.</p>';
-  showModalI('<div class="kicker">Era 2 de 10 · 3.000 a.C.</div><h1>La Antigüedad</h1><p>Tu tribu ya es un pueblo. Ahora hay cobre en las colinas, comercio por el mar y escribas que anotan todo. La meta: construir el mecanismo de Anticitera, la primera computadora de la historia.</p>'+erasHTML(1)+leg+'<p class="muted">Novedades: 12 edificios, cobre y monedas, depósitos con capacidad, y la hoja Tribu para decidir qué juntan tus aldeanos.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
+  showModalI('<div class="kicker">Mundo abierto · 3.000 a.C.</div><h1>La Antigüedad</h1><p>Tu tribu ya es un pueblo. Ahora hay cobre en las colinas, comercio por el mar y escribas que anotan todo. La meta: construir el mecanismo de Anticitera, la primera computadora de la historia.</p>'+erasHTML(1)+leg+'<p class="muted">Novedades: 12 edificios, cobre y monedas, depósitos con capacidad, y la hoja Tribu para decidir qué juntan tus aldeanos.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
 }
 function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un depósito se llena, lo que sobra se pierde. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button><button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
-function showWin(){showModal('<div class="kicker">Era 2 de 10 completa</div><h1>Antigüedad superada</h1><p>Terminaste el mecanismo de Anticitera en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. La humanidad ya sabe construir máquinas que calculan.</p>'+erasHTML(2)+'<p class="muted">Progreso hacia la AGI: 20%. La Edad Media llega en la próxima versión. Tu legado ya quedó guardado.</p><div class="row"><button class="btn" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
+function showWin(){showModal('<div class="kicker">Mundo abierto · Antigüedad</div><h1>Antigüedad superada</h1><p>Terminaste el mecanismo de Anticitera en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. La humanidad ya sabe construir máquinas que calculan.</p>'+erasHTML(2)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. La Edad Media todavía no está.</p><div class="row"><button class="btn" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
 $('modalCard').addEventListener('click',e=>{
   const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
   if(m==='start'){st.seen=true;save();hideModal();}
@@ -716,7 +719,7 @@ function onTap(tx,ty){
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
   if(o){
     if(!RES[o.t]){const b=BUILD[o.t];toast(INFO[o.t]+(b&&b.prod?prodLine(b):''));return;}
-    if(o.hp<=0){toast(RES[o.t].empty+': vuelve en '+Math.ceil(o.regen)+' s.');return;}
+    if(o.hp<=0){toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');P.act=null;P.task=null;const p=bfs(px,py,(x,y)=>x===tx&&y===ty);if(p)P.path=p;return;}
     P.act=null;P.retried=false;P.task={x:tx,y:ty};
     if(adj(px,py,tx,ty)&&P.x===px&&P.y===py){P.path=[];return;}
     const p=pathAdj(px,py,tx,ty);if(p)P.path=p;else{P.task=null;toast('No llegás hasta ahí.');}
@@ -764,6 +767,7 @@ if(!ok)newGame();
 resize();hud();
 if(!st.seen)showIntro();
 requestAnimationFrame(frame);
+if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap};
 })();
 </script>
 </body></html>

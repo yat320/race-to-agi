@@ -278,6 +278,8 @@ const BUILDS=[
  {id:'monumento',name:'Ábaco',req:'abaco',lv:[{c:{madera:30,piedra:30,pedernal:10},w:60}],grow:9,unique:true,
    fx:()=>['Cierra la Prehistoria'],desc:'La primera máquina de calcular. Obra grande: ponete a trabajar con toda la tribu.'}];
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
+// Aldeanos pensando junto a una fogata (prioridad Ideas): cada uno suma ideas y velocidad de investigación.
+const THINK={ideas:0.05,rs:0.12,seats:4};
 const FX={fogata:{ideas:[0.05,0.1,0.18],rs:[0.15,0.3,0.5],light:[4.5,5.5,6.5]},campamento:{comida:[0.06,0.12,0.2],pieles:[0.015,0.03,0.05]},cueva:{ideas:[0.12,0.25,0.4]},almacen:{cap:[80,180,320]}};
 const UPG=[
  {id:'hacha',name:'Hacha',desc:'Nivel 1 tala árboles, nivel 2 robles. Cada nivel junta más madera por golpe.',levels:[{n:'Manos'},{n:'Hacha de piedra',req:'tallada',c:{madera:5,piedra:5}},{n:'Hacha de pedernal',req:'pedernal',taller:1,c:{madera:10,pedernal:6}},{n:'Hacha pulida',req:'pulida',taller:2,c:{madera:15,pedernal:10,pieles:3}}]},
@@ -297,7 +299,7 @@ const HITOS=[
  {id:'tribu5',n:'Tribu de cinco',c:()=>vil.length>=5,r:{ideas:15}},
  {id:'nivel3',n:'Obra maestra',c:()=>Object.values(agg.maxlv).some(v=>v>=3),r:{ideas:15}},
  {id:'invierno',n:'Sobreviviste al invierno',c:()=>st.time>=SEASON*4,r:{ideas:20}}];
-const SAY={frio:['¡Qué frío!','Brrr…','Me congelo'],hambre:['Tengo hambre…','Mi panza hace ruido','¿Hay comida?'],fiesta:['¡Fiesta!','¡Uhhh!','¡A bailar!'],obra:['¡Arriba esa obra!','Un golpe más','Esto va a quedar lindo'],
+const SAY={ideas:['¿Y si…?','Tengo una idea','Mirá las estrellas','Hmm…'],frio:['¡Qué frío!','Brrr…','Me congelo'],hambre:['Tengo hambre…','Mi panza hace ruido','¿Hay comida?'],fiesta:['¡Fiesta!','¡Uhhh!','¡A bailar!'],obra:['¡Arriba esa obra!','Un golpe más','Esto va a quedar lindo'],
   idle:['¿Y ahora?','Qué lindo día','Mmm…'],noche:['Qué oscuro…','Se escuchan lobos','A dormir'],madera:['¡Madera!','Qué árbol duro'],piedra:['¡Piedra!','Me duelen los brazos'],comida:['¡Bayas!','Mmm, rico'],pedernal:['¡Brilla!','Cuidado, corta'],arcilla:['Qué barro…','Me ensucié todo']};
 const NAMES=['Tuk','Ama','Oro','Kai','Nima','Bru','Eka','Lun','Zor','Ixa','Pim','Rok','Uma','Tala','Gor','Fen','Aru','Sio','Mek','Yara','Bo','Ilo','Nuk','Ren'];
 const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI'];
@@ -409,7 +411,11 @@ function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serial
 const seasonIdx=()=>Math.floor(st.time/SEASON)%4;
 const isWinter=()=>seasonIdx()===3;
 const isBridge=o=>o&&o.t==='puente'&&o.lv>0;
-const passable=(x,y)=>{if(!inb(x,y))return false;const o=obj[y*MW+x];if(isBridge(o))return true;return ground[y*MW+x]!==WATER&&!o;};
+// Los recursos agotados (tocón, escombros, barro, arbusto sin bayas) se pueden pisar.
+const spent=o=>!!(o&&RES[o.t]&&o.hp<=0);
+const passable=(x,y)=>{if(!inb(x,y))return false;const o=obj[y*MW+x];if(isBridge(o))return true;return ground[y*MW+x]!==WATER&&(!o||spent(o));};
+// Alguien parado en el casillero: ahí un recurso no vuelve a crecer hasta que quede libre.
+const occupied=(x,y)=>{const on=e=>Math.round(e.x)===x&&Math.round(e.y)===y;return on(P)||vil.some(on)||anim.some(on);};
 const bushOk=o=>!(o.t==='bush'&&isWinter());
 const tallerLv=()=>agg.maxlv.taller||0;
 const vTier=tool=>tool?Math.min(st.upg[tool],1+tallerLv()):0;
@@ -424,8 +430,9 @@ const pay=c=>{if(c)for(const k in c)st.res[k]-=c[k];};
 const buildCost=b=>{const n=agg.count[b.id]||0,c={};for(const k in b.lv[0].c)c[k]=Math.ceil(b.lv[0].c[k]*Math.pow(b.grow,n));return c;};
 const buildWork=o=>BUILD[o.t].lv[o.lv]?BUILD[o.t].lv[o.lv].w:1;
 const workPow=()=>1+Math.max(st.upg.hacha,st.upg.pico)*0.5;
-const ideaRate=()=>agg.ideas*(st.techs.lenguaje?1.3:1)*(1+0.05*vil.length);
-const rsSpeed=()=>(0.3+agg.rs)*(st.techs.contar?1.5:1);
+const thinkers=()=>vil.filter(v=>v.state==='think').length;
+const ideaRate=()=>(agg.ideas+thinkers()*THINK.ideas)*(st.techs.lenguaje?1.3:1)*(1+0.05*vil.length);
+const rsSpeed=()=>(0.3+agg.rs+thinkers()*THINK.rs)*(st.techs.contar?1.5:1);
 const winterPenalty=()=>isWinter()&&!st.techs.vestimenta;
 function darkness(){const ph=(st.time%DAY)/DAY;if(ph<0.62)return 0;if(ph<0.72)return(ph-0.62)/0.1*0.62;if(ph<0.92)return 0.62;return(1-ph)/0.08*0.62;}
 function nearFire(x,y,r){const x0=Math.max(0,Math.floor(x-r)),x1=Math.min(MW-1,Math.ceil(x+r)),y0=Math.max(0,Math.floor(y-r)),y1=Math.min(MH-1,Math.ceil(y+r));
@@ -568,9 +575,11 @@ function pickTarget(v){
   const find=(pred,maxShare)=>bfs(sx,sy,(x,y)=>{for(const[dx,dy]of DIRS8){const nx=x+dx,ny=y+dy;if(!inb(nx,ny))continue;const o=obj[ny*MW+nx];if(o&&pred(o)&&(taken[nx+','+ny]||0)<(maxShare||1)){tgt=[nx,ny];return true;}}return false;});
   const tryObras=()=>{const p=find(canWork,3);if(p)job='obra';return p;};
   const tryCrops=()=>{const p=find(o=>o.t==='cultivo'&&o.lv>0&&o.stage===3);if(p)job='cosecha';return p;};
+  const tryThink=()=>{const p=find(o=>o.t==='fogata'&&o.lv>0,THINK.seats);if(p)job='ideas';return p;};
   const tryRes=k=>{if(!st.found[k]&&k!=='arcilla'&&k!=='pedernal')return null;if(st.res[k]>=cap(k))return null;const p=find(o=>RES[o.t]&&RES[o.t].give===k&&canGather(o,'v'));if(p)job=k;return p;};
   let path=null;const prio=st.techs.lenguaje?st.prio:'auto';
   if(prio==='obras')path=tryObras()||tryCrops();
+  else if(prio==='ideas')path=tryThink();
   else if(prio!=='auto')path=tryCrops()||tryRes(prio);
   if(!path){
     path=tryObras()||tryCrops();
@@ -589,7 +598,7 @@ function deposit(v){if(v.carry&&v.kind){add(v.kind,v.carry);float(v.x,v.y-0.5,'+
 function vSay(v){
   let k='idle';
   if(v.hungry)k='hambre';else if(isWinter()&&!st.techs.vestimenta)k='frio';else if(st.party>0)k='fiesta';else if(darkness()>0.3)k='noche';
-  else if(v.job==='obra'&&v.state==='work')k='obra';else if(v.state==='work'&&SAY[v.job])k=v.job;
+  else if(v.state==='think')k='ideas';else if(v.job==='obra'&&v.state==='work')k='obra';else if(v.state==='work'&&SAY[v.job])k=v.job;
   const arr=SAY[k];v.say={txt:arr[Math.floor(rnd()*arr.length)],t:2.6};
 }
 function updateVillager(v,dt){
@@ -604,16 +613,19 @@ function updateVillager(v,dt){
   switch(v.state){
     case'idle':v.t-=dt;if(v.t<=0&&!pickTarget(v))v.t=3;break;
     case'go':if(!v.path.length){const o=v.target&&obj[v.target[1]*MW+v.target[0]],[x,y]=tileOf(v);
-      if((canGather(o,'v')||canWork(o))&&adj(x,y,v.target[0],v.target[1])){v.state='work';v.t=0.9;if(v.target[0]!==x)v.face=v.target[0]>x?1:-1;}else{v.state='idle';v.t=0.3;v.target=null;}}break;
+      if(v.job==='ideas'&&o&&o.t==='fogata'&&o.lv>0&&adj(x,y,v.target[0],v.target[1])){v.state='think';if(v.target[0]!==x)v.face=v.target[0]>x?1:-1;}
+      else if((canGather(o,'v')||canWork(o))&&adj(x,y,v.target[0],v.target[1])){v.state='work';v.t=0.9;if(v.target[0]!==x)v.face=v.target[0]>x?1:-1;}else{v.state='idle';v.t=0.3;v.target=null;}}break;
     case'work':{v.t-=dt*slow*boost;if(v.t<=0){const[x,y]=v.target,o=obj[y*MW+x];
       if(canWork(o)){workOn(o,x,y,1);v.t=0.9;if(!canWork(obj[y*MW+x])){v.target=null;v.state='idle';v.t=0.5;}break;}
       const r=canGather(o,'v')?doGather(o,'v'):null;if(r){v.carry+=r.n;v.kind=r.kind;}
       if(!r||v.carry>=(st.techs.rueda?4:2)+st.upg.canasta||!canGather(o,'v'))goHome(v);else v.t=0.9;}}break;
+    case'think':{const o=v.target&&obj[v.target[1]*MW+v.target[0]];if((st.techs.lenguaje?st.prio:'auto')!=='ideas'||!o||o.t!=='fogata'||!o.lv){v.state='idle';v.t=0.3;v.target=null;v.job=null;}}break;
     case'return':if(!v.path.length){const[x,y]=tileOf(v);if(Math.max(Math.abs(x-v.home[0]),Math.abs(y-v.home[1]))<=1)deposit(v);else goHome(v);}break;
   }
 }
 function vStatus(v){
   if(v.sick>0)return['enfermo','neg'];if(v.hungry)return['con hambre','neg'];
+  if(v.state==='think')return['pensando junto al fuego',''];
   if(v.state==='idle')return['descansando',''];
   if(v.state==='return')return['llevando '+RN[v.kind].toLowerCase(),''];
   if(v.job==='obra'){const o=v.target&&obj[v.target[1]*MW+v.target[0]];return['construyendo '+(o&&BUILD[o.t]?BUILD[o.t].name.toLowerCase():''),''];}
@@ -676,7 +688,7 @@ function update(dt){
   if(st.party>0)st.party-=dt;
   if(homeWithRoom()){if(st.arrive<=0)st.arrive=40;st.arrive-=dt;if(st.arrive<=0){if(st.res.comida>=8){arriveVillager();st.arrive=40;}else st.arrive=10;}}
   for(let i=0;i<obj.length;i++){const o=obj[i];if(!o)continue;
-    if(RES[o.t]&&o.hp<=0){if(!(o.t==='bush'&&winter)){o.regen-=dt;if(o.regen<=0)o.hp=RES[o.t].hp;}}
+    if(RES[o.t]&&o.hp<=0){if(!(o.t==='bush'&&winter)){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
     else if(o.t==='cultivo'&&o.lv>0&&o.stage<3&&!winter){o.grow+=dt;if(o.grow>=CROP_T){o.stage++;o.grow=0;}}
     if(o.pop>0)o.pop-=dt;}
   updatePlayer(dt);
@@ -932,6 +944,7 @@ function drawEnt(e,frames,kind){
   else if(kind==='v'){
     if(e.sick>0){ctx.fillStyle='#93d36c';ctx.fillRect(px+6,py-9,1,1);ctx.fillRect(px+9,py-10,1,1);ctx.fillRect(px+7,py-12,1,1);}
     else if(e.hungry){ctx.fillStyle='#e8654d';ctx.fillRect(px+8,py-11,1,3);ctx.fillRect(px+8,py-7,1,1);}
+    else if(e.state==='think'){if(Math.sin(st.time*3+e.x*2)>0.2)ctx.drawImage(I.ideas,px+4,py-11);}
     else if(e.carry&&e.kind)ctx.drawImage(I[e.kind],px+4,py-11);
   }else if(e.mode==='charge'){ctx.fillStyle='#e8654d';ctx.fillRect(px+8,py-4,1,3);ctx.fillRect(px+8,py,1,1);}
 }
@@ -1060,7 +1073,7 @@ function renderSheet(){
   if(sheetMode==='tech'){
     $('sheetTitle').textContent='Inventos';$('sheetSub').textContent='Se pagan y después se investigan con ideas. Velocidad: '+fmt(rsSpeed()*60)+' ideas/min';
     let html='';
-    if(st.rs){const t=TECH[st.rs.id];html+='<div class="group">Investigando</div><div class="item active"><h3>'+t.name+'</h3><button class="btn ghost" data-cancel="1">Cancelar</button><div class="pbar"><i style="width:'+(st.rs.p/t.ideas*100)+'%"></i></div><p>'+Math.floor(st.rs.p)+' de '+t.ideas+' ideas. '+(st.res.ideas<1&&ideaRate()<=0?'No estás generando ideas: construí una fogata o seguí juntando recursos.':'Las ideas que generás van entrando solas.')+'</p></div>';}
+    if(st.rs){const t=TECH[st.rs.id];html+='<div class="group">Investigando</div><div class="item active"><h3>'+t.name+'</h3><button class="btn ghost" data-cancel="1">Cancelar</button><div class="pbar"><i style="width:'+(st.rs.p/t.ideas*100)+'%"></i></div><p>'+Math.floor(st.rs.p)+' de '+t.ideas+' ideas. '+(st.res.ideas<1&&ideaRate()<=0?'No estás generando ideas: construí una fogata o seguí juntando recursos.':st.techs.lenguaje&&vil.length&&st.prio!=='ideas'&&agg.maxlv.fogata>0?'Para ir más rápido: en Tribu, poné a los aldeanos en Ideas.':'Las ideas que generás van entrando solas.')+'</p></div>';}
     const avail=TECHS.filter(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r])&&(!st.rs||st.rs.id!==t.id)),locked=TECHS.filter(t=>!st.techs[t.id]&&!t.req.every(r=>st.techs[r])),done=TECHS.filter(t=>st.techs[t.id]);
     const card=t=>{const open=t.req.every(r=>st.techs[r]),isDone=st.techs[t.id],can=open&&!isDone&&!st.rs&&afford(t.cost);
       const right=isDone?'<span class="tag ok">Descubierto</span>':open?'<button class="btn" data-tech="'+t.id+'"'+(can?'':' disabled')+'>'+(st.rs?'Esperá':'Investigar')+'</button>':'<span class="tag">Bloqueado</span>';
@@ -1087,9 +1100,9 @@ function renderSheet(){
       const right=!nx?'<span class="tag ok">Máximo</span>':open?'<button class="btn" data-upg="'+u.id+'"'+(afford(nx.c)?'':' disabled')+'>Hacer</button>':'<span class="tag">Bloqueado</span>';
       return'<div class="item"><h3>'+u.name+': '+cur.n+'</h3>'+right+(u.levels.length>2?lvHTML(lv,u.levels.length-1):'')+'<p>'+u.desc+(nx?' Siguiente: '+nx.n+why+'.':'')+'</p>'+(nx&&open?costHTML(nx.c):'')+'</div>';}).join('');
     html+='<div class="stats"><div class="stat"><b>'+vil.length+'</b><span>aldeanos</span></div><div class="stat"><b>'+room+'</b><span>lugares</span></div><div class="stat"><b class="'+(hungry?'neg':'')+'">'+hungry+'</b><span>con hambre</span></div></div>';
-    const prios=[['auto','Automático'],['obras','Obras'],['madera','Madera'],['piedra','Piedra'],['comida','Comida']].concat(['pedernal','arcilla'].filter(k=>st.found[k]).map(k=>[k,RN[k]]));
+    const prios=[['auto','Automático'],['obras','Obras'],['ideas','Ideas'],['madera','Madera'],['piedra','Piedra'],['comida','Comida']].concat(['pedernal','arcilla'].filter(k=>st.found[k]).map(k=>[k,RN[k]]));
     html+='<div class="group">Qué priorizan</div><div class="seg" role="group" aria-label="Prioridad">'+prios.map(([id,n])=>'<button data-prio="'+id+'" aria-pressed="'+(st.prio===id)+'"'+(st.techs.lenguaje||id==='auto'?'':' disabled')+'>'+(ICON[id]?'<img class="px" alt="" src="'+ICON[id]+'">':'')+n+'</button>').join('')+'</div>';
-    html+='<p class="note">'+(st.techs.lenguaje?'En automático: primero obras, después cosechas y lo que más falta.':'Sin lenguaje no les podés dar órdenes: trabajan en automático.')+' Los aldeanos usan herramientas hasta nivel '+(1+tallerLv())+' (sube con el taller) y nunca mejores que las tuyas. Cada uno come 1 cada '+(winterPenalty()?20:30)+' s; si pasa hambre 3 veces seguidas, se va.</p>';
+    html+='<p class="note">'+(st.techs.lenguaje?'En automático: primero obras, después cosechas y lo que más falta. En Ideas: se sientan junto a una fogata y suman investigación ('+THINK.seats+' por fogata).':'Sin lenguaje no les podés dar órdenes: trabajan en automático.')+' Los aldeanos usan herramientas hasta nivel '+(1+tallerLv())+' (sube con el taller) y nunca mejores que las tuyas. Cada uno come 1 cada '+(winterPenalty()?20:30)+' s; si pasa hambre 3 veces seguidas, se va.</p>';
     if(vil.length)html+='<div class="group">Aldeanos</div><ul class="people">'+vil.map(v=>{const[s,c]=vStatus(v);return'<li><b>'+v.name+'</b><span class="'+c+'">'+s+'</span></li>';}).join('')+'</ul>';
     else html+='<p class="note">'+(st.techs.refugio?'Construí una choza: si hay lugar y al menos 8 de comida, llega gente.':'Todavía estás solo. Con Refugio vas a poder construir chozas.')+'</p>';
     const hk=HITOS.filter(h=>st.hitos[h.id]).length;
@@ -1150,8 +1163,10 @@ function showModal(html,cls){if($('modal').hidden&&!skipPush)navPush();skipPush=
 function hideModal(fromBack){if($('modal').hidden)return;if(!fromBack)navPop();$('modal').hidden=true;paused=false;last=performance.now();}
 const erasHTML=done=>'<div class="eras">'+ERAS.map((e,i)=>'<span class="'+(i<done?'on':'')+'">'+e+'</span>').join('')+'</div>';
 function showIntro(){showModal('<div class="kicker">Era 1 de 10 · 200.000 a.C.</div><h1>Race to AGI</h1><p>Estás solo, con las manos vacías y el invierno va a llegar. Al principio solo podés juntar ramas, piedras sueltas y bayas. Cada herramienta que fabriques abre algo nuevo: árboles, rocas, barro, y del otro lado del río, robles, pedernal y jabalíes. La meta: construir el ábaco.</p>'+erasHTML(0)+'<p class="muted">Tocá para moverte, juntar y construir. Lo que tiene un candado amarillo necesita una herramienta mejor. Los inventos se pagan y después se investigan con ideas. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>','intro');}
-function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+SEASONS[seasonIdx()]+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Candado amarillo: necesitás una herramienta mejor (Tribu). Tocá un edificio terminado para mejorarlo. En invierno no hay bayas y de noche el frío cansa más lejos del fuego. Los jabalíes embisten si no tenés lanza de pedernal.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button><button class="btn ghost" data-m="sound">Sonido: '+(soundOn?'sí':'no')+'</button><button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
-function showWin(){SFX.tech();showModal('<div class="kicker">Mundo abierto · Prehistoria</div><h1>Prehistoria superada</h1><p>Terminaste el ábaco en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+(vil.length===1?' aldeano':' aldeanos')+(st.lost?' (se fueron '+st.lost+' en el camino)':'')+' y '+Object.keys(st.hitos).length+' de '+HITOS.length+' hitos. La humanidad ya puede calcular.</p>'+erasHTML(1)+'<p class="muted">Es un prototipo: no suma al progreso de las eras.</p><div class="row"><button class="btn" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
+function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+SEASONS[seasonIdx()]+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Candado amarillo: necesitás una herramienta mejor (Tribu). Tocá un edificio terminado para mejorarlo. En invierno no hay bayas y de noche el frío cansa más lejos del fuego. Los jabalíes embisten si no tenés lanza de pedernal.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?'<button class="btn ghost" data-m="next">Pasar a la Antigüedad</button>':'')+'<button class="btn ghost" data-m="sound">Sonido: '+(soundOn?'sí':'no')+'</button><button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
+function showWin(){SFX.tech();showModal('<div class="kicker">Mundo abierto · Prehistoria</div><h1>Prehistoria superada</h1><p>Terminaste el ábaco en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+(vil.length===1?' aldeano':' aldeanos')+(st.lost?' (se fueron '+st.lost+' en el camino)':'')+' y '+Object.keys(st.hitos).length+' de '+HITOS.length+' hitos. La humanidad ya puede calcular.</p>'+erasHTML(1)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. Tu tribu, tus ideas y tus inventos clave pasan a la Antigüedad.</p><div class="row"><button class="btn" data-m="next">Pasar a la Antigüedad</button><button class="btn ghost" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
+// La Antigüedad del mundo abierto se carga sobre esta página, como las eras desde el hub.
+function goPage(f){save();window.__rtagiActive='switching';fetch(f).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();}).catch(()=>{window.__rtagiActive=ERA_ID;requestAnimationFrame(frame);toast('No se pudo cargar. Volvé a abrir el juego.','bad');});}
 $('modalCard').addEventListener('click',e=>{
   const ev=e.target.closest('[data-ev]');
   if(ev&&!ev.disabled&&curEvent){const o=curEvent[+ev.dataset.ev];curEvent=null;hideModal();const msg=o.run();toast(msg);st._ev=null;SFX.click();return;}
@@ -1159,6 +1174,7 @@ $('modalCard').addEventListener('click',e=>{
   if(m==='start'){st.seen=true;save();hideModal();}
   else if(m==='close')hideModal();
   else if(m==='sound'){soundOn=!soundOn;try{localStorage.setItem('rtagi-sound',soundOn?'on':'off');}catch(err){}b.textContent='Sonido: '+(soundOn?'sí':'no');}
+  else if(m==='next'){goPage('mundo2.html');return;}
   else if(m==='hub'){save();window.__rtagiActive='switching';location.reload();}
   else if(m==='reset'){if(!resetArmed){resetArmed=true;b.textContent='Tocá de nuevo para borrar la era';b.classList.add('warn');return;}
     try{localStorage.removeItem(KEY);}catch(err){}newGame();closeSheet();stopPlace();showIntro();}
@@ -1178,7 +1194,7 @@ function onTap(tx,ty,wx,wy){
   const vHit=vil.find(v=>Math.round(v.x)===tx&&Math.round(v.y)===ty);
   if(vHit&&(!o||isBridge(o))){toast(vHit.name+': '+vStatus(vHit)[0]);vHit.say={txt:'¡Hola!',t:1.5};return;}
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
-  if(o&&!isBridge(o)){
+  if(o&&!isBridge(o)&&!spent(o)){
     if(BUILD[o.t]&&!canWork(o)&&!(o.t==='cultivo'&&canGather(o,'p'))){
       if(o.t==='cultivo'){toast('El cultivo está creciendo'+(isWinter()?' (en invierno no crece).':': faltan '+Math.ceil((3-o.stage)*CROP_T-o.grow)+' s.'));return;}
       openSheet('bld',ty*MW+tx);return;}
@@ -1190,6 +1206,7 @@ function onTap(tx,ty,wx,wy){
     const p=pathAdj(px,py,tx,ty);if(p)P.path=p;else{P.task=null;toast('No llegás hasta ahí.');}
     return;
   }
+  if(spent(o))toast(o.t==='bush'&&isWinter()?'En invierno no hay bayas.':RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');
   if(!passable(tx,ty)){toast(ground[ty*MW+tx]===WATER?'Eso es agua.'+(st.techs.puentes?' Podés construir un puente.':''):'No se puede pasar.');return;}
   P.act=null;P.task=null;P.hunt=null;const p=bfs(px,py,(x,y)=>x===tx&&y===ty);if(p)P.path=p;else toast('No llegás hasta ahí.'+(tx>riverX[ty]&&!st.techs.puentes?' El río corta el paso.':''));
 }
