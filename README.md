@@ -16,12 +16,19 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI e
 ## Correr
 
 ```bash
-npm install            # solo para los bots (Playwright); el juego no necesita nada
-npm run serve          # arma dist/ y lo sirve en http://localhost:8765
-npm run bot:era2       # un bot juega las 10 misiones de la Antigüedad y reporta tiempos
-npm run sim:carrera    # 40 partidas rival vs rival del prototipo por turnos
+npm install                     # solo para los bots (Playwright); el juego no necesita nada
+npx playwright install chromium # una vez, baja el navegador que usan los bots
+npm run serve                   # arma dist/ y lo sirve en http://localhost:8765
+npm run bot:era2                # un bot juega las 10 misiones de la Antigüedad y reporta tiempos
+npm run sim:carrera             # 40 partidas rival vs rival del prototipo por turnos
 ```
 
+Los bots arman `dist/` y lo sirven solos en un puerto libre; no hace falta tener `npm run serve` corriendo. Al final `bot:era1` y `bot:era2` dicen cuántas misiones ganaron y cuántas quedaron bajo el oro, y salen con error si alguna no. Si ya hay un Chromium instalado y no se puede bajar otro, `PW_CHROMIUM=/ruta/al/chrome npm run bot:era2`.
+
 `index.html` y `arbol.html` están escritos "estilo artifact" (sin `<head>` propio) porque así se publican en Claude; `tools/build.mjs` los envuelve al armar `dist/`. Las eras y `carrera.html` son documentos completos.
+
+## Publicar
+
+`.github/workflows/pages.yml` arma `dist/` en cada push. Desde `main` además lo publica en GitHub Pages: https://yat320.github.io/race-to-agi/ (en Settings → Pages, "Source" tiene que estar en "GitHub Actions"). En las otras ramas solo verifica que el build ande.
 
 Las decisiones de diseño y las reglas que hay que respetar están en `CLAUDE.md`.

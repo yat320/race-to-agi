@@ -1,13 +1,14 @@
-import { chromium } from 'playwright';
+import { serve, launch, verdict } from './harness.mjs';
 const S='./out/';
 const only=process.argv[2]?process.argv[2].split(',').map(Number):null;
-const b = await chromium.launch();
+const srv = await serve(), b = await launch();
 const ctx = await b.newContext({ viewport:{width:400,height:850}, deviceScaleFactor:1, hasTouch:true, isMobile:true });
 const p = await ctx.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push(e.stack));
-await p.goto('http://localhost:8765/era2.html?debug');
+await p.goto(srv.url + '/era2.html?debug');
 await p.evaluate(()=>{localStorage.clear();localStorage.setItem('rtagi-era1-misiones-v1',JSON.stringify({best:{1:3,2:3,3:2,4:2,5:2,6:2,7:2,8:2,9:1,10:1},spent:10,upg:{},built:{}}));localStorage.setItem('rtagi-legacy-v1',JSON.stringify({v:1,eras:{'1':{done:true,dia:10}}}));});
 await p.reload(); await p.waitForTimeout(500);
+const res=[];
 for(let mi=0;mi<10;mi++){
   const r=await p.evaluate(async(mi)=>{
     const M=window.__m;M.startMission(mi);let steps=0;const m=M.G.m;
@@ -55,13 +56,14 @@ for(let mi=0;mi<10;mi++){
       const before={an:g.animals.length,money:g.money};
       for(let k=0;k<5;k++)M.update(0.1);
     }
-    const g=M.G;return {mi:mi+1,won:g.won,t:Math.round(g.t),gold:m.gold,silver:m.silver,money:g.money,an:g.animals.length,orders:g.ordersDone,caught:g.caught,sw:g.swatted,sunk:g.sunk,col:g.collected,store:g.store};
+    const g=M.G;return {mi:mi+1,won:g.won,t:Math.round(g.t),stars:g.t<=m.gold?3:g.t<=m.silver?2:1,gold:m.gold,silver:m.silver,money:g.money,an:g.animals.length,orders:g.ordersDone,caught:g.caught,sw:g.swatted,sunk:g.sunk,col:g.collected,store:g.store};
   },mi);
-  if(!only||only.includes(mi+1))console.log(JSON.stringify(r));
+  res.push(r);if(!only||only.includes(mi+1))console.log(JSON.stringify(r));
   await p.waitForTimeout(600);
   if(mi===9)await p.screenshot({path:S+'e2_win10.png'});
   await p.evaluate(()=>{const b=document.querySelector('[data-a="map"]');if(b)b.click();});await p.waitForTimeout(150);
 }
 await p.screenshot({path:S+'e2_map2.png'});
 console.log('errors',errs.slice(0,3));
-await b.close();
+verdict(res,errs);
+await b.close(); srv.close();

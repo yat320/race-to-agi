@@ -37,12 +37,12 @@ Juego de gestión en pixel art, en español rioplatense (voseo: "tocá", "vendé
 ## Cómo probar
 
 - `npm run serve` y abrir `http://localhost:8765` (en el celular, usar la IP de la PC).
-- Bots en `tools/`: juegan las misiones por código (`?debug` expone `window.__m`) y reportan tiempos. Regla usada para las estrellas: **oro ≈ 2× el tiempo del bot, plata ≈ 3×**. Si cambiás una misión, volvé a correr el bot y ajustá `gold`/`silver`.
+- Bots en `tools/`: juegan las misiones por código (`?debug` expone `window.__m`) y reportan tiempos. Arman `dist/` y lo sirven solos (`tools/harness.mjs`); `bot:era1`/`bot:era2` terminan con un veredicto y salen con código 1 si una misión no se gana, no queda bajo el oro o hay errores de página. Los tiempos varían entre corridas (animales y pedidos son aleatorios): para ajustar estrellas, mirar varias corridas, no una. Sin poder bajar navegadores (nube de Claude): `PW_CHROMIUM=/opt/pw-browsers/chromium`. Regla usada para las estrellas: **oro ≈ 2× el tiempo del bot, plata ≈ 3×**. Si cambiás una misión, volvé a correr el bot y ajustá `gold`/`silver`.
 - `tools/sim-carrera.mjs`: rival vs rival, 40 semillas. Meta: la obra se termina entre el turno 19 y 29 (promedio ~23).
 - Antes de publicar, probar en viewport 400×850 con touch (los scripts usan Playwright con `isMobile:true`).
 
 ## Pendientes conocidos
 
 - Android: la idea original era compilar para Android. Camino sugerido: Capacitor sobre `dist/`. Todavía no se hizo.
-- Hosting: `dist/` es estático; GitHub Pages alcanza. Las versiones publicadas como artifacts de Claude siguen existiendo pero no se actualizan desde acá.
+- Hosting: `.github/workflows/pages.yml` publica `dist/` en GitHub Pages (https://yat320.github.io/race-to-agi/) en cada push a `main`; en otras ramas solo arma. Las versiones publicadas como artifacts de Claude siguen existiendo pero no se actualizan desde acá.
 - `carrera.html`: la IA conoce el mapa entero para moverse (no respeta su niebla). Aceptable para el prototipo.
