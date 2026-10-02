@@ -6,7 +6,7 @@ Juego de gestión en pixel art, en español rioplatense (voseo: "tocá", "vendé
 
 - Lo que funciona y gustó: **misiones cortas con reloj** (`era1.html`, `era2.html`): metas, estrellas por tiempo, amenazas que hay que tocar, mejoras que quedan para siempre, talleres que persisten entre misiones.
 - Lo que se está probando: **carrera por turnos** (`carrera.html`): mapa con niebla, árbol de tecnologías donde cada nodo habilita una acción en el terreno, un rival con las mismas reglas que corre hacia la misma obra, sabotaje en vez de combate. Referencia: Polytopia.
-- Retomado: **mundo abierto** (`mundo.html`, la Prehistoria libre de antes, que vivía en `archive/`): mapa grande para explorar, recursos, aldeanos, inventos y el ábaco como obra final. Es un prototipo aislado: guarda en su propia clave y no escribe el legado de las eras.
+- Retomado: **mundo abierto** (`mundo.html`, la Prehistoria libre de antes, que vivía en `archive/`): mapa grande para explorar, recursos, aldeanos, inventos y el ábaco como obra final. Es un prototipo aislado: guarda en su propia clave y no escribe el legado de las eras. Con Lenguaje, la prioridad "Ideas" manda a los aldeanos a pensar junto a una fogata (hasta 4 por fogata; cada uno suma ideas y velocidad de investigación, `THINK`): se investiga más rápido a cambio de juntar menos.
 - Decisión pendiente: si el juego final es por misiones, por turnos, mundo abierto o un híbrido. Primero se prueban mecánicas; la historia y los nombres históricos son piel, van después.
 
 ## Reglas de diseño (vienen del feedback de Juani, no cambiarlas sin preguntar)
