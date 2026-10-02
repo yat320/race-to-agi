@@ -411,7 +411,11 @@ function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serial
 const seasonIdx=()=>Math.floor(st.time/SEASON)%4;
 const isWinter=()=>seasonIdx()===3;
 const isBridge=o=>o&&o.t==='puente'&&o.lv>0;
-const passable=(x,y)=>{if(!inb(x,y))return false;const o=obj[y*MW+x];if(isBridge(o))return true;return ground[y*MW+x]!==WATER&&!o;};
+// Los recursos agotados (tocón, escombros, barro, arbusto sin bayas) se pueden pisar.
+const spent=o=>!!(o&&RES[o.t]&&o.hp<=0);
+const passable=(x,y)=>{if(!inb(x,y))return false;const o=obj[y*MW+x];if(isBridge(o))return true;return ground[y*MW+x]!==WATER&&(!o||spent(o));};
+// Alguien parado en el casillero: ahí un recurso no vuelve a crecer hasta que quede libre.
+const occupied=(x,y)=>{const on=e=>Math.round(e.x)===x&&Math.round(e.y)===y;return on(P)||vil.some(on)||anim.some(on);};
 const bushOk=o=>!(o.t==='bush'&&isWinter());
 const tallerLv=()=>agg.maxlv.taller||0;
 const vTier=tool=>tool?Math.min(st.upg[tool],1+tallerLv()):0;
@@ -684,7 +688,7 @@ function update(dt){
   if(st.party>0)st.party-=dt;
   if(homeWithRoom()){if(st.arrive<=0)st.arrive=40;st.arrive-=dt;if(st.arrive<=0){if(st.res.comida>=8){arriveVillager();st.arrive=40;}else st.arrive=10;}}
   for(let i=0;i<obj.length;i++){const o=obj[i];if(!o)continue;
-    if(RES[o.t]&&o.hp<=0){if(!(o.t==='bush'&&winter)){o.regen-=dt;if(o.regen<=0)o.hp=RES[o.t].hp;}}
+    if(RES[o.t]&&o.hp<=0){if(!(o.t==='bush'&&winter)){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
     else if(o.t==='cultivo'&&o.lv>0&&o.stage<3&&!winter){o.grow+=dt;if(o.grow>=CROP_T){o.stage++;o.grow=0;}}
     if(o.pop>0)o.pop-=dt;}
   updatePlayer(dt);
@@ -1187,7 +1191,7 @@ function onTap(tx,ty,wx,wy){
   const vHit=vil.find(v=>Math.round(v.x)===tx&&Math.round(v.y)===ty);
   if(vHit&&(!o||isBridge(o))){toast(vHit.name+': '+vStatus(vHit)[0]);vHit.say={txt:'¡Hola!',t:1.5};return;}
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
-  if(o&&!isBridge(o)){
+  if(o&&!isBridge(o)&&!spent(o)){
     if(BUILD[o.t]&&!canWork(o)&&!(o.t==='cultivo'&&canGather(o,'p'))){
       if(o.t==='cultivo'){toast('El cultivo está creciendo'+(isWinter()?' (en invierno no crece).':': faltan '+Math.ceil((3-o.stage)*CROP_T-o.grow)+' s.'));return;}
       openSheet('bld',ty*MW+tx);return;}
@@ -1199,6 +1203,7 @@ function onTap(tx,ty,wx,wy){
     const p=pathAdj(px,py,tx,ty);if(p)P.path=p;else{P.task=null;toast('No llegás hasta ahí.');}
     return;
   }
+  if(spent(o))toast(o.t==='bush'&&isWinter()?'En invierno no hay bayas.':RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');
   if(!passable(tx,ty)){toast(ground[ty*MW+tx]===WATER?'Eso es agua.'+(st.techs.puentes?' Podés construir un puente.':''):'No se puede pasar.');return;}
   P.act=null;P.task=null;P.hunt=null;const p=bfs(px,py,(x,y)=>x===tx&&y===ty);if(p)P.path=p;else toast('No llegás hasta ahí.'+(tx>riverX[ty]&&!st.techs.puentes?' El río corta el paso.':''));
 }
