@@ -54,9 +54,9 @@ for(let mi=0;mi<10;mi++){
         let sz=0;for(const k in g.ship.load){while(g.ship.load[k]>0&&sz+g.ship.load[k]*(SIZE[k]||1)>10)g.ship.load[k]--;sz+=g.ship.load[k]*(SIZE[k]||1);}
         M.sendShip();}
       const before={an:g.animals.length,money:g.money};
-      for(let k=0;k<5;k++)M.update(0.1);
+      for(let k=0;k<5&&!M.G.won;k++)M.update(0.1);
     }
-    const g=M.G;return {mi:mi+1,won:g.won,t:Math.round(g.t),stars:g.t<=m.gold?3:g.t<=m.silver?2:1,gold:m.gold,silver:m.silver,money:g.money,an:g.animals.length,orders:g.ordersDone,caught:g.caught,sw:g.swatted,sunk:g.sunk,col:g.collected,store:g.store};
+    const g=M.G;return {mi:mi+1,won:g.won,t:Math.round(g.t*10)/10,stars:g.t<=m.gold?3:g.t<=m.silver?2:1,gold:m.gold,silver:m.silver,money:g.money,an:g.animals.length,orders:g.ordersDone,caught:g.caught,sw:g.swatted,sunk:g.sunk,col:g.collected,store:g.store};
   },mi);
   res.push(r);if(!only||only.includes(mi+1))console.log(JSON.stringify(r));
   await p.waitForTimeout(600);
