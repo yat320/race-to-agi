@@ -27,6 +27,8 @@ Juego de gestión en pixel art, en español rioplatense (voseo: "tocá", "vendé
 - Botón atrás: una sola entrada de historial mientras haya algo abierto (`syncNav()` coalescido con `setTimeout 0` + handler de `popstate`). Guardia de 450 ms contra el "ghost tap" que cerraba hojas recién abiertas.
 - `requestAnimationFrame`: `dt = clamp((now-last)/1000, 0, 0.1)`. Sin el clamp hubo un freeze por dt negativo.
 - Pantalla de misión: HUD arriba (nombre, reloj, monedas, barras oro/plata, metas), escena fija en canvas, barra de compra abajo. Hojas (sheet) para comercio y mejoras; modales para briefing, pausa y resultado.
+- Ambiente de las misiones (`drawDeco`, `drawClouds`, `drawSmoke`, `pop`, `drawDayLight`): solo dibujo, no tocan el estado del juego. Matas y flores que se mecen, sombras de nubes, humo en talleres que cocinan, destello al juntar, monedas al vender. La luz se entibia al pasar el tiempo del oro y atardece al pasar el de la plata.
+- Carrera: cámara con zoom (`SC = FIT × ZM`, `ZM` de 1 a 3) y centro `CX,CY` en coordenadas del mundo. Un dedo arrastra; dos dedos o la rueda acercan; botones +/− (el + centra lo seleccionado o la capital). Tocar selecciona al soltar, solo si no hubo arrastre.
 
 ### localStorage (compartido entre páginas, no renombrar sin migrar)
 
