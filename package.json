@@ -6,9 +6,9 @@
   "scripts": {
     "build": "node tools/build.mjs",
     "serve": "npm run build && python3 -m http.server 8765 --directory dist",
-    "bot:era1": "mkdir -p out && node tools/bot-era1.mjs",
-    "bot:era2": "mkdir -p out && node tools/bot-era2.mjs",
-    "sim:carrera": "mkdir -p out && node tools/sim-carrera.mjs"
+    "bot:era1": "npm run build && mkdir -p out && node tools/bot-era1.mjs",
+    "bot:era2": "npm run build && mkdir -p out && node tools/bot-era2.mjs",
+    "sim:carrera": "npm run build && mkdir -p out && node tools/sim-carrera.mjs"
   },
   "devDependencies": {
     "playwright": "^1.50.0"

@@ -1,10 +1,10 @@
-import { chromium } from 'playwright';
+import { serve, launch } from './harness.mjs';
 const S='./out/';
-const b = await chromium.launch();
+const srv = await serve(), b = await launch();
 const ctx = await b.newContext({ viewport:{width:400,height:850}, deviceScaleFactor:2, hasTouch:true, isMobile:true });
 const p = await ctx.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push(e.stack)); p.on('console',m=>{if(m.type()==='error'&&!/ERR_TUNNEL|fonts|net::/.test(m.text()))errs.push(m.text());});
-await p.goto('http://localhost:8765/carrera.html?debug'); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(500);
+await p.goto(srv.url + '/carrera.html?debug'); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(500);
 await p.screenshot({path:S+'car_intro.png'});
 // sims
 const res=await p.evaluate(()=>{const out=[];for(let s=1;s<=40;s++){try{out.push(window.__m.sim(s*7919));}catch(e){out.push({err:e.message+' '+e.stack.split('\n')[1]});}}return out;});
@@ -15,4 +15,4 @@ console.log('games',ok.length,'avg turn',avg(turns),'min',Math.min(...turns),'ma
 console.log('avg cities',avg(ok.map(r=>r.c0)),avg(ok.map(r=>r.c1)),'avg techs',avg(ok.map(r=>r.t0)),avg(ok.map(r=>r.t1)));
 console.log(JSON.stringify(ok.slice(0,6)));
 console.log('errors',errs.slice(0,3));
-await b.close();
+await b.close(); srv.close();

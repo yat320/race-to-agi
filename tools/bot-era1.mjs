@@ -1,9 +1,9 @@
-import { chromium } from 'playwright';
-const b = await chromium.launch();
+import { serve, launch, verdict } from './harness.mjs';
+const srv = await serve(), b = await launch();
 const ctx = await b.newContext({ viewport:{width:400,height:850}, deviceScaleFactor:2, hasTouch:true, isMobile:true });
 const p = await ctx.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push(e.stack));
-await p.goto('http://localhost:8765/era1.html?debug'); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(500);
+await p.goto(srv.url + '/era1.html?debug'); await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(500);
 const res=[];
 for(let mi=0;mi<10;mi++){
   const r=await p.evaluate(async(mi)=>{
@@ -30,9 +30,9 @@ for(let mi=0;mi<10;mi++){
           if(m.orders&&!m.abaco)keep=Math.min(n,2);if(n-keep>0)g.caravan.load[k]=n-keep;}
         let sz=0;for(const k in g.caravan.load){while(g.caravan.load[k]>0&&sz+g.caravan.load[k]*({lobo:3,marfil:2}[k]||1)>10)g.caravan.load[k]--;sz+=g.caravan.load[k]*({lobo:3,marfil:2}[k]||1);}
         M.sendCaravan();}
-      for(let k=0;k<5;k++)M.update(0.1);
+      for(let k=0;k<5&&!M.G.won;k++)M.update(0.1);
     }
-    const g=M.G;return {mi:mi+1,won:g.won,t:Math.round(g.t),gold:m.gold,silver:m.silver,money:g.money,an:g.animals.length,orders:g.ordersDone,caught:g.caught,col:g.collected};
+    const g=M.G;return {mi:mi+1,won:g.won,t:Math.round(g.t*10)/10,stars:g.t<=m.gold?3:g.t<=m.silver?2:1,gold:m.gold,silver:m.silver,money:g.money,an:g.animals.length,orders:g.ordersDone,caught:g.caught,col:g.collected};
   },mi);
   res.push(r);console.log(JSON.stringify(r));
   await p.waitForTimeout(700);
@@ -41,4 +41,5 @@ for(let mi=0;mi<10;mi++){
 }
 await p.screenshot({path:'./out/mm_map.png'});
 console.log('errors',errs.slice(0,3));
-await b.close();
+verdict(res,errs);
+await b.close(); srv.close();
