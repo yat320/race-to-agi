@@ -1,0 +1,341 @@
+<title>Árbol de progreso</title>
+<meta name="description" content="Prototipo del árbol de tecnologías de Race to AGI: 10 eras, caminos alternativos y pasos que se pueden saltar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700&family=Pixelify+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: cabecera corta · fila de eras (scroll horizontal) · resumen de la era · árbol por columnas (scroll horizontal) · panel del nodo pegado abajo · leyenda */
+:root{
+  --bg:#15131b; --panel:#201d27; --panel-2:#2a2632; --line:#3e3848; --line-2:#56506a;
+  --fg:#f0e7d4; --muted:#a99f91; --ochre:#dd9c40; --signal:#5fe3d0; --danger:#e8654d; --ok:#93d36c; --gold:#ffd35a; --ink:#1b140a;
+  --f-display:"Pixelify Sans","Courier New",monospace;
+  --f-body:"Chivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#efe9dc;--panel:#faf6ee;--panel-2:#e8e0cf;--line:#cfc4ad;--line-2:#a99d85;--fg:#1b140a;--muted:#6d6456;--ochre:#a8661a;--signal:#0f8a7a;--danger:#c0432c;--ok:#3e7f2a;--gold:#9c7a00;--ink:#faf6ee;color-scheme:light}}
+:root[data-theme="light"]{--bg:#efe9dc;--panel:#faf6ee;--panel-2:#e8e0cf;--line:#cfc4ad;--line-2:#a99d85;--fg:#1b140a;--muted:#6d6456;--ochre:#a8661a;--signal:#0f8a7a;--danger:#c0432c;--ok:#3e7f2a;--gold:#9c7a00;--ink:#faf6ee;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 var(--f-body)}
+.wrap{max-width:920px;margin:0 auto;padding-inline:16px}
+header.top{padding-block:22px 10px}
+.kicker{font:600 12px var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--ochre)}
+h1{margin:2px 0 6px;font:700 clamp(30px,8vw,44px)/1 var(--f-display);color:var(--signal);text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:60ch}
+.eras{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.eras::-webkit-scrollbar{height:0}
+.chip{flex:none;scroll-snap-align:start;display:grid;gap:2px;min-width:118px;text-align:left;background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:8px 10px;cursor:pointer;font-family:var(--f-body)}
+.chip .n{font:700 16px var(--f-display);color:var(--muted);font-variant-numeric:tabular-nums}
+.chip .nm{font:600 13px var(--f-display);white-space:nowrap}
+.chip .pr{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip.sel{border-color:var(--signal);background:var(--panel-2)}
+.chip.sel .n{color:var(--signal)}
+.chip.done .n{color:var(--gold)}
+.chip.done .pr{color:var(--gold)}
+button:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.sum{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;padding:4px 16px 10px;font-size:13px;color:var(--muted)}
+.sum b{font:700 16px var(--f-display);color:var(--fg);font-variant-numeric:tabular-nums}
+.sum .obra b{color:var(--gold)}
+.sum .era-nm{font:600 15px var(--f-display);color:var(--ochre)}
+.treewrap{position:relative;overflow-x:auto;overflow-y:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--panel);touch-action:pan-x pan-y}
+.tree{position:relative}
+.tree svg{position:absolute;inset:0;overflow:visible}
+.tree path{fill:none;stroke:var(--line-2);stroke-width:2}
+.tree path.or{stroke-dasharray:5 4}
+.tree path.half{stroke:var(--muted)}
+.tree path.on{stroke:var(--signal)}
+.node{position:absolute;width:150px;height:58px;display:grid;align-content:center;gap:2px;padding:5px 9px 5px 12px;text-align:left;background:var(--panel-2);color:var(--fg);border:1px solid var(--line-2);border-left-width:4px;cursor:pointer;font-family:var(--f-body)}
+.node .nm{font:600 13px/1.05 var(--f-display);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.node .meta{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node.cat-base{border-left-color:var(--ok)}
+.node.cat-prod{border-left-color:var(--ochre)}
+.node.cat-saber{border-left-color:var(--signal)}
+.node.cat-def{border-left-color:var(--danger)}
+.node.cat-obra{border-left-color:var(--gold);border-color:var(--gold)}
+.node.st-locked{opacity:.6;border-style:dashed;border-left-style:solid}
+.node.st-open{opacity:1}
+.node.st-open .meta{color:var(--fg)}
+.node.st-on{background:var(--panel);border-color:var(--signal);opacity:1}
+.node.st-on .meta{color:var(--signal)}
+.node.cat-obra.st-on{border-color:var(--gold);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 35%,transparent)}
+.node.cat-obra.st-on .meta{color:var(--gold)}
+.node.sel{outline:2px solid var(--signal);outline-offset:1px}
+.node.bonus .nm::after{content:"·";color:var(--muted);margin-left:4px}
+.panel{position:sticky;bottom:0;background:var(--panel);border-top:2px solid var(--ochre);padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 30px color-mix(in srgb,var(--bg) 70%,transparent)}
+.panel .in{max-width:920px;margin:0 auto;display:grid;gap:8px}
+.panel h2{margin:0;font:700 20px var(--f-display);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.panel h2 small{font:600 11px var(--f-display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.panel p{margin:0}
+.panel .muted{color:var(--muted);font-size:13px}
+.req{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}
+.req span{background:var(--panel-2);border:1px solid var(--line);padding:2px 8px}
+.req span.ok{color:var(--ok);border-color:var(--ok)}
+.req span.alt{border-style:dashed}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:600 14px var(--f-display);background:var(--ochre);color:var(--ink);border:0;border-bottom:3px solid color-mix(in srgb,var(--ochre) 60%,black);padding:8px 14px 6px;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid var(--line-2);color:var(--fg)}
+.btn:disabled{opacity:.45;cursor:default}
+.legend{padding-block:16px 28px;display:grid;gap:10px;font-size:13px;color:var(--muted)}
+.legend .row{display:flex;flex-wrap:wrap;gap:8px 16px}
+.legend i{display:inline-block;width:12px;height:12px;vertical-align:-2px;margin-right:5px;border-left:4px solid var(--ok);background:var(--panel-2);border-top:1px solid var(--line-2);border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+.legend i.prod{border-left-color:var(--ochre)}.legend i.saber{border-left-color:var(--signal)}.legend i.def{border-left-color:var(--danger)}.legend i.obra{border-left-color:var(--gold);border-color:var(--gold)}
+.legend .ln{display:inline-block;width:26px;border-top:2px solid var(--line-2);vertical-align:3px;margin-right:5px}
+.legend .ln.or{border-top-style:dashed}
+.legend .acts{margin-top:4px}
+.note{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="kicker">Race to AGI · prototipo de diseño</div>
+  <h1>Árbol de progreso</h1>
+  <p class="lede">Tocá un nodo para investigarlo. Las líneas punteadas son alternativas: con una alcanza. Cualquier paso que no sea la obra se puede saltar pagando el doble de ideas.</p>
+</div></header>
+<nav class="eras" id="eras" aria-label="Eras"></nav>
+<div class="sum" id="sum"></div>
+<div class="treewrap" id="treewrap"><div class="tree" id="tree"><svg id="edges" aria-hidden="true"></svg><div id="nodes"></div></div></div>
+<aside class="panel" id="panel" aria-live="polite"><div class="in" id="panelIn"></div></aside>
+<footer class="wrap legend">
+  <div class="row"><span><i></i>Recurso base</span><span><i class="prod"></i>Producción</span><span><i class="saber"></i>Conocimiento</span><span><i class="def"></i>Defensa</span><span><i class="obra"></i>Obra de la era</span></div>
+  <div class="row"><span><span class="ln"></span>Necesario</span><span><span class="ln or"></span>Alternativa: con una alcanza</span><span>Nombre con <b>·</b> = bonus, no hace falta para la obra</span></div>
+  <p class="note">Legado: algunos nodos cuestan 1 idea menos si tenés cierto nodo de una era anterior. Los costos son de prototipo, para comparar caminos. La era 10 es inventada.</p>
+  <div class="acts"><button class="btn ghost" id="resetEra">Reiniciar esta era</button><button class="btn ghost" id="resetAll">Reiniciar todo</button><span class="note" id="resetMsg"></span></div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+/* nodo: [id, nombre, categoría, costo, requisitos "a|b & c", descripción, extra] */
+const ERAS=[
+{n:1,name:'Prehistoria',when:'200.000 – 3.000 a.C.',obra:'abaco',nodes:[
+ ['fuego','Fuego','base',1,'','Cocinar, calentarse y espantar lobos.'],
+ ['piedra','Herramientas de piedra','base',1,'','Cortar, raspar, cavar.'],
+ ['recol','Recolección','base',1,'','Frutos, raíces, huevos.'],
+ ['lanza','Lanza','def',2,'piedra','Cazar y defenderse de los lobos.'],
+ ['pesca','Pesca','prod',2,'piedra','Comida sin perseguir a nadie.'],
+ ['caza','Caza','prod',2,'lanza','Carne, pieles y marfil.'],
+ ['agri','Agricultura','prod',3,'recol','Sembrar en vez de buscar.'],
+ ['pastoreo','Pastoreo','prod',3,'caza','Domesticar en vez de cazar.'],
+ ['ceramica','Cerámica','prod',2,'fuego','Vasijas: la cueva guarda más.'],
+ ['pinturas','Pinturas rupestres','saber',2,'fuego','Las primeras ideas que quedan guardadas.'],
+ ['rueda','Rueda','prod',3,'piedra & agri|pastoreo','Mover más con menos.'],
+ ['abaco','Ábaco','obra',6,'pinturas & agri|pastoreo','Contar con piedritas: el primer cálculo.']]},
+{n:2,name:'Antigüedad',when:'3.000 a.C. – 476',obra:'anticitera',nodes:[
+ ['trigo','Campos de trigo','base',1,'','Sembrar con agua, cosechar a tiempo.'],
+ ['ganado','Ganado','base',1,'','Gallinas, ovejas y vacas.'],
+ ['mineria','Minería','base',2,'','Cobre y estaño de la montaña.'],
+ ['puerto','Puerto','base',2,'','Vender lejos y comprar lo que no producís.'],
+ ['molino','Molino','prod',2,'trigo','Trigo → harina.'],
+ ['pan','Horno de pan','prod',2,'molino|puerto','Harina → pan. La harina también se compra en el puerto.'],
+ ['telar','Telar','prod',2,'ganado','Lana → tela.'],
+ ['queseria','Quesería','prod',2,'ganado','Leche → queso.'],
+ ['moneda','Moneda','saber',3,'puerto','Los pedidos de otras ciudades pagan el doble.'],
+ ['guardia','Guardia','def',2,'moneda','Zorros, langostas y piratas caen más rápido.'],
+ ['bronce','Fundición de bronce','prod',3,'mineria|puerto','Cobre + estaño → bronce.'],
+ ['escritura','Escritura','saber',3,'molino|moneda','Nació para anotar cuánto grano había.'],
+ ['astronomia','Astronomía','saber',4,'escritura','Predecir eclipses y estaciones.'],
+ ['engranajes','Engranajes','prod',4,'bronce','Ruedas dentadas que transmiten movimiento.',{leg:'rueda'}],
+ ['anticitera','Mecanismo de Anticitera','obra',8,'engranajes & astronomia','La primera computadora: calcula el cielo.']]},
+{n:3,name:'Edad Media',when:'476 – 1453',obra:'imprenta',nodes:[
+ ['arado','Arado pesado','base',1,'','Las tierras duras del norte, por fin cultivables.'],
+ ['molino_agua','Molino de agua','base',2,'','Energía sin brazos.'],
+ ['monasterio','Monasterio','base',2,'','Copistas: los libros se copian a mano.'],
+ ['ruta_seda','Ruta de la seda','base',2,'','Papel, pólvora y brújula llegan de China.'],
+ ['rotacion','Rotación de cultivos','prod',2,'arado','Tres campos, uno descansa: más comida.'],
+ ['castillo','Castillo','def',3,'rotacion|molino_agua','Resistir asedios y vikingos.'],
+ ['gremios','Gremios','saber',2,'molino_agua|rotacion','Oficios que se enseñan y se guardan.'],
+ ['papel','Papel','prod',3,'molino_agua|ruta_seda','Más barato que el pergamino.'],
+ ['universidad','Universidad','saber',4,'monasterio','Bolonia, París, Oxford: ideas que se discuten.'],
+ ['polvora','Pólvora','def',3,'ruta_seda','Cañones: los castillos dejan de servir.'],
+ ['tipos','Tipos móviles','prod',4,'gremios & papel','Letras de metal que se reordenan.',{leg:'engranajes'}],
+ ['imprenta','Imprenta','obra',8,'tipos & universidad|monasterio','Gutenberg, 1450: el saber se copia solo.']]},
+{n:4,name:'Renacimiento',when:'1453 – 1760',obra:'pascalina',nodes:[
+ ['vidrio','Vidrio y lentes','base',2,'','Anteojos, espejos y, pronto, telescopios.'],
+ ['banca','Banca','base',2,'','Letras de cambio: el dinero viaja sin viajar.'],
+ ['carabela','Carabela','base',3,'','Un barco que aguanta el océano.'],
+ ['relojeria','Relojería','prod',3,'','Engranajes finos y resortes.',{leg:'engranajes'}],
+ ['navegacion','Navegación','saber',3,'carabela','Brújula y astrolabio: saber dónde estás.'],
+ ['america','Nuevo Mundo','prod',4,'navegacion','Plata, papa y maíz.'],
+ ['telescopio','Telescopio','saber',4,'vidrio','Galileo mira las lunas de Júpiter.'],
+ ['metodo','Método científico','saber',4,'telescopio','Medir, probar, publicar.'],
+ ['academia','Academias científicas','saber',3,'metodo','Royal Society: las ideas se revisan entre pares.'],
+ ['algebra','Álgebra y logaritmos','saber',3,'banca|metodo','Napier: multiplicar sumando.'],
+ ['pascalina','Pascalina','obra',8,'relojeria & algebra','Pascal, 1642: una máquina que suma sola.']]},
+{n:5,name:'Revolución Industrial',when:'1760 – 1880',obra:'babbage',nodes:[
+ ['carbon','Minas de carbón','base',2,'','Energía negra bajo tierra.'],
+ ['escuela','Escuela pública','base',3,'','Más gente que lee: más ideas.'],
+ ['hierro','Fundición de hierro','prod',3,'carbon','Coque en vez de leña: hierro barato.'],
+ ['vapor','Máquina de vapor','prod',4,'carbon','Watt: fuerza que no se cansa.'],
+ ['fabrica','Fábrica textil','prod',3,'vapor','Hilar y tejer a escala.',{leg:'telar'}],
+ ['jacquard','Telar de Jacquard','prod',3,'fabrica|hierro','Tarjetas perforadas: el primer programa.',{leg:'telar'}],
+ ['ferrocarril','Ferrocarril','prod',4,'vapor & hierro','Todo llega más lejos y más rápido.'],
+ ['telegrafo','Telégrafo','saber',3,'hierro','Mensajes a la velocidad de la electricidad.'],
+ ['boole','Lógica de Boole','saber',4,'escuela','Verdadero y falso, con álgebra.',{leg:'metodo'}],
+ ['babbage','Máquina analítica','obra',8,'jacquard & vapor','Babbage y Lovelace, 1837: programable, a vapor.']]},
+{n:6,name:'Electricidad',when:'1880 – 1940',obra:'turing',nodes:[
+ ['dinamo','Dínamo','base',3,'','Electricidad para toda la ciudad.'],
+ ['logica','Lógica matemática','base',4,'','Hilbert y Gödel: ¿qué se puede calcular?',{leg:'boole'}],
+ ['bombilla','Bombilla','prod',2,'dinamo','Trabajar de noche.'],
+ ['telefono','Teléfono','saber',3,'dinamo','Hablar a distancia.'],
+ ['motor','Motor eléctrico','prod',3,'dinamo','Línea de montaje.'],
+ ['valvula','Válvula de vacío','prod',3,'bombilla','El primer interruptor electrónico.'],
+ ['rele','Relé','prod',2,'telefono','Un interruptor que controla otro.'],
+ ['radio','Radio','saber',3,'valvula','Ideas en el aire.'],
+ ['hollerith','Tabuladora de Hollerith','prod',4,'dinamo','Tarjetas perforadas que cuentan un censo.',{leg:'jacquard'}],
+ ['turing','Máquina de Turing','obra',8,'logica & valvula|rele','Turing, 1936: la idea de una máquina universal.']]},
+{n:7,name:'Computación',when:'1940 – 1990',obra:'pc',nodes:[
+ ['eniac','ENIAC','base',3,'','18.000 válvulas, una habitación entera.',{leg:'valvula'}],
+ ['transistor','Transistor','base',4,'','Chico, frío y barato.'],
+ ['lenguaje','Lenguajes de programación','saber',3,'eniac|transistor','FORTRAN, COBOL: hablarle a la máquina.'],
+ ['chip','Circuito integrado','prod',4,'transistor','Muchos transistores en una oblea.'],
+ ['so','Sistema operativo','saber',3,'lenguaje','UNIX: la máquina se administra sola.'],
+ ['ia1','IA simbólica','saber',3,'lenguaje','Dartmouth, 1956: el primer intento.',{leg:'logica'}],
+ ['micro','Microprocesador','prod',5,'chip','Una computadora en un chip.'],
+ ['juegos','Videojuegos','prod',2,'chip','Pong: computadoras para la gente común.'],
+ ['arpanet','ARPANET','saber',4,'so','Computadoras que se hablan.'],
+ ['pc','Computadora personal','obra',8,'micro & so','1977: una en cada escritorio.']]},
+{n:8,name:'Internet',when:'1990 – 2015',obra:'smartphone',nodes:[
+ ['web','World Wide Web','base',3,'','Páginas enlazadas: Berners-Lee, 1991.',{leg:'arpanet'}],
+ ['fibra','Fibra óptica','base',3,'','Luz en vez de cobre.'],
+ ['libre','Software libre','base',3,'','Linux: código que todos pueden usar.',{leg:'so'}],
+ ['gpu','GPU','prod',4,'','Chips de gráficos que multiplican matrices.',{leg:'juegos'}],
+ ['navegador','Navegador','prod',2,'web','Clic y aparece.'],
+ ['buscador','Buscador','saber',3,'navegador','Encontrar algo entre millones de páginas.'],
+ ['wifi','Wi-Fi y 3G','prod',3,'fibra','Internet sin cable.'],
+ ['tienda','Comercio electrónico','prod',3,'navegador','Comprar sin salir.',{leg:'moneda'}],
+ ['nube','La nube','prod',4,'fibra & libre|tienda','Miles de servidores alquilados por hora.'],
+ ['redes','Redes sociales','saber',2,'buscador|wifi','Datos de millones de personas.'],
+ ['smartphone','Smartphone','obra',8,'wifi & buscador|redes','2007: internet en el bolsillo.']]},
+{n:9,name:'Inteligencia artificial',when:'2015 – 2030',obra:'asistente',nodes:[
+ ['datos','Datos a escala','base',3,'','Todo lo que la gente escribió, fotografió y dijo.',{leg:'buscador'}],
+ ['cluster','Clúster de GPUs','base',4,'','Miles de chips entrenando juntos.',{leg:'gpu'}],
+ ['deep','Deep learning','saber',4,'datos','Redes profundas que aprenden solas.'],
+ ['vision','Visión por computadora','prod',3,'deep','Reconocer caras, tumores, peatones.'],
+ ['rl','Aprendizaje por refuerzo','saber',4,'deep & cluster','AlphaGo: aprender jugando contra sí mismo.'],
+ ['transformer','Transformer','saber',5,'deep','Atención: entender el contexto.'],
+ ['llm','Modelo de lenguaje','prod',6,'transformer & cluster','Predecir la próxima palabra, a escala.',{leg:'nube'}],
+ ['agentes','Agentes','prod',4,'llm','Herramientas, memoria y pasos.'],
+ ['alineacion','Alineación','def',4,'llm|rl','Que haga lo que querés que haga.'],
+ ['asistente','Asistente que razona','obra',8,'agentes & alineacion','Piensa antes de responder.']]},
+{n:10,name:'AGI',when:'¿?',obra:'agi',nodes:[
+ ['energia','Energía abundante','base',5,'','Solar y fusión: computar sin límite.'],
+ ['chips','Chips para IA','base',5,'','Hardware hecho solo para redes.',{leg:'cluster'}],
+ ['memoria','Memoria continua','saber',4,'','Recordar todo, siempre.',{leg:'agentes'}],
+ ['gobernanza','Gobernanza','def',4,'','Reglas antes que poder.',{leg:'alineacion'}],
+ ['robotica','Robótica general','prod',5,'chips','Manos para las ideas.'],
+ ['auto','IA que investiga IA','saber',6,'memoria & chips|energia','El ciclo se acelera.'],
+ ['ciencia','Ciencia automática','saber',5,'auto','Descubrimientos sin pedir permiso.'],
+ ['agi','AGI','obra',10,'auto & ciencia|robotica & gobernanza','La carrera termina. O empieza otra.']]}];
+const CAT={base:'Recurso base',prod:'Producción',saber:'Conocimiento',def:'Defensa',obra:'Obra de la era'};
+const N={};
+ERAS.forEach(e=>{e.nodes=e.nodes.map(r=>{const n={id:r[0],name:r[1],cat:r[2],cost:r[3],req:r[4]?r[4].split('&').map(g=>g.trim().split('|').map(s=>s.trim())):[],desc:r[5],era:e,leg:(r[6]&&r[6].leg)||null};N[n.id]=n;return n;});});
+
+/* estado */
+const KEY='rtagi-arbol-v1';
+let st={u:{},s:{},p:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.u)st=Object.assign(st,s);}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}};
+const on=id=>!!st.u[id];
+const groupOk=g=>g.some(on);
+const canUnlock=n=>n.req.every(groupOk);
+const costOf=n=>Math.max(1,n.cost-(n.leg&&on(n.leg)?1:0));
+const spentEra=e=>e.nodes.reduce((a,n)=>a+(st.p[n.id]||0),0);
+const spentAll=()=>Object.values(st.p).reduce((a,b)=>a+b,0);
+const dependents=n=>Object.values(N).filter(m=>on(m.id)&&m.req.some(g=>g.includes(n.id)));
+
+/* caminos mínimos: enumera cada elección "o" dentro de la era */
+function paths(e){
+  const groups=[];e.nodes.forEach(n=>n.req.forEach(g=>{if(g.length>1)groups.push({n,g});}));
+  const total=1<<groups.length,seen=new Map();
+  for(let mask=0;mask<total;mask++){
+    const choice={};groups.forEach((gr,i)=>{choice[gr.n.id+':'+gr.g.join('|')]=gr.g[(mask>>i)&1];});
+    const need=new Set(),stack=[e.obra];
+    while(stack.length){const id=stack.pop();if(need.has(id))continue;need.add(id);for(const g of N[id].req)stack.push(g.length===1?g[0]:choice[id+':'+g.join('|')]);}
+    const key=[...need].sort().join(',');if(!seen.has(key))seen.set(key,[...need].reduce((a,id)=>a+N[id].cost,0));
+  }
+  const costs=[...seen.values()];const union=new Set();for(const k of seen.keys())k.split(',').forEach(id=>union.add(id));
+  return{min:Math.min(...costs),count:seen.size,union};
+}
+ERAS.forEach(e=>{e.paths=paths(e);});
+
+/* layout por columnas */
+const NW=150,NH=58,COLW=186,ROWH=70,PAD=16;
+const ideas=n=>n+(n===1?' idea':' ideas');
+function layout(e){
+  const tier={};const t=n=>{if(tier[n.id]!=null)return tier[n.id];let v=0;n.req.forEach(g=>g.forEach(a=>{v=Math.max(v,t(N[a])+1);}));tier[n.id]=v;return v;};
+  e.nodes.forEach(t);
+  const cols=[];e.nodes.forEach(n=>{(cols[tier[n.id]]=cols[tier[n.id]]||[]).push(n);});
+  const pos={};
+  for(let pass=0;pass<3;pass++){
+    cols.forEach((col,c)=>{
+      if(c>0&&pass>0){const key=n=>{const ys=[];n.req.forEach(g=>g.forEach(a=>{if(pos[a])ys.push(pos[a].y);}));return ys.length?ys.reduce((a,b)=>a+b,0)/ys.length:1e9;};col.sort((a,b)=>key(a)-key(b));}
+      col.forEach((n,i)=>{pos[n.id]={y:i};});
+    });
+  }
+  const maxRows=Math.max(...cols.map(c=>c.length));
+  cols.forEach((col,c)=>{const off=(maxRows-col.length)*ROWH/2;col.forEach((n,i)=>{pos[n.id]={x:PAD+c*COLW,y:PAD+off+i*ROWH};});});
+  return{pos,w:PAD*2+(cols.length-1)*COLW+NW,h:PAD*2+(maxRows-1)*ROWH+NH};
+}
+
+/* render */
+let era=ERAS[0],sel=null;
+try{const m=location.hash.match(/^#era(\d+)$/);if(m&&ERAS[m[1]-1])era=ERAS[m[1]-1];}catch(e){}
+function renderEras(){
+  $('eras').innerHTML=ERAS.map(e=>{const done=on(e.obra),k=e.nodes.filter(n=>on(n.id)).length;
+    return'<button class="chip'+(e===era?' sel':'')+(done?' done':'')+'" data-era="'+e.n+'"><span class="n">'+(done?'✓ ':'')+e.n+'</span><span class="nm">'+e.name+'</span><span class="pr">'+k+'/'+e.nodes.length+' nodos'+(done?' · obra lista':'')+'</span></button>';}).join('');
+}
+function renderSum(){
+  const k=era.nodes.filter(n=>on(n.id)).length,done=on(era.obra),P=era.paths;
+  $('sum').innerHTML='<span class="era-nm">'+era.name+' · '+era.when+'</span><span>Investigado <b>'+k+'/'+era.nodes.length+'</b></span><span>Ideas gastadas acá <b>'+spentEra(era)+'</b></span><span>Mínimo para la obra <b>'+P.min+'</b> · '+P.count+(P.count===1?' camino':' caminos distintos')+'</span><span class="obra">'+(done?'<b>Obra lista</b>':'Obra: '+N[era.obra].name)+'</span><span>Total <b>'+spentAll()+'</b> ideas · eras completas <b>'+ERAS.filter(e=>on(e.obra)).length+'/10</b></span>';
+}
+function stateOf(n){return on(n.id)?'on':canUnlock(n)?'open':'locked';}
+function renderTree(){
+  const L=layout(era);$('tree').style.width=L.w+'px';$('tree').style.height=L.h+'px';
+  const svg=$('edges');svg.setAttribute('width',L.w);svg.setAttribute('height',L.h);
+  let paths='';
+  era.nodes.forEach(n=>{const p=L.pos[n.id];n.req.forEach(g=>g.forEach(a=>{const q=L.pos[a];if(!q)return;const x1=q.x+NW,y1=q.y+NH/2,x2=p.x,y2=p.y+NH/2;
+    const cls=(g.length>1?'or ':'')+(on(a)&&on(n.id)?'on':on(a)?'half':'');
+    paths+='<path class="'+cls+'" d="M'+x1+' '+y1+' C'+(x1+36)+' '+y1+' '+(x2-36)+' '+y2+' '+x2+' '+y2+'"/>';}));});
+  svg.innerHTML=paths;
+  $('nodes').innerHTML=era.nodes.map(n=>{const p=L.pos[n.id],s=stateOf(n),bonus=!era.paths.union.has(n.id);
+    const meta=s==='on'?(st.s[n.id]?'saltado · '+ideas(st.p[n.id]):'listo · '+ideas(st.p[n.id])):s==='open'?'investigar · '+ideas(costOf(n)):'necesita otro paso';
+    return'<button class="node cat-'+n.cat+' st-'+s+(bonus?' bonus':'')+(sel===n.id?' sel':'')+'" style="left:'+p.x+'px;top:'+p.y+'px" data-id="'+n.id+'" title="'+n.name+'"><span class="nm">'+n.name+'</span><span class="meta">'+meta+'</span></button>';}).join('');
+}
+function reqHtml(n){
+  if(!n.req.length)return'<p class="muted">No necesita nada: se puede investigar desde el principio.</p>';
+  return'<div class="req">'+n.req.map(g=>g.map(a=>'<span class="'+(on(a)?'ok':'')+(g.length>1?' alt':'')+'">'+(on(a)?'✓ ':'')+N[a].name+'</span>').join('<em class="muted"> o </em>')).join('<em class="muted"> + </em>')+'</div>';
+}
+function renderPanel(){
+  const n=sel&&N[sel];
+  if(!n){$('panelIn').innerHTML='<h2>Tocá un nodo <small>'+era.name+'</small></h2><p class="muted">Borde lleno: se puede investigar. Borde punteado: le falta un paso, pero se puede saltar. Dorado: la obra que cierra la era.</p>';return;}
+  const s=stateOf(n),c=costOf(n),legTxt=n.leg?(on(n.leg)?' (−1 por legado: '+N[n.leg].name+')':' (−1 si tenés '+N[n.leg].name+')'):'';
+  let acts='';
+  if(s==='on'){const deps=dependents(n);acts='<button class="btn ghost" data-act="undo"'+(deps.length?' disabled':'')+'>Deshacer</button>'+(deps.length?'<span class="note">Primero deshacé: '+deps.map(d=>d.name).join(', ')+'</span>':'');}
+  else if(s==='open')acts='<button class="btn" data-act="go">Investigar · '+ideas(c)+'</button>';
+  else acts='<button class="btn" disabled>Investigar · '+ideas(c)+'</button>'+(n.cat==='obra'?'<span class="note">La obra no se puede saltar.</span>':'<button class="btn ghost" data-act="skip">Saltar el paso · '+ideas(c*2)+'</button>');
+  $('panelIn').innerHTML='<h2>'+n.name+' <small>'+CAT[n.cat]+' · era '+n.era.n+(era.paths.union.has(n.id)?'':' · bonus')+'</small></h2><p>'+n.desc+'</p>'+reqHtml(n)+'<p class="muted">Costo: '+ideas(n.cost)+legTxt+'</p><div class="acts">'+acts+'</div>';
+}
+function renderAll(){renderEras();renderSum();renderTree();renderPanel();}
+function pick(e){era=e;sel=null;try{history.replaceState(null,'','#era'+e.n);}catch(x){}renderAll();$('treewrap').scrollLeft=0;}
+
+$('eras').addEventListener('click',ev=>{const b=ev.target.closest('[data-era]');if(b)pick(ERAS[+b.dataset.era-1]);});
+$('nodes').addEventListener('click',ev=>{const b=ev.target.closest('[data-id]');if(!b)return;sel=b.dataset.id;renderTree();renderPanel();});
+$('panelIn').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-act]');if(!b||!sel)return;const n=N[sel],a=b.dataset.act;
+  if(a==='go'&&canUnlock(n)){st.u[n.id]=1;st.p[n.id]=costOf(n);delete st.s[n.id];}
+  else if(a==='skip'&&n.cat!=='obra'){st.u[n.id]=1;st.s[n.id]=1;st.p[n.id]=costOf(n)*2;}
+  else if(a==='undo'&&!dependents(n).length){delete st.u[n.id];delete st.s[n.id];delete st.p[n.id];}
+  save();renderAll();
+});
+let armed=null;
+function reset(scope){
+  if(armed!==scope){armed=scope;$('resetMsg').textContent='¿Seguro? Tocá de nuevo para '+(scope==='era'?'reiniciar '+era.name:'borrar todo')+'.';return;}
+  armed=null;$('resetMsg').textContent='';
+  const ids=scope==='era'?era.nodes.map(n=>n.id):Object.keys(N);
+  ids.forEach(id=>{delete st.u[id];delete st.s[id];delete st.p[id];});sel=null;save();renderAll();
+}
+$('resetEra').onclick=()=>reset('era');$('resetAll').onclick=()=>reset('all');
+addEventListener('hashchange',()=>{const m=location.hash.match(/^#era(\d+)$/);if(m&&ERAS[m[1]-1]&&ERAS[m[1]-1]!==era)pick(ERAS[m[1]-1]);});
+renderAll();
+})();
+</script>

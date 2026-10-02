@@ -1,0 +1,159 @@
+<title>Race to AGI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700&family=Pixelify+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: una columna tipo línea de tiempo · barra total hacia la AGI arriba · 10 eras en orden · legado abajo */
+:root{
+  --night:#15131b; --panel:#201d27; --panel-2:#2a2632; --line:#3e3848;
+  --bone:#f0e7d4; --muted:#a99f91; --ochre:#dd9c40; --ochre-deep:#8d5b1f;
+  --signal:#5fe3d0; --danger:#e8654d; --ink:#1b140a;
+  --f-display:"Pixelify Sans","Courier New",monospace;
+  --f-body:"Chivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--night);color:var(--bone);font:14px/1.5 var(--f-body)}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:28px 40px;display:grid;gap:26px}
+.kicker{font:600 12px var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--ochre)}
+h1{margin:4px 0 0;font:700 clamp(40px,12vw,64px)/.95 var(--f-display);color:var(--signal);letter-spacing:.02em}
+.lede{margin:10px 0 0;color:var(--muted);max-width:52ch}
+.total{display:grid;gap:6px}
+.total-top{display:flex;justify-content:space-between;font:600 14px var(--f-display)}
+.total-top span:last-child{font-variant-numeric:tabular-nums}
+.bar{position:relative;height:10px;background:var(--panel-2);border:1px solid var(--line)}
+.fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--ochre),var(--signal))}
+.tick{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--night)}
+h2{margin:0;font:700 20px var(--f-display)}
+.eras{list-style:none;margin:0;padding:0;display:grid}
+.era{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.era:first-child{border-top:1px solid var(--line)}
+.num{font:700 18px var(--f-display);color:var(--muted);font-variant-numeric:tabular-nums}
+.era .name{font:600 17px var(--f-display);min-width:0}
+.era .when{font-size:12px;color:var(--muted)}
+.era .state{font-size:12.5px;color:var(--muted)}
+.era.done .num{color:var(--ochre)}
+.era.done .state{color:var(--ochre)}
+.era.open .num{color:var(--signal)}
+.era.locked .name,.era.soon .name{color:var(--muted)}
+.era-body{display:grid;min-width:0}
+.btn{font:600 14px var(--f-display);background:var(--ochre);color:var(--ink);border:0;border-bottom:3px solid var(--ochre-deep);padding:8px 14px 6px;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--bone)}
+.btn:disabled{opacity:.5;cursor:default}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.tag{font:600 11px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.legacy{display:grid;gap:10px;padding:16px;background:var(--panel);border:1px solid var(--line)}
+.legacy p{margin:0;color:var(--muted);font-size:13px}
+textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);color:var(--bone);border:1px solid var(--line);padding:8px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.msg{font-size:13px;color:var(--signal)}
+.msg.err{color:var(--danger)}
+.loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--night);font:600 18px var(--f-display);color:var(--signal)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">Una carrera de 10 eras</div>
+    <h1>Race to AGI</h1>
+    <p class="lede">De las piedras al ábaco, del ábaco a la inteligencia artificial general. Cada era es un juego propio y tu tribu, tus ideas y tus inventos pasan a la siguiente.</p>
+  </header>
+
+  <section class="total" aria-label="Progreso total">
+    <div class="total-top"><span>Progreso hacia la AGI</span><span id="pct">0%</span></div>
+    <div class="bar" id="bar"><div class="fill" id="fill" style="width:0"></div></div>
+  </section>
+
+  <section>
+    <h2>Eras</h2>
+    <ol class="eras" id="eras"></ol>
+  </section>
+
+  <section class="legacy" aria-labelledby="legTitle">
+    <h2 id="legTitle">Código de legado</h2>
+    <p>El progreso se guarda en este navegador. Copiá el código para no perderlo o para seguir en otro dispositivo.</p>
+    <textarea id="code" readonly aria-label="Tu código de legado"></textarea>
+    <div class="row"><button class="btn" id="copy">Copiar código</button><span class="msg" id="copyMsg"></span></div>
+    <p>¿Tenés un código de antes? Pegalo acá.</p>
+    <textarea id="paste" aria-label="Pegar código de legado" placeholder="RTAGI-…"></textarea>
+    <div class="row"><button class="btn ghost" id="load">Cargar código</button><span class="msg" id="loadMsg"></span></div>
+  </section>
+</div>
+<div class="loading" id="loading" hidden>Cargando era…</div>
+
+<script>
+(function(){
+'use strict';
+const LEG='rtagi-legacy-v1';
+const ERAS=[
+  {n:1,name:'Prehistoria',when:'200.000 – 3.000 a.C.',file:'era1.html',save:'rtagi-era1-misiones-v1'},
+  {n:2,name:'Antigüedad',when:'3.000 a.C. – 476',file:'era2.html',save:'rtagi-era2-misiones-v1'},
+  {n:3,name:'Edad Media',when:'476 – 1453'},
+  {n:4,name:'Renacimiento',when:'1453 – 1760'},
+  {n:5,name:'Revolución Industrial',when:'1760 – 1880'},
+  {n:6,name:'Electricidad',when:'1880 – 1940'},
+  {n:7,name:'Computación',when:'1940 – 1990'},
+  {n:8,name:'Internet',when:'1990 – 2015'},
+  {n:9,name:'Inteligencia artificial',when:'2015 – 2030'},
+  {n:10,name:'AGI',when:'¿?'}];
+const $=id=>document.getElementById(id);
+function get(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function set(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
+function legGet(){try{const l=JSON.parse(get(LEG));if(l&&l.eras)return l;}catch(e){}return{v:1,eras:{}};}
+function legSet(l){set(LEG,JSON.stringify(l));}
+const enc=o=>'RTAGI-'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+function dec(s){s=(s||'').trim().replace(/\s+/g,'');if(!s.startsWith('RTAGI-'))return null;try{const o=JSON.parse(decodeURIComponent(escape(atob(s.slice(6)))));return o&&o.eras?o:null;}catch(e){return null;}}
+
+// Si la Prehistoria se ganó antes de que existiera el legado, lo armamos desde la partida guardada.
+function backfill(){
+  const l=legGet();
+  if(!l.eras['1']){try{const s=JSON.parse(get('race-to-agi-save-v1'));if(s&&s.won){l.eras['1']={done:true,dia:Math.floor((s.time||0)/150)+1,aldeanos:(s.vil||[]).length,ideas:Math.floor((s.res&&s.res.ideas)||0),techs:Object.keys(s.techs||{})};legSet(l);}}catch(e){}}
+  return l;
+}
+function starsOf(e){try{const s=JSON.parse(get(e.save));if(s&&s.best)return Object.values(s.best).reduce((a,b)=>a+b,0);}catch(x){}return null;}
+function render(){
+  const l=backfill();
+  const doneCount=ERAS.filter(e=>l.eras[e.n]&&l.eras[e.n].done).length;
+  $('pct').textContent=doneCount*10+'%';$('fill').style.width=doneCount*10+'%';
+  const bar=$('bar');bar.querySelectorAll('.tick').forEach(t=>t.remove());
+  for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=i*10+'%';bar.appendChild(t);}
+  const list=$('eras');list.innerHTML='';
+  ERAS.forEach(e=>{
+    const rec=l.eras[e.n],done=rec&&rec.done,prevDone=e.n===1||(l.eras[e.n-1]&&l.eras[e.n-1].done);
+    const playable=!!e.file,started=playable&&!!get(e.save);
+    let cls,state,action='';
+    if(done){cls='done';const st=starsOf(e);state=st!=null?'Completa · '+st+' de 30 estrellas':'Completa en el día '+rec.dia+(rec.aldeanos?' · '+rec.aldeanos+(rec.aldeanos===1?' aldeano':' aldeanos'):'');action='<button class="btn ghost" data-go="'+e.n+'">Jugar</button>';}
+    else if(!playable){cls='soon';state='Próximamente';action='<span class="tag">Pronto</span>';}
+    else if(!prevDone){cls='locked';state='Terminá la era anterior para desbloquearla';action='<span class="tag">Bloqueada</span>';}
+    else{cls='open';const st=starsOf(e);state=started?'En curso'+(st?' · '+st+' de 30 estrellas':''):'Lista para empezar';action='<button class="btn" data-go="'+e.n+'">'+(started?'Continuar':'Empezar')+'</button>';}
+    const li=document.createElement('li');li.className='era '+cls;
+    li.innerHTML='<span class="num">'+String(e.n).padStart(2,'0')+'</span><div class="era-body"><span class="name">'+e.name+'</span><span class="when">'+e.when+'</span><span class="state">'+state+'</span></div>'+action;
+    list.appendChild(li);
+  });
+  $('code').value=Object.keys(l.eras).length?enc(l):'Todavía no hay eras completas.';
+  $('copy').disabled=!Object.keys(l.eras).length;
+}
+function goEra(n){
+  const e=ERAS.find(x=>x.n===n);if(!e||!e.file)return;
+  $('loading').hidden=false;
+  fetch(e.file).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();})
+    .catch(()=>{$('loading').hidden=true;alertMsg('loadMsg','No se pudo cargar la era. Probá de nuevo.',true);});
+}
+function alertMsg(id,txt,err){const m=$(id);m.textContent=txt;m.classList.toggle('err',!!err);}
+$('eras').addEventListener('click',ev=>{const b=ev.target.closest('[data-go]');if(b)goEra(+b.dataset.go);});
+$('copy').addEventListener('click',()=>{
+  const v=$('code').value;
+  const ok=()=>alertMsg('copyMsg','Copiado');
+  const fallback=()=>{$('code').focus();$('code').select();alertMsg('copyMsg','Seleccionado: copialo con el menú del teclado');};
+  try{navigator.clipboard.writeText(v).then(ok,fallback);}catch(e){fallback();}
+});
+$('load').addEventListener('click',()=>{
+  const o=dec($('paste').value);
+  if(!o){alertMsg('loadMsg','Ese código no es válido. Tiene que empezar con RTAGI-.',true);return;}
+  const l=legGet();
+  for(const k in o.eras){const a=l.eras[k],b=o.eras[k];if(!a||(!a.done&&b.done)||(b.done&&b.dia<a.dia))l.eras[k]=b;}
+  legSet(l);$('paste').value='';alertMsg('loadMsg','Legado cargado.');render();
+});
+render();
+})();
+</script>
