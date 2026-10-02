@@ -18,6 +18,7 @@ Juego de gestión en pixel art, en español rioplatense (voseo: "tocá", "vendé
 5. Todo diálogo tiene botón para cerrar abajo, y el botón atrás del celular cierra el diálogo en vez de salir del juego.
 6. Todo tiene que poder tocarse: targets de ≥ 32 px, adyacencia en 8 direcciones.
 7. Dificultad y presión: sin reloj, rival o amenaza que escale, el juego se siente plano.
+8. El progreso sobrevive a cada versión: Juani prueba con su partida a lo largo del desarrollo. Un cambio nunca borra ni descarta en silencio una partida guardada; si cambia un formato o el mapa, se migra al cargar.
 
 ## Arquitectura técnica
 
@@ -35,7 +36,8 @@ Juego de gestión en pixel art, en español rioplatense (voseo: "tocá", "vendé
 
 ### localStorage (compartido entre páginas, no renombrar sin migrar)
 
-- `rtagi-legacy-v1`: `{v:1, eras:{'1':{done,dia,aldeanos,ideas,techs,estrellas}, '2':{...}}}`. Código exportable: `'RTAGI-' + btoa(unescape(encodeURIComponent(JSON)))`.
+- `rtagi-legacy-v1`: `{v:1, eras:{'1':{done,dia,aldeanos,ideas,techs,estrellas}, '2':{...}}}`.
+- Copia del progreso (hub, "Tu progreso"): todas las claves `rtagi-*` en `{v:2, keys:{...}}`, comprimido con `deflate-raw` y en base64 → `RTAGI2-…` (`RTAGI2J-…` sin comprimir si el navegador no tiene `CompressionStream`). Cargarla reemplaza el progreso del navegador, con doble toque para confirmar. Los códigos viejos `RTAGI-` (solo legado, `btoa(unescape(encodeURIComponent(JSON)))`) se siguen aceptando y se mezclan como antes. Toda clave nueva tiene que empezar con `rtagi-` para entrar en la copia.
 - `rtagi-era1-misiones-v1`, `rtagi-era2-misiones-v1`: `{best:{n:estrellas}, spent, upg:{}, built:{}}`.
 - `rtagi-carrera-v1`: partida en curso del prototipo por turnos. `rtagi-mundo-v1`: partida del mundo abierto. `rtagi-arbol-v1`: estado del prototipo del árbol.
 - Los prototipos se abren desde la sección "Prototipos" del hub (`PROTOS` en `index.html`, cada uno con su `state()` para mostrar la partida en curso).
