@@ -105,7 +105,12 @@ const ERAS=[
   {n:8,name:'Internet',when:'1990 – 2015'},
   {n:9,name:'Inteligencia artificial',when:'2015 – 2030'},
   {n:10,name:'AGI',when:'¿?'}];
-const PROTOS=[{id:'carrera',name:'Carrera a la obra',what:'Por turnos: mapa con niebla, tecnologías y un rival que corre hacia la misma obra.',file:'carrera.html',save:'rtagi-carrera-v1'}];
+// state: texto de la partida guardada, o null si no hay una en curso.
+const PROTOS=[
+  {id:'carrera',name:'Carrera a la obra',what:'Por turnos: mapa con niebla, tecnologías y un rival que corre hacia la misma obra.',file:'carrera.html',save:'rtagi-carrera-v1',
+    state:s=>s&&s.G&&s.G.tiles&&!s.G.over?'En curso · turno '+s.G.turn+' de 30':null},
+  {id:'mundo',name:'Mundo abierto',what:'Prehistoria libre: explorá, juntá recursos, sumá aldeanos y construí el ábaco.',file:'mundo.html',save:'rtagi-mundo-v1',
+    state:s=>s&&s.st?(s.st.won?'Ábaco terminado':'En curso')+' · día '+(Math.floor((s.st.time||0)/150)+1):null}];
 const $=id=>document.getElementById(id);
 function get(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function set(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
@@ -141,9 +146,9 @@ function render(){
     list.appendChild(li);
   });
   const pl=$('protos');pl.innerHTML='';
-  PROTOS.forEach(p=>{let g=null;try{const s=JSON.parse(get(p.save));if(s&&s.G&&s.G.tiles&&!s.G.over)g=s.G;}catch(x){}
+  PROTOS.forEach(p=>{let st=null;try{st=p.state(JSON.parse(get(p.save)));}catch(x){}
     const li=document.createElement('li');li.className='era proto';
-    li.innerHTML='<div class="era-body"><span class="name">'+p.name+'</span><span class="when">'+p.what+'</span><span class="state">'+(g?'En curso · turno '+g.turn+' de 30':'Lista para empezar')+'</span></div><button class="btn" data-proto="'+p.id+'">'+(g?'Continuar':'Jugar')+'</button>';
+    li.innerHTML='<div class="era-body"><span class="name">'+p.name+'</span><span class="when">'+p.what+'</span><span class="state">'+(st||'Lista para empezar')+'</span></div><button class="btn" data-proto="'+p.id+'">'+(st?'Continuar':'Jugar')+'</button>';
     pl.appendChild(li);});
   $('code').value=Object.keys(l.eras).length?enc(l):'Todavía no hay eras completas.';
   $('copy').disabled=!Object.keys(l.eras).length;

@@ -10,8 +10,9 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI e
 | `era1.html` | Prehistoria por misiones (10 misiones, estilo Farm Frenzy) | jugable, probado con bot |
 | `era2.html` | Antigüedad por misiones (10 misiones, ciudad que crece) | jugable, probado con bot |
 | `carrera.html` | Prototipo por turnos (mapa, árbol de tecnologías, rival que corre a la obra) | prototipo, probado con simulaciones |
+| `mundo.html` | Prototipo de mundo abierto (Prehistoria libre: explorar, juntar recursos, sumar aldeanos, construir el ábaco) | prototipo, retomado |
 | `arbol.html` | Prototipo del árbol de progreso de las 10 eras (sin juego atrás) | prototipo |
-| `archive/` | Versiones anteriores de mundo abierto, por si sirven piezas | referencia |
+| `archive/` | Antigüedad en mundo abierto (versión anterior), por si sirven piezas | referencia |
 
 ## Correr
 
