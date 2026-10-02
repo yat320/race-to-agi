@@ -42,6 +42,9 @@ button:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 .rb .rtxt{color:var(--muted);font:400 11.5px var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
 #stage{position:relative;min-height:0;background:#1b1a24}
 #world{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated}
+#zoom{position:absolute;right:10px;bottom:10px;display:grid;gap:6px;z-index:3}
+#zoom button{width:40px;height:40px;padding:0;font:700 22px/1 var(--f-display);color:var(--bone);background:var(--panel-2);border:1px solid var(--line);border-bottom:3px solid var(--line-2);cursor:pointer}
+#zoom button:disabled{opacity:.35;cursor:default}
 #toasts{position:absolute;left:12px;right:12px;top:6px;display:grid;justify-items:center;gap:5px;pointer-events:none;z-index:4}
 .toast{background:var(--panel);border:1px solid var(--line);padding:5px 11px;font-size:12.5px;max-width:100%;animation:tin .25s ease-out}
 .toast.good{border-color:var(--signal)}.toast.bad{border-color:var(--danger)}.toast.foe{border-color:var(--foe);color:var(--bone)}
@@ -103,7 +106,7 @@ button:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
       <div class="rb you"><span class="who">Vos</span><div class="rbar"><i id="rbYou"></i></div><span class="rtxt" id="rtYou"></span></div>
       <div class="rb foe"><span class="who">Rival</span><div class="rbar"><i id="rbFoe"></i></div><span class="rtxt" id="rtFoe"></span></div>
     </div>
-    <div id="stage"><canvas id="world" aria-label="Mapa"></canvas><div id="toasts" aria-live="polite"></div></div>
+    <div id="stage"><canvas id="world" aria-label="Mapa"></canvas><div id="toasts" aria-live="polite"></div><div id="zoom"><button id="zIn" aria-label="Acercar">+</button><button id="zOut" aria-label="Alejar">−</button></div></div>
     <div id="ctx"><div id="ctxInfo"></div><div id="ctxBtns"></div></div>
     <nav id="bar"><button id="techBtn">Investigar</button><button id="endBtn" class="primary">Fin del turno</button></nav>
   </section>
@@ -403,9 +406,18 @@ addEventListener('popstate',()=>{if(!alive())return;if(ignorePop>0){ignorePop--;
   if(!$('modal').hidden){if(modalKind!=='level'&&modalKind!=='over')closeModal();}else if(!$('sheet').hidden)closeSheet();syncNav();});
 
 /* ---------- UI ---------- */
-const cv=$('world'),ctx=cv.getContext('2d');let W=0,H=0,DPR=1,SC=1,OX=0,OY=0;
+const cv=$('world'),ctx=cv.getContext('2d');let W=0,H=0,DPR=1,SC=1,OX=0,OY=0,FIT=1,ZM=1,CX=WW/2,CY=WH/2;const ZMAX=3;
 function resize(){DPR=Math.min(window.devicePixelRatio||1,3);const r=$('stage').getBoundingClientRect();W=Math.max(1,Math.round(r.width*DPR));H=Math.max(1,Math.round(r.height*DPR));cv.width=W;cv.height=H;
-  SC=Math.min(W/WW,H/WH);const ip=Math.round(SC);if(ip>=2&&Math.abs(SC-ip)<0.08)SC=ip;OX=Math.round((W-WW*SC)/2);OY=Math.round((H-WH*SC)/2);}
+  FIT=Math.min(W/WW,H/WH);const ip=Math.round(FIT);if(ip>=2&&Math.abs(FIT-ip)<0.08)FIT=ip;cam();}
+// Cámara: con ZM=1 se ve el mapa entero; con más zoom, (CX,CY) es el punto del mundo en el centro de la pantalla.
+function cam(){ZM=clamp(ZM,1,ZMAX);SC=FIT*ZM;const hw=W/2/SC,hh=H/2/SC;
+  CX=WW<=2*hw?WW/2:clamp(CX,hw,WW-hw);CY=WH<=2*hh?WH/2:clamp(CY,hh,WH-hh);
+  OX=Math.round(W/2-CX*SC);OY=Math.round(H/2-CY*SC);$('zIn').disabled=ZM>=ZMAX-1e-3;$('zOut').disabled=ZM<=1+1e-3;}
+// Cambia el zoom por f dejando el punto del mundo que estaba en (x0,y0) de la pantalla en (x1,y1).
+function zoomAt(f,x0,y0,x1=x0,y1=y0){const wx=(x0-OX)/SC,wy=(y0-OY)/SC;ZM=clamp(ZM*f,1,ZMAX);SC=FIT*ZM;CX=wx-(x1-W/2)/SC;CY=wy-(y1-H/2)/SC;cam();}
+// "+" acerca centrando lo seleccionado o, si no hay nada, la capital propia.
+$('zIn').onclick=()=>{SFX.click();const c=sel||(G&&G.cities.find(c=>c.owner===0&&c.cap))||{x:(MW-1)/2,y:(MH-1)/2};zoomAt(1.5,OX+(c.x+.5)*T*SC,OY+(c.y+.5)*T*SC,W/2,H/2);};
+$('zOut').onclick=()=>{SFX.click();zoomAt(1/1.5,W/2,H/2);};
 function toast(msg,kind){if(!msg)return;const t=document.createElement('div');t.className='toast'+(kind?' '+kind:'');t.textContent=msg;const b=$('toasts');b.appendChild(t);while(b.children.length>3)b.firstChild.remove();setTimeout(()=>t.remove(),3200);}
 let sheetAt=0;
 function openSheet(){sheetAt=performance.now();$('sheet').hidden=false;renderTech();syncNav();}
@@ -525,10 +537,22 @@ function draw(){
   if(!sel&&G.turn<=3&&!G.over){let best=null;for(const t of G.tiles)if(t.owner===0){const a=tileActions(0,t).find(x=>x.ok);if(a&&(!best||a.cost<best.a.cost))best={t,a};}
     if(best){const ax=best.t.x*T+8,ay=best.t.y*T-3+Math.round(Math.sin(now*6)*2);ctx.fillStyle='#5fe3d0';ctx.fillRect(ax-3,ay-4,7,1);ctx.fillRect(ax-2,ay-3,5,1);ctx.fillRect(ax-1,ay-2,3,1);ctx.fillRect(ax,ay-1,1,1);}}
 }
-cv.addEventListener('pointerdown',e=>{if(!G||G.over)return;const r=cv.getBoundingClientRect();const wx=((e.clientX-r.left)*DPR-OX)/SC,wy=((e.clientY-r.top)*DPR-OY)/SC;const x=Math.floor(wx/T),y=Math.floor(wy/T);if(!inb(x,y))return;
+function tapAt(e){if(!G||G.over)return;const r=cv.getBoundingClientRect();const wx=((e.clientX-r.left)*DPR-OX)/SC,wy=((e.clientY-r.top)*DPR-OY)/SC;const x=Math.floor(wx/T),y=Math.floor(wy/T);if(!inb(x,y))return;
   if(sel&&sel.k==='unit'&&reach&&reach[idx(x,y)]!=null){const u=unitAt(sel.x,sel.y);if(u&&u.owner===0){const res=moveUnit(u,x,y);SFX.move();if(res&&res.ruins){SFX.ruins();toast('Ruinas: '+res.ruins,'good');}sel={k:'unit',x,y};reach=null;save();hud();renderCtx();nextLevelModal();return;}}
   const u=unitAt(x,y);if(u&&u.owner===0&&seen(0,x,y)&&!(sel&&sel.k==='unit'&&sel.x===x&&sel.y===y)){sel={k:'unit',x,y};reach=u.mv>0?reachable(u):null;SFX.click();renderCtx();return;}
-  sel={k:'tile',x,y};reach=null;SFX.click();renderCtx();});
+  sel={k:'tile',x,y};reach=null;SFX.click();renderCtx();}
+// Tocar selecciona; arrastrar mueve el mapa; dos dedos o la rueda acercan y alejan.
+const ptrs=new Map();let dragged=false;
+const cpx=(x,y)=>{const r=cv.getBoundingClientRect();return[(x-r.left)*DPR,(y-r.top)*DPR];};
+cv.addEventListener('pointerdown',e=>{try{cv.setPointerCapture(e.pointerId);}catch(x){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY});if(ptrs.size===1)dragged=false;else dragged=true;});
+cv.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;
+  if(ptrs.size===1){if(!dragged&&Math.hypot(e.clientX-p.x0,e.clientY-p.y0)>8)dragged=true;if(dragged){CX-=(e.clientX-p.x)*DPR/SC;CY-=(e.clientY-p.y)*DPR/SC;cam();}}
+  else if(ptrs.size===2){const q=[...ptrs.values()].find(o=>o!==p),d0=Math.hypot(p.x-q.x,p.y-q.y),d1=Math.hypot(e.clientX-q.x,e.clientY-q.y);
+    const[ax,ay]=cpx((p.x+q.x)/2,(p.y+q.y)/2),[bx,by]=cpx((e.clientX+q.x)/2,(e.clientY+q.y)/2);if(d0>0)zoomAt(d1/d0,ax,ay,bx,by);}
+  p.x=e.clientX;p.y=e.clientY;});
+const ptrUp=e=>{if(!ptrs.delete(e.pointerId))return;if(e.type==='pointerup'&&!ptrs.size&&!dragged)tapAt(e);};
+cv.addEventListener('pointerup',ptrUp);cv.addEventListener('pointercancel',ptrUp);
+cv.addEventListener('wheel',e=>{e.preventDefault();const[x,y]=cpx(e.clientX,e.clientY);zoomAt(Math.exp(-e.deltaY*0.0015),x,y);},{passive:false});
 
 function frame(){if(!alive())return;draw();requestAnimationFrame(frame);}
 addEventListener('resize',()=>{if(alive())resize();});
