@@ -22,6 +22,7 @@ Juego de gestión en pixel art, en español rioplatense (voseo: "tocá", "vendé
 
 - Canvas con mundo lógico de 176×224 px (misiones) o 176×208 (carrera), escalado para llenar el ancho; `imageSmoothingEnabled=false`.
 - Sprites como strings de caracteres sobre una paleta (`sprite(rows,w,pal)`), más dibujos procedurales. Sin assets externos.
+- Mapa de la carrera en alta: pixel art procedural a `A=4` píxeles de arte por unidad del mundo (casillero de 64×64). `buildTerrain()` arma el terreno una vez por partida, `buildFog()` rearma la niebla cuando cambia lo visto y `HI` tiene los sprites del mapa. `S` queda para los íconos chicos de la interfaz. Todo se pinta en un `Uint32Array` (`Art`) y se vuelca de una vez; si un píxel de arte queda más chico que uno de pantalla, se suaviza al achicar.
 - Sonido: chiptune con Web Audio (`tone()` + diccionario `SFX`). Toggle guardado en `localStorage['rtagi-sound']`.
 - Cambio de era desde el hub: `fetch('eraN.html')` + `document.write`. Cada página pone `window.__rtagiActive = ID` y todos los loops/listeners chequean `alive()`.
 - Botón atrás: una sola entrada de historial mientras haya algo abierto (`syncNav()` coalescido con `setTimeout 0` + handler de `popstate`). Guardia de 450 ms contra el "ghost tap" que cerraba hojas recién abiertas.
