@@ -47,6 +47,7 @@ function threats(){const o=D.obj();let n=0;
   for(const v of D.viruses()){D.onTap(Math.round(v.x),Math.round(v.y));n++;}
   for(const m of D.meteors().slice()){D.onTap(m.x,m.y);n++;}
   for(const p of D.pirates().slice())if(!(p.wait>0)){D.onTap(Math.round(p.x),Math.round(p.y));n++;}
+  for(const w of D.swarms().slice()){D.onTap(Math.round(w.x),Math.round(w.y));n++;}
   for(const v of D.vil)if(v.bad){D.onTap(Math.round(v.x),Math.round(v.y));n++;}
   for(let i=0;i<o.length;i++)if(o[i]&&o[i].bug){D.onTap(i%MW,(i/MW)|0);n++;}
   S.taps+=n;}
