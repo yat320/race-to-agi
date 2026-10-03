@@ -380,6 +380,11 @@ const serverDown=()=>obj.some(o=>o&&o.t==='servidor'&&o.bug);
 // Robots (ERA.robots): juntan como los aldeanos, más rápido y sin comer. Cada uno se desalinea cada ~150 s (la alineación, la
 // interpretabilidad y cada instituto lo bajan): deja de trabajar y convierte recursos en clips. Si nadie lo corrige,
 // a los 20 s convence al robot alineado más cercano (a 6 casilleros).
+// Con ERA.hijack (centros de datos, empresas y laboratorios, con su nombre para los avisos) el desalineado camina hasta el
+// más cercano que esté libre y se apodera de él (o.bug, se guarda): no produce mientras el robot lo usa para hacer clips.
+// Tocar el robot o el edificio lo corrige (+3 ideas); si nadie lo toca, los ingenieros lo apagan y lo corrigen a los BOT_FIX
+// segundos. Se desalinean más seguido con cada invento (+10%). La defensa de la era (el centro de supervisión) corrige solos
+// a los desalineados que pasan a ERA.defense.r casilleros.
 // La carrera (ERA.rival): el rival avanza solo hacia la AGI, cada vez más rápido (llega en ~20 min si nadie lo frena;
 // RIVAL_T son los segundos que tardaría sin apurarse). Cómputo, ciencia y escalado lo apuran 10% cada uno; el tratado lo
 // frena 30% y cada embajada 12%. Calibrado con el bot (npm run bot:mundo, octubre de 2026): jugando perfecto se termina con
@@ -389,12 +394,32 @@ const rivalMult=()=>(1+0.1*['computo','ciencia','escalado'].filter(t=>st.techs[t
 const rivalRate=()=>(100/RIVAL_T)*(1+st.time/1800)*rivalMult();
 // Segundos que le faltan al rival, contando que se apura: resuelve k·(Δ + (2tΔ+Δ²)/3600) = lo que falta.
 function rivalEta(){const k=(100/RIVAL_T)*rivalMult(),bq=1+st.time/1800,c=(100-st.rival)/k;return(-bq+Math.sqrt(bq*bq+4*c/3600))*1800;}
-const badRate=()=>(1/150)*(st.techs.alineacion?0.5:1)*(st.techs.interpretabilidad?0.5:1)*Math.pow(0.75,counts.seguridad||0);
+const BOT_FIX=90;
+const badRate=()=>(1/150)*(st.techs.alineacion?0.5:1)*(st.techs.interpretabilidad?0.5:1)*Math.pow(0.75,counts.seguridad||0)*(ERA.hijack?1+0.1*Object.keys(st.techs).length:1);
 const badSpread=()=>st.techs.interpretabilidad?40:20;
 const workT=v=>v.bot?(st.techs.chips?0.4:0.6):0.9;
 function addRobot(x,y){addVillager(x,y);vil[vil.length-1].bot=true;}
 function convince(v){let best=null,bd=6;for(const o of vil){if(o===v||!o.bot||o.bad)continue;const d=Math.hypot(o.x-v.x,o.y-v.y);if(d<bd){bd=d;best=o;}}if(best)misalign(best);}
-function misalign(v){v.bad=true;v.badT=0;v.carry=0;v.path=[];v.target=null;v.state='idle';}
+function misalign(v){v.bad=true;v.badT=0;v.carry=0;v.path=[];v.target=null;v.state='idle';v.go=v.at=null;v.fixT=0;}
+// Cada medio segundo: la supervisión corrige a los desalineados cerca, los ingenieros apagan a los que llevan BOT_FIX segundos
+// en un edificio, y un edificio tomado sin robot (al cargar una partida) se libera.
+function hijackTick(step){const D=ERA.defense,cs=[];if(D)obj.forEach((o,i)=>{if(o&&o.t===D.id)cs.push(i);});
+  for(const v of vil){if(!v.bad)continue;
+    if(cs.some(i=>Math.hypot(i%MW-v.x,((i/MW)|0)-v.y)<=D.r)){realign(v);zaps.push({x:v.x,y:v.y,t:0.5});float(v.x,v.y-0.6,'¡corregido!','#5fe3d0');continue;}
+    if(v.at!=null){v.fixT=(v.fixT||0)+step;if(v.fixT>=BOT_FIX){realign(v);float(v.x,v.y-0.6,'¡reiniciado!','#5fe3d0');}}}
+  obj.forEach((o,i)=>{if(hijackable(o)&&o.bug&&!vil.some(v=>v.at===i)){o.bug=false;BROKEN=null;}});}
+// Corrige a un robot desalineado y le devuelve el edificio que había tomado.
+function realign(v){if(v.at!=null&&obj[v.at]){obj[v.at].bug=false;BROKEN=null;}v.bad=false;v.badT=0;v.state='idle';v.t=0.5;v.path=[];v.go=v.at=null;v.fixT=0;}
+const hijackable=o=>!!(ERA.hijack&&o&&ERA.hijack[o.t]);
+// El desalineado busca el edificio libre más cercano, camina hasta él y se lo apropia.
+function hijackStep(v,dt){if(v.at!=null)return true;const[x,y]=tileOf(v);
+  if(v.go!=null){const o=obj[v.go];if(!hijackable(o)||o.bug)v.go=null;}
+  if(v.go==null){if((v.seek=(v.seek||0)-dt)>0)return false;v.seek=2;let bd=1e9;obj.forEach((o,i)=>{if(!hijackable(o)||o.bug||vil.some(w=>w!==v&&w.go===i))return;const d=Math.hypot(i%MW-x,((i/MW)|0)-y);if(d<bd){bd=d;v.go=i;}});
+    if(v.go==null)return false;const p=pathAdj(x,y,v.go%MW,(v.go/MW)|0);if(!p){v.go=null;return false;}v.path=p;}
+  if(v.path.length)return true;
+  if(adj(x,y,v.go%MW,(v.go/MW)|0)){const o=obj[v.go];o.bug=true;BROKEN=null;v.at=v.go;v.go=null;v.fixT=0;float(v.at%MW,(v.at/MW)|0,'¡tomado!','#e8654d');
+    toast('Un robot desalineado tomó '+ERA.hijack[o.t]+' para hacer clips: tocalo para corregirlo.');return true;}
+  const p=pathAdj(x,y,v.go%MW,(v.go/MW)|0);if(p)v.path=p;else v.go=null;return true;}
 // Virus: cada ciudad conectada larga uno cada tanto (virusEvery), que viaja por las antenas hasta el servidor. Con ERA.infect
 // (las compus, con su nombre para los avisos) apunta a una al azar y, si no es el servidor, sigue de largo hasta ella.
 // Tocándolo en el camino se borra (+2 ideas). Si llega, se mete (o.bug, se guarda) y borra VIRUS_LOSS de las ideas guardadas:
@@ -720,8 +745,8 @@ function goHome(v){
 }
 function deposit(v){if(v.carry&&v.kind){add(v.kind,v.carry);float(v.x,v.y-0.5,'+'+fmt(v.carry),RCOL[v.kind]);flashChip(v.kind);}v.carry=0;v.state='idle';v.t=1.2;}
 function updateVillager(v,dt){
-  if(v.bad){stepEnt(v,dt,2);v.t-=dt;
-    if(v.t<=0&&!v.path.length){v.t=1+Math.random();const[x,y]=tileOf(v),d=DIRS8[Math.floor(Math.random()*8)];if(passable(x+d[0],y+d[1]))v.path=[[x+d[0],y+d[1]]];}
+  if(v.bad){stepEnt(v,dt,2);v.t-=dt;if(v.blocked){v.blocked=false;v.path=[];}
+    if(ERA.hijack&&hijackStep(v,dt)){}else if(v.t<=0&&!v.path.length){v.t=1+Math.random();const[x,y]=tileOf(v),d=DIRS8[Math.floor(Math.random()*8)];if(passable(x+d[0],y+d[1]))v.path=[[x+d[0],y+d[1]]];}
     v.clip=(v.clip||0)+dt;if(v.clip>=2){v.clip=0;const k=['madera','piedra','comida',ORE,'monedas'].sort((a,b)=>st.res[b]-st.res[a])[0];if(st.res[k]>=1){st.res[k]-=1;float(v.x,v.y-0.6,'−1 '+RN[k].toLowerCase()+' → clips','#e8654d');}}
     return;}
   if(!v.bot){v.eat-=dt;if(v.eat<=0){v.eat=30;if(st.res.comida>=1){st.res.comida-=1;v.hungry=false;}else v.hungry=true;}}
@@ -763,6 +788,7 @@ function update(dt){
     if(ERA.cities){for(const c of grid().linked)if(Math.random()<step/virusEvery())spawnVirus(c);if(ERA.infect)virusFix(step);}
     if(ERA.robots){const had=vil.some(v=>v.bad);
       for(const v of vil){if(!v.bot)continue;if(v.bad){v.badT=(v.badT||0)+step;if(v.badT>=badSpread()){v.badT=0;convince(v);}}else if(Math.random()<badRate()*step)misalign(v);}
+      if(ERA.hijack)hijackTick(step);
       if(!had&&vil.some(v=>v.bad))toast('¡Un robot se desalineó! Tocalo para corregirlo.');}
     if(ERA.meteors&&Math.random()<step/meteorEvery())spawnMeteor();
     if(ERA.pirates&&st.techs[ERA.pirates]&&Math.random()<step/pirateEvery())spawnPirates();
@@ -1065,6 +1091,11 @@ function drawMeteors(){if(!meteors.length&&!zaps.length)return;const t=performan
     ctx.beginPath();ctx.arc(x,y,r,0,6.29);ctx.fill();}}
 function drawBug(px,py){const t=performance.now()/1000,a=0.55+0.3*Math.sin(t*6);ctx.strokeStyle='rgba(232,101,77,'+a.toFixed(2)+')';ctx.lineWidth=0.6;ctx.strokeRect(px+0.5,py+0.5,T-1,T-1);
   ctx.drawImage(HS.bug[Math.floor(t*8)%2],px+4+Math.sin(t*1.7)*2.5,py+2+Math.cos(t*2.3)*2,8,8);}
+// Edificio tomado por un robot desalineado: marco rojo que late y clips que saltan.
+function drawClips(px,py){const t=performance.now()/1000,a=0.55+0.3*Math.sin(t*6);ctx.strokeStyle='rgba(232,101,77,'+a.toFixed(2)+')';ctx.lineWidth=0.6;ctx.strokeRect(px+0.5,py+0.5,T-1,T-1);
+  ctx.strokeStyle='#d8dce4';ctx.lineWidth=0.5;for(let k=0;k<3;k++){const u=(t*0.8+k/3)%1,x=px+4+k*4,y=py+10-u*9;ctx.globalAlpha=1-u;
+    ctx.beginPath();ctx.moveTo(x+0.6,y+3);ctx.lineTo(x+0.6,y+0.6);ctx.arc(x+1.2,y+0.6,0.6,Math.PI,0);ctx.lineTo(x+1.8,y+3.6);ctx.arc(x+1,y+3.6,0.8,0,Math.PI);ctx.lineTo(x+0.2,y+1);ctx.stroke();}
+  ctx.globalAlpha=1;}
 // Rayo tachado que titila arriba de un edificio sin luz.
 function noPower(px,py){if(Math.sin(performance.now()/160)<-0.3)return;const x=px+12.5,y=py+1;ctx.fillStyle='#1b1a24';ctx.beginPath();ctx.arc(x,y,2.6,0,6.29);ctx.fill();
   ctx.fillStyle='#ffd35a';ctx.beginPath();ctx.moveTo(x+0.4,y-1.9);ctx.lineTo(x-1.1,y+0.3);ctx.lineTo(x,y+0.3);ctx.lineTo(x-0.4,y+1.9);ctx.lineTo(x+1.1,y-0.3);ctx.lineTo(x,y-0.3);ctx.closePath();ctx.fill();
@@ -1087,7 +1118,7 @@ function drawObj(o,x,y){
     // Lo demás: sombra, sprite, humo si anda (`smk` en el edificio), rayo tachado si le falta luz, lo propio de la era (ERA.deco) y el bicho.
     default:if(HS[o.t]){const sh=SHADOW[o.t]||[8,2],b=BUILD[o.t];shadow(px+8,py+15,sh[0],sh[1]);hd(HS[o.t],px,py);
       if(b&&b.smk&&runs(b))for(const[sx,sy]of b.smk)puffs(px+sx,py+sy,b.puffs||3);
-      const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit)noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug){if(ERA.meteors||ERA.luddites||ERA.storms)drawDamage(px,py);else if(sickable(o))drawPlague(px,py);else drawBug(px,py);}}
+      const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit)noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug){if(ERA.hijack)drawClips(px,py);else if(ERA.meteors||ERA.luddites||ERA.storms)drawDamage(px,py);else if(sickable(o))drawPlague(px,py);else drawBug(px,py);}}
   }
   const cfg=RES[o.t];
   if(cfg&&o.hp>0&&o.hp<cfg.hp){ctx.fillStyle='#1b1a24';ctx.fillRect(px+2,top-3,12,3);ctx.fillStyle='#93d36c';ctx.fillRect(px+3,top-2,10*o.hp/cfg.hp,1);}
@@ -1181,9 +1212,9 @@ const chipEl={};
   document.title='Race to AGI · Mundo abierto · '+ERA.name;$('era').textContent=ERA.name;$('buildHint').textContent=BUILDS.length+' edificios';
   // Las dos barras de abajo de la energía: humo o seguridad, y la red, los robots o el rival.
   const H=$('hud');if(BUILDS.some(b=>b.smoke)||ERA.grid||ERA.robots||ERA.rival||ERA.defense)H.classList.add('rows');
-  $('sLbl').textContent=ERA.rival?'Seguridad':ERA.cities&&ERA.defense?ERA.defense.label:'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.grid==='power'?'Luz':ERA.cities?'Red':ERA.defense?ERA.defense.label:ERA.robots?'Robots':'Red';
+  $('sLbl').textContent=ERA.rival?'Seguridad':(ERA.cities||ERA.robots)&&ERA.defense?ERA.defense.label:'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.grid==='power'?'Luz':ERA.cities?'Red':ERA.robots?'Robots':ERA.defense?ERA.defense.label:'Red';
   if(ERA.rival){H.style.setProperty('--sfill','#93d36c');H.style.setProperty('--gfill','#e8654d');}
-  if(ERA.cities&&ERA.defense)H.style.setProperty('--sfill','#5fe3d0');
+  if((ERA.cities||ERA.robots)&&ERA.defense)H.style.setProperty('--sfill','#5fe3d0');
 })();
 function flashChip(k){const c=chipEl[k];if(!c)return;c.classList.add('flash');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('flash'),350);}
 const agiPct=()=>Math.min(100,10*(ERA.n-1)+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10);
@@ -1213,6 +1244,8 @@ function threat(){
   if(ERA.cities){if(serverDown())return['Servidor caído:','tocalo para limpiar el virus y que vuelva la red.'];
     if(viruses.length)return['¡Virus!',viruses.length+(viruses.length===1?' viene':' vienen')+' por la red. Tocalos antes de que lleguen.'];
     const ni=ERA.infect?obj.filter(o=>infectable(o)&&o.bug).length:0;if(ni)return['Virus adentro:',ni+(ni===1?' edificio no produce: tocalo para limpiarlo.':' edificios no producen: tocalos para limpiarlos.')];}
+  if(ERA.hijack){const bad=vil.filter(v=>v.bad),at=bad.filter(v=>v.at!=null).length;if(bad.length)return['¡Robot desalineado!',at?(at===1?'Tomó un edificio: no produce y convierte tus recursos en clips. Tocalo para corregirlo.':'Tomaron '+at+' edificios: no producen y convierten tus recursos en clips. Tocalos para corregirlos.'):
+    (bad.length===1?'Va a tomar un edificio para hacer clips: tocalo para corregirlo.':'Van '+bad.length+' a tomar edificios para hacer clips: tocalos para corregirlos.')];}
   if(ERA.robots){const bad=vil.filter(v=>v.bad).length;if(bad)return['¡Robot desalineado!',bad===1?'Está convirtiendo tus recursos en clips. Tocalo para corregirlo.':'Hay '+bad+' convirtiendo tus recursos en clips. Tocalos para corregirlos.'];}
   if(ERA.moths){const n=moths.filter(loose).length;if(n)return['¡Polillas!',(n===1?'Viene una':'Vienen '+n)+' hacia las máquinas: tocalas antes de que entren.'];}
   if(ERA.bugs){const nb=bugCount();if(nb)return['¡Bichos!',nb+(nb===1?' máquina trabada.':' máquinas trabadas.')+' Tocalas para aplastarlos.'];}
@@ -1274,19 +1307,21 @@ function hudRows(){
   else if(ERA.cities){const g=grid(),nc=g.cities.length,nl=g.linked.length,down=serverDown();$('gridRow').hidden=false;
     $('gFill').style.width=(nc?nl/nc*100:0)+'%';$('gFill').classList.toggle('hi',down);$('gNum').textContent=nl+'/'+nc;
     $('gMeta').textContent=down?'servidor caído':viruses.length?viruses.length+' virus en camino':nl?'+'+fmt(cityRate()*60)+' monedas/min':'sin ciudades';if(ERA.defense)defenseRow('s');}
-  else if(ERA.defense)defenseRow('g');
   else if(ERA.robots){const bots=vil.filter(v=>v.bot),nb=bots.length,bad=bots.filter(v=>v.bad).length,on=nb>0||!!st.techs[ERA.robots];$('gridRow').hidden=!on;
-    if(on){$('gFill').style.width=(nb?(nb-bad)/nb*100:0)+'%';$('gFill').classList.toggle('hi',bad>0);$('gNum').textContent=nb+'';$('gMeta').textContent=bad?bad+(bad===1?' desalineado':' desalineados'):nb?'todos alineados':'sin robots';}}
+    if(on){$('gFill').style.width=(nb?(nb-bad)/nb*100:0)+'%';$('gFill').classList.toggle('hi',bad>0);$('gNum').textContent=nb+'';$('gMeta').textContent=bad?bad+(bad===1?' desalineado':' desalineados'):nb?'todos alineados':'sin robots';}
+    if(ERA.defense)defenseRow('s');}
+  else if(ERA.defense)defenseRow('g');
 }
 
 // La defensa de la era (escudos, atalayas, hospitales, soporte técnico): qué parte de los edificios cubre (con `of`, solo esos)
-// y qué viene en camino. Va en la fila de la red (p='g') o, en Internet, donde la red ya la usan las ciudades, en la del humo (p='s').
+// y qué viene en camino. Va en la fila de la red (p='g') o, en Internet y en la IA, donde esa fila ya la usan las ciudades o los
+// robots, en la del humo (p='s').
 function defenseRow(p){const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){if(!D.of||D.of.includes(o.t))bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
-  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,nb=ERA.meteors||ERA.plague||ERA.luddites||ERA.infect?bugCount():0,np=pirates.length+swarms.length+ludds.filter(angry).length,
-    on=sh.length>0||meteors.length>0||np>0||nb>0||(ERA.cities?grid().linked.length>0:ERA.meteors?st.time>60:ERA.plague?st.time>=PLAGUE_START:ERA.locusts?st.time>=LOCUST_START:ERA.luddites?st.time>=LUDD_START:!!st.techs[ERA.pirates]);$(p==='g'?'gridRow':'smogRow').hidden=!on;
+  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,nb=ERA.meteors||ERA.plague||ERA.luddites||ERA.infect||ERA.hijack?bugCount():0,np=pirates.length+swarms.length+ludds.filter(angry).length,
+    on=sh.length>0||meteors.length>0||np>0||nb>0||(ERA.cities?grid().linked.length>0:ERA.robots?vil.some(v=>v.bot):ERA.meteors?st.time>60:ERA.plague?st.time>=PLAGUE_START:ERA.locusts?st.time>=LOCUST_START:ERA.luddites?st.time>=LUDD_START:!!st.techs[ERA.pirates]);$(p==='g'?'gridRow':'smogRow').hidden=!on;
   if(on){$(p+'Fill').style.width=(bs.length?cov/bs.length*100:0)+'%';$(p+'Fill').classList.toggle('hi',meteors.length>0||np>0||nb>0);$(p+'Num').textContent=Math.round(bs.length?cov/bs.length*100:0)+'%';
     $(p+'Meta').textContent=meteors.length?(meteors.length===1?'1 meteorito en camino':meteors.length+' meteoritos en camino'):np?(ERA.locusts?(np===1?'1 manga de langostas':np+' mangas de langostas'):ERA.luddites?(np===1?'1 luddita en camino':np+' ludditas en camino'):np===1?'1 pirata en la costa':np+' piratas en la costa'):
-      nb?(ERA.plague?nb+' con peste':ERA.infect?nb+' con virus':ERA.luddites?nb+(nb===1?' roto':' rotos'):nb+(nb===1?' dañado':' dañados')):sh.length?(ERA.meteors?'cielo tranquilo':ERA.infect?'compus cuidadas':ERA.plague?'sin peste':ERA.locusts?'campo tranquilo':ERA.luddites?'obreros tranquilos':'costa tranquila'):'sin '+D.label.toLowerCase();}}
+      nb?(ERA.plague?nb+' con peste':ERA.infect?nb+' con virus':ERA.hijack?nb+(nb===1?' tomado':' tomados'):ERA.luddites?nb+(nb===1?' roto':' rotos'):nb+(nb===1?' dañado':' dañados')):sh.length?(ERA.meteors?'cielo tranquilo':ERA.infect?'compus cuidadas':ERA.hijack?'robots vigilados':ERA.plague?'sin peste':ERA.locusts?'campo tranquilo':ERA.luddites?'obreros tranquilos':'costa tranquila'):'sin '+D.label.toLowerCase();}}
 
 /* ---------- hojas ---------- */
 const costHTML=c=>'<div class="costs">'+Object.entries(c).map(([k,v])=>'<span class="cost'+(st.res[k]>=v?'':' miss')+'"><img class="px" alt="'+RN[k]+'" src="'+ICON[k]+'">'+v+'</span>').join('')+'</div>';
@@ -1416,13 +1451,14 @@ function onTap(tx,ty){
     if(hit){luddHome(hit);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('Luddita calmado: vuelve a su casa.');return;}}
   {const hit=swarms.find(w=>Math.hypot(w.x-tx,w.y-ty)<=1.5);
     if(hit){scatter(hit);swarms=swarms.filter(w=>!w.dead);st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Langostas espantadas!');return;}}
-  {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){hit.bad=false;hit.badT=0;hit.state='idle';hit.t=0.5;st.res.ideas+=3;float(hit.x,hit.y-0.6,'+3 ideas',RCOL.ideas);toast('Robot realineado');save();return;}}
+  {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){realign(hit);st.res.ideas+=3;float(hit.x,hit.y-0.6,'+3 ideas',RCOL.ideas);toast('Robot realineado');save();return;}}
   if(!inb(tx,ty))return;
   let o=obj[ty*MW+tx];
   if(!o&&inb(tx,ty+1)){const b=obj[(ty+1)*MW+tx];if(b&&b.t==='tree'&&b.hp>0){ty++;o=b;}}
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
   if(o){
     if(o.bug&&o.t==='servidor'){o.bug=false;o.bugAge=0;GRID=null;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Servidor limpio! La red vuelve a andar.');save();return;}
+    if(o.bug&&hijackable(o)){const r=vil.find(v=>v.at===ty*MW+tx);if(r){realign(r);st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);}else{o.bug=false;BROKEN=null;}toast('Robot realineado: el edificio vuelve a producir.');save();return;}
     if(o.bug&&infectable(o)){o.bug=false;o.bugAge=0;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Virus borrado! Vuelve a producir.');save();return;}
     if(o.bug&&sickable(o)){o.bug=false;o.bugAge=0;o.heal=0;BROKEN=null;st.res.ideas+=2;float(tx,ty,'+2 ideas',RCOL.ideas);toast('¡Peste curada!');save();return;}
     if(o.bug&&(ERA.meteors||ERA.luddites||ERA.storms)){o.bug=false;BROKEN=null;GRID=null;float(tx,ty,'¡reparado!','#93d36c');o.fix=0;toast(ERA.luddites?'Máquinas arregladas: vuelve a producir.':ERA.storms?'Arreglado: vuelve la luz.':BUILD[o.t].name+' reparado.');save();return;}
