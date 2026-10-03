@@ -34,6 +34,7 @@ npm run bot:era2                # un bot juega las 10 misiones de la Antigüedad
 npm run sim:carrera             # 40 partidas rival vs rival del prototipo por turnos
 npm run huella:mundo            # juega un guion fijo en cada era del mundo abierto y guarda la huella en out/huella
 npm run bot:mundo               # un bot juega las eras 2 a 11 del mundo abierto encadenadas y reporta minutos hasta cada obra
+npm run bot:prehistoria         # un bot juega la Prehistoria del mundo abierto y reporta cuándo saca cada invento y el ábaco
 ```
 
 Los bots arman `dist/` y lo sirven solos en un puerto libre; no hace falta tener `npm run serve` corriendo. Al final `bot:era1` y `bot:era2` dicen cuántas misiones ganaron y cuántas quedaron bajo el oro; salen con error si alguna no se gana o hay errores de página. Si ya hay un Chromium instalado y no se puede bajar otro, `PW_CHROMIUM=/ruta/al/chrome npm run bot:era2`.

@@ -10,7 +10,8 @@
     "bot:era2": "npm run build && mkdir -p out && node tools/bot-era2.mjs",
     "sim:carrera": "npm run build && mkdir -p out && node tools/sim-carrera.mjs",
     "huella:mundo": "npm run build && mkdir -p out && node tools/huella-mundo.mjs out/huella",
-    "bot:mundo": "npm run build && mkdir -p out && node tools/bot-mundo.mjs"
+    "bot:mundo": "npm run build && mkdir -p out && node tools/bot-mundo.mjs",
+    "bot:prehistoria": "npm run build && mkdir -p out && node tools/bot-prehistoria.mjs"
   },
   "devDependencies": {
     "playwright": "^1.50.0"
