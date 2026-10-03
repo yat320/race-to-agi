@@ -1139,7 +1139,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
-  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta()};
+  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
 </body></html>
