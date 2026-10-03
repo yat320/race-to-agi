@@ -1,11 +1,14 @@
-// IA del mundo abierto: tierras raras, robots que se desalinean; el asistente universal. Datos y arte de la era; las reglas están en motor.html.
+// IA del mundo abierto: tierras raras, robots que se desalinean y toman edificios, centros de supervisión; el asistente universal. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
   n:9,name:'IA',de:'de la IA',next:{file:'mundo10.html',to:'a la AGI'},
   ore:{id:'tierras',name:'Tierras raras',col:'#c8a8f0',empty:'Veta de tierras raras agotada',gather:'tierras raras',icon:[['........','..kkkk..','.kqvqqk.','kqqQqvqk','kQqqvqQk','.kQQqQk.','..kkkk..','........'],{q:'#9a7ac8',Q:'#5a4a8a',v:'#7ae0c8'}]},
   storage:{id:'granero',name:'Granero'},ideaBuild:'labia',ideaTechs:['redes','lenguaje'],boostTech:'chips',farmBuild:'huerta',nightTech:'chips',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
-  lights:['herreria','datacenter','fabrob','startup','huerta','seguridad','labia'],
+  lights:['herreria','datacenter','fabrob','startup','huerta','seguridad','labia','supervision'],
   grid:'data',robots:'robotica',
+  // Los desalineados toman uno de estos edificios (con su nombre para los avisos); el centro de supervisión corrige a los que pasan
+  // a 4 casilleros (reglas en motor.html).
+  hijack:{datacenter:'un centro de datos',startup:'una empresa de software',labia:'un laboratorio de IA'},defense:{id:'supervision',r:4,label:'Supervisión',of:['datacenter','startup','labia']},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo8-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la era de Internet',perks:[
     ['smartphone','ideaMult',1.25,'Teléfono inteligente: ideas +25% durante toda la era'],
@@ -14,7 +17,7 @@ const ERA={
   techs:[
  {id:'redes',name:'Redes neuronales',cost:{tierras:15,ideas:30},req:[],desc:'Desbloquea el centro de datos, el taller y la cantera. Ideas +50%.'},
  {id:'vertical',name:'Cultivo vertical',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea la huerta vertical, que potencia las granjas.'},
- {id:'robotica',name:'Robótica',cost:{tierras:20,ideas:50},req:['redes'],desc:'Desbloquea la fábrica de robots: juntan solos y no comen, pero a veces se desalinean.'},
+ {id:'robotica',name:'Robótica',cost:{tierras:20,ideas:50},req:['redes'],desc:'Desbloquea la fábrica de robots y el centro de supervisión. Los robots juntan solos y no comen, pero a veces se desalinean.'},
  {id:'software',name:'Software en la nube',cost:{madera:40,piedra:20,ideas:65},req:['redes'],desc:'Desbloquea la empresa de software, que da monedas.'},
  {id:'alineacion',name:'Alineación',cost:{madera:60,tierras:20,ideas:95},req:['robotica'],desc:'Desbloquea el instituto de alineación. Los robots se desalinean la mitad de seguido.'},
  {id:'lenguaje',name:'Modelos de lenguaje',cost:{monedas:30,ideas:130},req:['software','robotica'],desc:'Desbloquea el laboratorio de IA. Ideas +50%.'},
@@ -30,23 +33,24 @@ const ERA={
  {id:'herreria',name:'Taller',req:'redes',base:{madera:25,piedra:20,tierras:10},grow:1.6,done:'Taller listo',desc:'Herramientas inteligentes: vos, los aldeanos y los robots juntan +30% por cada taller.'},
  {id:'cantera',name:'Cantera',req:'redes',base:{madera:20,tierras:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
  {id:'datacenter',name:'Centro de datos',req:'redes',base:{piedra:40,tierras:10},grow:1.5,done:'Centro de datos encendido',desc:'Entrena modelos: genera muchas ideas.',prod:{ideas:0.5}},
- {id:'fabrob',name:'Fábrica de robots',req:'robotica',base:{piedra:40,tierras:15},grow:1.5,done:'Llegaron 2 robots',desc:'Arma 2 robots que juntan recursos solos, más rápido y sin comer. A veces se desalinean: tocalos para corregirlos.',bots:2},
+ {id:'fabrob',name:'Fábrica de robots',req:'robotica',base:{piedra:40,tierras:15},grow:1.5,done:'Llegaron 2 robots',desc:'Arma 2 robots que juntan recursos solos, más rápido y sin comer. A veces se desalinean y toman un edificio: tocalos para corregirlos.',bots:2},
+ {id:'supervision',name:'Centro de supervisión',req:'robotica',base:{madera:20,piedra:20,tierras:8},grow:1.4,done:'Centro de supervisión vigilando',desc:'Gente que vigila a los robots: los desalineados que pasan a 4 casilleros se corrigen solos.'},
  {id:'startup',name:'Empresa de software',req:'software',base:{madera:30,piedra:25,tierras:5},grow:1.4,done:'Empresa abierta',desc:'Vende programas: da muchas monedas.',prod:{monedas:0.4}},
  {id:'huerta',name:'Huerta vertical',req:'vertical',base:{madera:35,piedra:30},grow:1.6,done:'Huerta vertical lista',desc:'Cada huerta vertical hace rendir +50% a todas las granjas.'},
  {id:'seguridad',name:'Instituto de alineación',req:'alineacion',base:{madera:30,piedra:30,monedas:20},grow:1.6,done:'Instituto abierto',desc:'Cada instituto baja 25% la chance de que un robot se desalinee.'},
  {id:'labia',name:'Laboratorio de IA',req:'lenguaje',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Laboratorio abierto',desc:'Ideas +30% por cada laboratorio.'}],
-  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',datacenter:'Centro de datos: genera ideas.',fabrob:'Fábrica de robots: arma robots.',startup:'Empresa de software: da monedas.',huerta:'Huerta vertical: potencia las granjas.',seguridad:'Instituto de alineación: los robots se desalinean menos.',labia:'Laboratorio de IA: más ideas.'},
+  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',datacenter:'Centro de datos: genera ideas.',fabrob:'Fábrica de robots: arma robots.',startup:'Empresa de software: da monedas.',huerta:'Huerta vertical: potencia las granjas.',seguridad:'Instituto de alineación: los robots se desalinean menos.',labia:'Laboratorio de IA: más ideas.',supervision:'Centro de supervisión: corrige a los robots desalineados cercanos.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
-  tips1:[['robotica','fabrob','una fábrica de robots: juntan solos y no comen.'],['alineacion','seguridad','un instituto de alineación: tus robots se desalinean menos.']],
+  tips1:[['robotica','fabrob','una fábrica de robots: juntan solos y no comen.'],()=>counts.fabrob&&!counts.supervision?['Construí','un centro de supervisión cerca de tus centros de datos: corrige a los robots desalineados.']:null,['alineacion','seguridad','un instituto de alineación: tus robots se desalinean menos.']],
   tips2:[['redes','datacenter','un centro de datos: genera muchas ideas.'],['software','startup','una empresa de software para conseguir monedas.'],['vertical','huerta','una huerta vertical: potencia las granjas.']],
   smogTip:'Más parques, o represas en vez de usinas.',done:'Era de la IA completa.',
   text:{
     when:'2012 d.C.',title:'La IA',
-    intro:'Las máquinas aprenden. Los robots juntan recursos solos, más rápido que nadie y sin comer, pero a veces se desalinean: dejan de hacerte caso y convierten tus recursos en clips. Tocalos para corregirlos. La meta: un asistente universal, una IA que ayuda en cualquier tarea.',
-    news:'Novedades: tierras raras, robots que se desalinean, centros de datos e institutos de alineación. Ya no hay virus ni ciudades para conectar.',
+    intro:'Las máquinas aprenden. Los robots juntan recursos solos, más rápido que nadie y sin comer, pero a veces se desalinean: dejan de hacerte caso y toman tus centros de datos, empresas y laboratorios para convertir todo en clips. Tocalos para corregirlos, o poné centros de supervisión cerca. La meta: un asistente universal, una IA que ayuda en cualquier tarea.',
+    news:'Novedades: tierras raras, robots que se desalinean y toman edificios, centros de datos, centros de supervisión e institutos de alineación. Ya no hay virus ni ciudades para conectar.',
     legacy:'Lo que trae tu ciudad de la era de Internet',
     noLegacy:'No hay una era de Internet terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Las fábricas de robots arman robots que juntan solos y no comen, pero a veces se desalinean y convierten tus recursos en clips: tocalos para corregirlos antes de que convenzan a otros. En la compu: flechas o WASD, E para juntar, F para comer.',
+    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Las fábricas de robots arman robots que juntan solos y no comen, pero a veces se desalinean: caminan hasta un centro de datos, una empresa o un laboratorio y lo usan para convertir tus recursos en clips. Tocá el robot o el edificio para corregirlo antes de que convenza a otros; si no, los ingenieros lo apagan al minuto. El centro de supervisión corrige solos a los que pasan a 4 casilleros. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Era de la IA superada',winText:()=>'Terminaste el asistente universal en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y robots y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ya hay una IA que ayuda en cualquier tarea.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la carrera final: la AGI.'}
 };
@@ -91,6 +95,17 @@ function safetyArt(){return mkA(64,64,a=>{const GN=P4('#3a6a5a','#4e8a76','#6aa8
   poly(a,[[22,4],[42,4],[42,12],[32,20],[22,12]],(x,y)=>x<32?hx('#e8f4ff'):hx('#c8dcf0'));line(a,27,10,31,14,hx('#3f8f47'),2);line(a,31,14,38,7,hx('#3f8f47'),2);
   rect(a,6,26,52,34,GN[2]);rect(a,46,26,12,34,GN[1]);rect(a,4,22,56,4,GN[3]);for(const x of[11,36,48])rect(a,x,32,7,10,GLASS[1]);rect(a,24,46,10,14,WOOD[1]);
   outlineAll(a,OUTL);});}
+// Centro de supervisión: edificio gris azulado con una cámara en el techo y una pared de pantallas que muestran a los robots;
+// uno, en rojo, se desalineó.
+function supervisionArt(){return mkA(64,64,a=>{const WB=P4('#3a4658','#4e5c72','#6a7a92','#8a9ab2'),CY=hx('#5fe3d0'),RD=hx('#e8654d'),K=hx('#1b1a24');
+  rect(a,30,9,3,10,IRON[1]);rect(a,22,4,18,7,hx('#dfe4ea'));rect(a,22,10,18,1,hx('#a8b0b8'));rect(a,16,5,6,5,hx('#b8c0cc'));ell(a,17,7.5,2,2,K);a.set(17,7,CY);ell(a,38,6.5,1,1,RD);
+  rect(a,4,22,56,38,WB[2]);rect(a,46,22,14,38,WB[1]);rect(a,2,18,60,4,WB[3]);
+  rect(a,7,26,37,21,hx('#1e2430'));
+  for(let r=0;r<2;r++)for(let c=0;c<3;c++){const x=9+c*11,y=28+r*9,e=r===0&&c===2?RD:CY;rect(a,x,y,9,7,hx('#24384a'));
+    rect(a,x+2,y+2,5,4,e===RD?hx('#5a2a2a'):hx('#2a4e56'));a.set(x+4,y+1,e);a.set(x+3,y+3,e);a.set(x+5,y+3,e);rect(a,x+3,y+5,3,1,e);}
+  rect(a,7,47,37,2,WOOD[2]);
+  rect(a,48,36,9,24,hx('#2a3240'));rect(a,49,38,7,9,GLASS[1]);
+  outlineAll(a,OUTL);});}
 // Laboratorio de IA: edificio violeta con una red neuronal en el cartel.
 function aiLabArt(){return mkA(64,64,a=>{const WB=P4('#4a4a6a','#5e5e88','#7a7aa8','#9a9ac4'),N=[[19,6],[19,14],[32,5],[32,10],[32,15],[45,10]];
   rect(a,14,2,36,16,DKW);for(const[x1,y1]of N.slice(0,2))for(const[x2,y2]of N.slice(2,5))line(a,x1,y1,x2,y2,WB[1],1);for(const[x1,y1]of N.slice(2,5))line(a,x1,y1,45,10,WB[1],1);for(const[x,y]of N)ell(a,x,y,1.6,1.6,hx('#5fe3d0'));
@@ -98,5 +113,5 @@ function aiLabArt(){return mkA(64,64,a=>{const WB=P4('#4a4a6a','#5e5e88','#7a7aa
   outlineAll(a,OUTL);});}
 const VILPAL2=[{c:'#3a3a48',C:'#28283a',j:'#5fe3d0',y:'#3a2418'},{c:'#d8d0c0',C:'#a89c88',j:'#4a78b8',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#c87a3a',C:'#9a5a28',j:'#2a2a3a',y:'#8a5a2a'}];
 const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:rareEarthOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:smartHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),datacenter:dataCenterArt(),fabrob:robotFactoryArt(),startup:startupArt(),huerta:verticalFarmArt(),seguridad:safetyArt(),labia:aiLabArt(),robot:[robotArt(0,0),robotArt(1,0)],robotBad:[robotArt(0,1),robotArt(1,1)],
+  casa:smartHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),datacenter:dataCenterArt(),fabrob:robotFactoryArt(),startup:startupArt(),huerta:verticalFarmArt(),seguridad:safetyArt(),labia:aiLabArt(),supervision:supervisionArt(),robot:[robotArt(0,0),robotArt(1,0)],robotBad:[robotArt(0,1),robotArt(1,1)],
   hero:[personArt({c:'#4a78b8',C:'#2f5a96',j:'#ffd35a'},0),personArt({c:'#4a78b8',C:'#2f5a96',j:'#ffd35a'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
