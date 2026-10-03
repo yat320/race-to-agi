@@ -47,10 +47,10 @@ const ERA={
   text:{
     when:'2045 d.C.',title:'La era estelar',
     intro:'Con una AGI segura de tu lado, la humanidad sale al espacio: cohetes que van y vienen, minas en los asteroides y piedras que se desvían de su camino. Tocá los meteoritos antes de que caigan sobre tus edificios, o dejalos caer en tierra libre y aprovechá el iridio del cráter. La meta: la esfera de Dyson, toda la energía del Sol.',
-    news:'Novedades: iridio, puerto espacial, escudos y meteoritos. Un edificio dañado no produce hasta que lo reparás tocándolo. Cuanto más avanzás, más seguido caen.',
+    news:'Novedades: iridio, puerto espacial, escudos y meteoritos. Un edificio dañado no produce hasta que lo reparás tocándolo o lo arreglan solos los drones, a los 3 minutos. Cuanto más avanzás, más seguido caen.',
     legacy:'Lo que trae tu ciudad de la era de la AGI',
     noLegacy:'No hay una AGI terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Caen meteoritos: tocalos antes de que lleguen. Si caen sobre un edificio lo dañan y hay que tocarlo para repararlo; en tierra libre dejan un cráter con iridio. Los escudos desvían los que apuntan cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
+    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Caen meteoritos: tocalos antes de que lleguen. Si caen sobre un edificio lo dañan: tocalo para repararlo, o los drones lo arreglan solos a los 3 minutos; en tierra libre dejan un cráter con iridio. Los escudos desvían los que apuntan cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'La esfera de Dyson',winText:()=>'Terminaste la esfera de Dyson en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Toda la energía del Sol, para la humanidad y su AGI.',
     winNote:'Por ahora es la última era.'}
 };
