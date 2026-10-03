@@ -777,7 +777,7 @@ function goalText(){
   const miss=Object.entries(next.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>Math.ceil(v-st.res[k])+' '+RN[k].toLowerCase());
   return miss.length?['Próximo: '+next.name+'.','Faltan '+miss.join(', ')+'.']:['Próximo: '+next.name+'.','Listo, abrí Inventos.'];
 }
-let sheetMode=null,sheetSig='',lastGoal='';
+let sheetMode=null,sheetSig='',sheetHeld=false,lastGoal='';
 function hud(){
   const{pr,us}=economy();
   for(const k of RK){
@@ -796,7 +796,10 @@ function hud(){
   const hungry=vil.filter(v=>v.hungry).length;$('tribeDot').classList.toggle('on',hungry>0);
   $('tribeHint').textContent=vil.length+(vil.length===1?' aldeano':' aldeanos');
   $('eatHint').textContent=nearFire(P.x,P.y,4)?'+25 al fuego':'+12 energía';
-  if(sheetMode){const sig=RK.map(k=>Math.floor(st.res[k])).join()+'|'+Object.keys(st.techs).length+'|'+Object.values(counts).join()+'|'+vil.length+'|'+hungry+'|'+st.prio;if(sig!==sheetSig){sheetSig=sig;renderSheet();}}
+  // La hoja se rehace solo si cambia algo que se ve: si un botón se reemplaza entre que apoyás el dedo y lo levantás, el toque se pierde.
+  if(sheetMode&&!sheetHeld){const ok=c=>Object.entries(c).map(([k,v])=>st.res[k]>=v?1:0).join('');
+    const what=sheetMode==='tech'?TECHS.map(t=>ok(t.cost)).join():sheetMode==='build'?BUILDS.map(b=>ok(buildCost(b))).join():(()=>{const{pr,us}=economy();return vil.filter(v=>v.state!=='idle').length+':'+RK.map(k=>fmt((pr[k]-us[k])*60)).join();})();
+    const sig=what+'|'+Object.keys(st.techs).length+'|'+Object.values(counts).join()+'|'+vil.length+'|'+hungry+'|'+st.prio;if(sig!==sheetSig){sheetSig=sig;renderSheet();}}
   measure();
 }
 
@@ -834,6 +837,8 @@ function openSheet(m){if(placing){placing=null;$('place').hidden=true;}else if(!
 function closeSheet(fromBack){if(!sheetMode)return;sheetMode=null;$('sheet').hidden=true;if(!fromBack)navPop();}
 $('sheetClose').onclick=()=>closeSheet();$('sheetBack').onclick=()=>closeSheet();
 $('sheet').addEventListener('click',e=>{if(e.target===$('sheet')&&performance.now()-sheetOpenedAt>450)closeSheet();});
+// Mientras el dedo está apoyado en la hoja no se rehace, así el toque llega al botón que tocaste.
+$('sheetBody').addEventListener('pointerdown',()=>{sheetHeld=true;});document.addEventListener('pointerup',()=>{sheetHeld=false;});document.addEventListener('pointercancel',()=>{sheetHeld=false;});
 $('sheetBody').addEventListener('click',e=>{
   const t=e.target.closest('[data-tech]'),b=e.target.closest('[data-build]'),p=e.target.closest('[data-prio]');
   if(t&&!t.disabled)research(t.dataset.tech);
@@ -883,12 +888,15 @@ function showIntro(){
   const leg=L.has?'<div class="kicker">Lo que trae tu ciudad de la Edad Media</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">No hay una Edad Media terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.</p>';
   showModalI('<div class="kicker">Mundo abierto · 1450 d.C.</div><h1>El Renacimiento</h1><p>Tu ciudad despierta. Hay plata en las colinas, artistas que dibujan en perspectiva, bancos que prestan y carabelas que cruzan el océano. La meta: construir la pascalina, la primera máquina que suma sola.</p>'+erasHTML(3)+leg+'<p class="muted">Novedades: plata, talleres de artistas, bancos, jardines botánicos y academias.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
 }
-function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button><button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
-function showWin(){showModal('<div class="kicker">Mundo abierto · Renacimiento</div><h1>Renacimiento superado</h1><p>Terminaste la pascalina en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las máquinas ya saben sumar.</p>'+erasHTML(4)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. La Industria todavía no está.</p><div class="row"><button class="btn" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
+function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?'<button class="btn ghost" data-m="next">Pasar a la Industria</button>':'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
+function showWin(){showModal('<div class="kicker">Mundo abierto · Renacimiento</div><h1>Renacimiento superado</h1><p>Terminaste la pascalina en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las máquinas ya saben sumar.</p>'+erasHTML(4)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan a la Industria.</p><div class="row"><button class="btn" data-m="next">Pasar a la Industria</button><button class="btn ghost" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
+// La Industria del mundo abierto se carga sobre esta página, como las eras desde el hub.
+function goPage(f){save();window.__rtagiActive='switching';fetch(f).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();}).catch(()=>{window.__rtagiActive=ERA_ID;requestAnimationFrame(frame);toast('No se pudo cargar. Volvé a abrir el juego.','bad');});}
 $('modalCard').addEventListener('click',e=>{
   const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
   if(m==='start'){st.seen=true;save();hideModal();}
   else if(m==='close')hideModal();
+  else if(m==='next'){goPage('mundo5.html');return;}
   else if(m==='hub'){save();window.__rtagiActive='switching';location.reload();}
   else if(m==='reset'){if(!resetArmed){resetArmed=true;b.textContent='Tocá de nuevo para borrar la era';b.classList.add('warn');return;}
     try{localStorage.removeItem(KEY);}catch(err){}newGame();closeSheet();stopPlace();showIntro();}
