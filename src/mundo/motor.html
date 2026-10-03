@@ -375,12 +375,15 @@ const serverDown=()=>obj.some(o=>o&&o.t==='servidor'&&o.bug);
 // Robots (ERA.robots): juntan como los aldeanos, más rápido y sin comer. Cada uno se desalinea cada ~150 s (la alineación, la
 // interpretabilidad y cada instituto lo bajan): deja de trabajar y convierte recursos en clips. Si nadie lo corrige,
 // a los 20 s convence al robot alineado más cercano (a 6 casilleros).
-// La carrera (ERA.rival): el rival avanza solo hacia la AGI, cada vez más rápido (tarda ~50 min si nadie lo frena).
-// Cómputo, ciencia y escalado lo apuran 10% cada uno; el tratado lo frena 30% y cada embajada 12%.
+// La carrera (ERA.rival): el rival avanza solo hacia la AGI, cada vez más rápido (llega en ~20 min si nadie lo frena;
+// RIVAL_T son los segundos que tardaría sin apurarse). Cómputo, ciencia y escalado lo apuran 10% cada uno; el tratado lo
+// frena 30% y cada embajada 12%. Calibrado con el bot (npm run bot:mundo, octubre de 2026): jugando perfecto se termina con
+// el rival en ~29%; tardando el doble, en ~62%; el triple, se pierde a los ~22 min si no se frena con más embajadas.
+const RIVAL_T=1600;
 const rivalMult=()=>(1+0.1*['computo','ciencia','escalado'].filter(t=>st.techs[t]).length)*(st.techs.tratado?0.7:1)*Math.pow(0.88,counts.embajada||0);
-const rivalRate=()=>(100/5400)*(1+st.time/1800)*rivalMult();
+const rivalRate=()=>(100/RIVAL_T)*(1+st.time/1800)*rivalMult();
 // Segundos que le faltan al rival, contando que se apura: resuelve k·(Δ + (2tΔ+Δ²)/3600) = lo que falta.
-function rivalEta(){const k=(100/5400)*rivalMult(),bq=1+st.time/1800,c=(100-st.rival)/k;return(-bq+Math.sqrt(bq*bq+4*c/3600))*1800;}
+function rivalEta(){const k=(100/RIVAL_T)*rivalMult(),bq=1+st.time/1800,c=(100-st.rival)/k;return(-bq+Math.sqrt(bq*bq+4*c/3600))*1800;}
 const badRate=()=>(1/150)*(st.techs.alineacion?0.5:1)*(st.techs.interpretabilidad?0.5:1)*Math.pow(0.75,counts.seguridad||0);
 const badSpread=()=>st.techs.interpretabilidad?40:20;
 const workT=v=>v.bot?(st.techs.chips?0.4:0.6):0.9;
