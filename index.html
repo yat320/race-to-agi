@@ -128,7 +128,8 @@ const MUNDO=[
   {n:7,name:'Computación',obra:'el microprocesador',file:'mundo7.html',save:'rtagi-mundo7-v1'},
   {n:8,name:'Internet',obra:'el teléfono inteligente',file:'mundo8.html',save:'rtagi-mundo8-v1'},
   {n:9,name:'Inteligencia artificial',obra:'el asistente universal',file:'mundo9.html',save:'rtagi-mundo9-v1'},
-  {n:10,name:'AGI',obra:'la AGI, antes que el rival',file:'mundo10.html',save:'rtagi-mundo10-v1'}];
+  {n:10,name:'AGI',obra:'la AGI, antes que el rival',file:'mundo10.html',save:'rtagi-mundo10-v1'},
+  {n:11,name:'Post-AGI',obra:'la esfera de Dyson',file:'mundo11.html',save:'rtagi-mundo11-v1'}];
 // Partida guardada de una era del mundo abierto: {seen, won, lost, dia}, o null si nunca se abrió.
 function mundoState(e){try{const d=JSON.parse(get(e.save));if(!d)return null;
   if(e.n===1)return d.st?{seen:!!d.st.seen||d.st.time>0,won:!!d.st.won,lost:false,dia:Math.floor((d.st.time||0)/150)+1}:null;

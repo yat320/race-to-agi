@@ -272,7 +272,7 @@ function renderGround(){
 let st,counts={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
-let GRID=null,bugT=0,viruses=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
+let GRID=null,BROKEN=null,bugT=0,viruses=[],meteors=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
   const L=ERA.legacy,e=prevEra(),out=L.monedas?{has:!!e,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]}:{has:!!e,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e){
@@ -287,7 +287,7 @@ function readLegacy(){
   return out;
 }
 function freshState(){return{res:{madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
-function recount(){GRID=null;counts={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined)counts[o.t]++;}
+function recount(){GRID=null;BROKEN=null;counts={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined)counts[o.t]++;}
 function newGame(){
   obj=genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];
   Object.assign(P,{x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1});
@@ -361,7 +361,9 @@ function dataGrid(){const nodes=[];
 // Distancia del casillero a la parte conectada de la red (sin contar las ciudades).
 function nearNode(g,x,y){let d=1e9;for(const n of g.on.values())if(n.t!=='ciudad')d=Math.min(d,Math.hypot(n.x-x,n.y-y));return d;}
 // Cuántos edificios de un tipo andan: los que tienen ⚡ cuentan solo si tienen luz y no tienen un bicho, y rinden según alcance la red.
-function act(id){const b=BUILD[id];if(!b||!b.elec)return counts[id]||0;const g=grid();let n=0;for(const i of g.powered)if(obj[i].t===id&&!obj[i].bug)n++;return n*g.f;}
+// Edificios dañados (con `bug`, sin luz eléctrica) por tipo; se recalcula una vez por cuadro.
+function broken(id){if(!BROKEN){BROKEN={};for(const o of obj)if(o&&o.bug&&BUILD[o.t])BROKEN[o.t]=(BROKEN[o.t]||0)+1;}return BROKEN[id]||0;}
+function act(id){const b=BUILD[id];if(!b||!b.elec)return(counts[id]||0)-broken(id);const g=grid();let n=0;for(const i of g.powered)if(obj[i].t===id&&!obj[i].bug)n++;return n*g.f;}
 // Bichos (ERA.bugs): a cada máquina con `bug` que anda le sale uno cada ~90 s (el transistor y la depuración los hacen más raros).
 // Una máquina con bicho no produce; si nadie lo aplasta, se contagia a otra máquina a 5 casilleros.
 const bugRate=()=>(1/90)*(st.techs.transistor?0.6:1)*(st.techs.depuracion?0.6:1);
@@ -403,6 +405,29 @@ function updateViruses(dt){for(const v of viruses){let move=vSpeed()*dt;
       else if(st.techs.antivirus&&Math.random()<0.25){v.dead=true;float(bx,by,'¡frenado!','#5fe3d0');}}
     if(!v.dead){const[ax,ay]=v.path[v.seg],[bx,by]=v.path[v.seg+1];v.x=ax+(bx-ax)*v.u;v.y=ay+(by-ay)*v.u;}}
   viruses=viruses.filter(v=>!v.dead);}
+// Meteoritos (ERA.meteors): cada tanto uno apunta a la ciudad (6 de cada 10 veces a un edificio) y cae en METEOR_T segundos
+// (más con el radar). Tocarlo lo desvía (+2 ideas). Si cae sobre un edificio lo daña: deja de producir hasta que lo tocás para
+// repararlo. Si cae en tierra libre deja un cráter con mineral. Un escudo desvía solo los que apuntan a 5 casilleros o menos.
+// Caen más seguido a medida que avanzás (cada invento +10%) y con la minería de asteroides (+30%).
+const METEOR_T=10,SHIELD_R=5;
+const meteorEvery=()=>40/((1+0.1*Object.keys(st.techs).length)*(st.techs.mineria?1.3:1));
+const fallT=()=>METEOR_T*(st.techs.radar?1.5:1);
+const meteorPos=m=>{const u=m.t/m.T;return{x:m.x+6*u,y:m.y-10*u};};
+function spawnMeteor(){const bs=[],land=[];
+  for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&BUILD[o.t]&&!o.bug)bs.push(i);}
+  const c=bs.length?bs[Math.floor(Math.random()*bs.length)]:SPAWN[1]*MW+SPAWN[0];let i=c;
+  if(!bs.length||Math.random()>=0.6){const cx=c%MW,cy=(c/MW)|0;for(let k=0;k<12;k++){const x=cx+Math.floor(Math.random()*13)-6,y=cy+Math.floor(Math.random()*13)-6;if(inb(x,y)&&ground[y*MW+x]!==WATER){i=y*MW+x;break;}}}
+  const x=i%MW,y=(i/MW)|0,T0=fallT(),sh=obj.some((o,j)=>o&&o.t==='escudo'&&!o.bug&&Math.hypot(j%MW-x,((j/MW)|0)-y)<=SHIELD_R);
+  meteors.push({x,y,t:T0,T:T0,sh});}
+function updateMeteors(dt){
+  for(const m of meteors){m.t-=dt;
+    if(m.sh&&m.t<=m.T/2){m.dead=true;const p=meteorPos(m);zaps.push({x:p.x,y:p.y,t:0.5});float(p.x,p.y,'¡desviado!','#5fe3d0');continue;}
+    if(m.t>0)continue;m.dead=true;const i=m.y*MW+m.x,o=obj[i];
+    if(o&&BUILD[o.t]){if(!o.bug){o.bug=true;BROKEN=null;GRID=null;toast('¡Un meteorito dañó '+BUILD[o.t].name.toLowerCase()+'! Tocalo para repararlo.');}}
+    else if(!o&&ground[i]!==WATER&&!occupied(m.x,m.y)){obj[i]={t:'ore',hp:RES.ore.hp,regen:0};float(m.x,m.y,'cráter de '+RN[ORE].toLowerCase(),RCOL[ORE]);}
+    zaps.push({x:m.x,y:m.y,t:0.6,boom:true});}
+  meteors=meteors.filter(m=>!m.dead);
+  for(const z of zaps)z.t-=dt;zaps=zaps.filter(z=>z.t>0);}
 function economy(){ // producción y consumo por segundo
   const pr={},us={};RK.forEach(k=>{pr[k]=0;us[k]=0;});
   for(const b of BUILDS){const p=prodOf(b);for(const k in p)pr[k]+=p[k];if(b.use&&counts[b.id])for(const k in b.use)us[k]+=b.use[k]*counts[b.id];}
@@ -546,8 +571,11 @@ function update(dt){
     if(ERA.cities)for(const c of grid().linked)if(Math.random()<step/50)spawnVirus(c);
     if(ERA.robots){const had=vil.some(v=>v.bad);
       for(const v of vil){if(!v.bot)continue;if(v.bad){v.badT=(v.badT||0)+step;if(v.badT>=badSpread()){v.badT=0;convince(v);}}else if(Math.random()<badRate()*step)misalign(v);}
-      if(!had&&vil.some(v=>v.bad))toast('¡Un robot se desalineó! Tocalo para corregirlo.');}}
+      if(!had&&vil.some(v=>v.bad))toast('¡Un robot se desalineó! Tocalo para corregirlo.');}
+    if(ERA.meteors&&Math.random()<step/meteorEvery())spawnMeteor();}
   if(ERA.cities)updateViruses(dt);
+  if(ERA.meteors)updateMeteors(dt);
+  BROKEN=null;
   for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&RES[o.t]&&o.hp<=0){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
   updatePlayer(dt);
   for(const v of vil)updateVillager(v,dt);
@@ -781,6 +809,17 @@ function drawBadBots(){const t=performance.now()/1000;for(const v of vil){if(!v.
 // Virus viajando por la red, con un halo rojo que late.
 function drawViruses(){const t=performance.now()/1000;for(const v of viruses){const x=v.x*T+8,y=v.y*T+8;ctx.fillStyle='rgba(232,101,77,.28)';ctx.beginPath();ctx.arc(x,y,5+Math.sin(t*8)*0.8,0,6.29);ctx.fill();ctx.drawImage(HS.bug[Math.floor(t*6)%2],x-4,y-4,8,8);}}
 // Bicho o virus que se metió en una máquina, con un marco rojo que late.
+// Edificio dañado por un meteorito: marco rojo que late, humo y chispas.
+function drawDamage(px,py){const t=performance.now()/1000,a=0.55+0.3*Math.sin(t*6);ctx.strokeStyle='rgba(232,101,77,'+a.toFixed(2)+')';ctx.lineWidth=0.6;ctx.strokeRect(px+0.5,py+0.5,T-1,T-1);
+  puffs(px+8,py+4,3);ctx.fillStyle=(Math.floor(t*8)%2)?'#ffd35a':'#f08a24';ctx.fillRect(px+5+Math.round(Math.sin(t*5)*2),py+9,1.5,1.5);ctx.fillRect(px+10,py+11+Math.round(Math.cos(t*4)),1,1);}
+// Meteoritos: una marca en el suelo que se cierra a medida que cae, la roca con su estela, y destellos al desviarlos o al caer.
+function drawMeteors(){if(!meteors.length&&!zaps.length)return;const t=performance.now()/1000;
+  for(const m of meteors){const u=m.t/m.T,cx=m.x*T+8,cy=m.y*T+8;ctx.fillStyle='rgba(232,101,77,'+(0.16+0.1*(1-u)).toFixed(2)+')';ctx.beginPath();ctx.arc(cx,cy,6,0,6.29);ctx.fill();
+    ctx.strokeStyle='rgba(232,101,77,'+(0.6+0.3*Math.sin(t*10)).toFixed(2)+')';ctx.lineWidth=1.1;ctx.beginPath();ctx.arc(cx,cy,3+6*u,0,6.29);ctx.stroke();ctx.beginPath();ctx.moveTo(cx-2,cy);ctx.lineTo(cx+2,cy);ctx.moveTo(cx,cy-2);ctx.lineTo(cx,cy+2);ctx.stroke();
+    const p=meteorPos(m),mx=p.x*T+8,my=p.y*T+8;ctx.strokeStyle='rgba(255,180,80,.55)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(mx+9,my-15);ctx.stroke();
+    ctx.drawImage(HS.meteor[Math.floor(t*8)%2],mx-7,my-7,14,14);if(m.sh){ctx.strokeStyle='rgba(95,227,208,.6)';ctx.lineWidth=0.6;ctx.beginPath();ctx.arc(mx,my,7,0,6.29);ctx.stroke();}}
+  for(const z of zaps){const x=z.x*T+8,y=z.y*T+8,r=(z.boom?10:7)*(1-z.t/(z.boom?0.6:0.5))+2;ctx.fillStyle=z.boom?'rgba(255,170,60,'+(z.t*1.2).toFixed(2)+')':'rgba(95,227,208,'+(z.t*1.4).toFixed(2)+')';
+    ctx.beginPath();ctx.arc(x,y,r,0,6.29);ctx.fill();}}
 function drawBug(px,py){const t=performance.now()/1000,a=0.55+0.3*Math.sin(t*6);ctx.strokeStyle='rgba(232,101,77,'+a.toFixed(2)+')';ctx.lineWidth=0.6;ctx.strokeRect(px+0.5,py+0.5,T-1,T-1);
   ctx.drawImage(HS.bug[Math.floor(t*8)%2],px+4+Math.sin(t*1.7)*2.5,py+2+Math.cos(t*2.3)*2,8,8);}
 // Rayo tachado que titila arriba de un edificio sin luz.
@@ -805,7 +844,7 @@ function drawObj(o,x,y){
     // Lo demás: sombra, sprite, humo si anda (`smk` en el edificio), rayo tachado si le falta luz, lo propio de la era (ERA.deco) y el bicho.
     default:if(HS[o.t]){const sh=SHADOW[o.t]||[8,2],b=BUILD[o.t];shadow(px+8,py+15,sh[0],sh[1]);hd(HS[o.t],px,py);
       if(b&&b.smk&&runs(b))for(const[sx,sy]of b.smk)puffs(px+sx,py+sy,b.puffs||3);
-      const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit)noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug)drawBug(px,py);}
+      const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit)noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug){if(ERA.meteors)drawDamage(px,py);else drawBug(px,py);}}
   }
   const cfg=RES[o.t];
   if(cfg&&o.hp>0&&o.hp<cfg.hp){ctx.fillStyle='#1b1a24';ctx.fillRect(px+2,top-3,12,3);ctx.fillStyle='#93d36c';ctx.fillRect(px+3,top-2,10*o.hp/cfg.hp,1);}
@@ -849,6 +888,7 @@ function render(){
   for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else drawEnt(it.e,it.f,it.p);}
   drawWires(x0,y0,x1,y1);
   drawViruses();
+  drawMeteors();
   const tg=P.act||P.task;if(tg)corners(tg.x,tg.y,'#5fe3d0');
   if(marker&&!tg)corners(marker.x,marker.y,'rgba(240,231,212,'+Math.min(1,marker.t*2)+')');
   if(st.smog>1){const f=st.smog/100;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='rgba(84,74,62,'+(0.4*f).toFixed(3)+')';ctx.fillRect(0,0,W,H);
@@ -875,7 +915,7 @@ function render(){
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.t*1.5);ctx.strokeStyle='#1b1a24';ctx.strokeText(f.txt,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y);}
   ctx.globalAlpha=1;
   // Flechas rojas en el borde para los virus y los robots desalineados que están fuera de la pantalla.
-  {const TH=viruses.concat(vil.filter(v=>v.bad));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
+  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
     for(const v of TH){const sx=(v.x*T+8-cam.x)*s,sy=(v.y*T+8-cam.y)*s;if(sx>=0&&sx<=W&&sy>=top&&sy<=bot)continue;
       const cx=clamp(sx,14*DPR,W-14*DPR),cy=clamp(sy,top,bot),an=Math.atan2(sy-cy,sx-cx);ctx.save();ctx.translate(cx,cy);ctx.rotate(an);
       ctx.fillStyle='#e8654d';ctx.strokeStyle='#1b1a24';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(10*DPR,0);ctx.lineTo(-6*DPR,-7*DPR);ctx.lineTo(-6*DPR,7*DPR);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();}}}
@@ -889,12 +929,14 @@ const chipEl={};
   const bar=$('agiBar');for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=(i*10)+'%';bar.appendChild(t);}
   document.title='Race to AGI · Mundo abierto · '+ERA.name;$('era').textContent=ERA.name;$('buildHint').textContent=BUILDS.length+' edificios';
   // Las dos barras de abajo de la energía: humo o seguridad, y la red, los robots o el rival.
-  const H=$('hud');if(BUILDS.some(b=>b.smoke)||ERA.grid||ERA.robots||ERA.rival)H.classList.add('rows');
-  $('sLbl').textContent=ERA.rival?'Seguridad':'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.robots?'Robots':ERA.grid==='power'?'Luz':'Red';
+  const H=$('hud');if(BUILDS.some(b=>b.smoke)||ERA.grid||ERA.robots||ERA.rival||ERA.meteors)H.classList.add('rows');
+  $('sLbl').textContent=ERA.rival?'Seguridad':'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.meteors?'Escudos':ERA.robots?'Robots':ERA.grid==='power'?'Luz':'Red';
   if(ERA.rival){H.style.setProperty('--sfill','#93d36c');H.style.setProperty('--gfill','#e8654d');}
 })();
 function flashChip(k){const c=chipEl[k];if(!c)return;c.classList.add('flash');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('flash'),350);}
-const agiPct=()=>10*(ERA.n-1)+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10;
+const agiPct=()=>Math.min(100,10*(ERA.n-1)+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10);
+// Después de la AGI la barra queda llena y el texto cuenta los inventos de la era.
+const pctText=()=>ERA.n>10?'más allá: '+TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length:fmt(agiPct())+'% a la AGI';
 function goalText(){
   if(st.energy<25)return['Comé algo:','tu energía está baja.'];
   const hungry=vil.filter(v=>v.hungry).length;
@@ -920,6 +962,8 @@ function threat(){
     if(viruses.length)return['¡Virus!',viruses.length+(viruses.length===1?' viene':' vienen')+' por la red. Tocalos antes de que lleguen.'];}
   if(ERA.robots){const bad=vil.filter(v=>v.bad).length;if(bad)return['¡Robot desalineado!',bad===1?'Está convirtiendo tus recursos en clips. Tocalo para corregirlo.':'Hay '+bad+' convirtiendo tus recursos en clips. Tocalos para corregirlos.'];}
   if(ERA.bugs){const nb=bugCount();if(nb)return['¡Bichos!',nb+(nb===1?' máquina trabada.':' máquinas trabadas.')+' Tocalas para aplastarlos.'];}
+  if(ERA.meteors){if(meteors.length)return['¡Meteorito!',(meteors.length===1?'Viene uno':'Vienen '+meteors.length)+': tocalo antes de que caiga. En tierra libre deja '+RN[ORE].toLowerCase()+'.'];
+    const nb=bugCount();if(nb)return['Daños:',nb+(nb===1?' edificio dañado no produce.':' edificios dañados no producen.')+' Tocalos para repararlos.'];}
   return null;
 }
 // Pistas de la era, en orden: [invento, edificio o edificios, texto] pide construir uno si tenés el invento y ninguno de esos
@@ -940,7 +984,7 @@ function hud(){
   const e=st.energy;$('eFill').style.width=e+'%';$('eFill').classList.toggle('low',e<25);$('eNum').textContent=Math.ceil(e);
   hudRows();
   const day=Math.floor(st.time/DAY)+1;const nRob=vil.filter(v=>v.bot).length,nHum=vil.length-nRob;$('meta').textContent='Día '+day+(darkness()>0.3?' · noche':'')+' · '+nHum+(nHum===1?' aldeano':' aldeanos')+(nRob?' · '+nRob+' robots':'');
-  const pct=agiPct();$('agiFill').style.width=pct+'%';$('agiPct').textContent=fmt(pct)+'% a la AGI';
+  const pct=agiPct();$('agiFill').style.width=pct+'%';$('agiPct').textContent=pctText();
   const[g1,g2]=goalText(),gk=g1+g2;if(gk!==lastGoal){lastGoal=gk;const g=$('goal');g.innerHTML='';const s=document.createElement('span');s.className='gl';s.textContent=g1;g.append(s,' '+g2);}
   const nDone=TECHS.filter(t=>st.techs[t.id]).length;$('techHint').textContent=nDone+' de '+TECHS.length;
   $('techDot').classList.toggle('on',TECHS.some(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r])&&afford(t.cost)));
@@ -967,6 +1011,10 @@ function hudRows(){
   else if(ERA.cities){const g=grid(),nc=g.cities.length,nl=g.linked.length,down=serverDown();$('gridRow').hidden=false;
     $('gFill').style.width=(nc?nl/nc*100:0)+'%';$('gFill').classList.toggle('hi',down);$('gNum').textContent=nl+'/'+nc;
     $('gMeta').textContent=down?'servidor caído':viruses.length?viruses.length+' virus en camino':nl?'+'+fmt(cityRate()*60)+' monedas/min':'sin ciudades';}
+  else if(ERA.meteors){const bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){bs.push(i);if(o.t==='escudo'&&!o.bug)sh.push(i);}});
+    const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=SHIELD_R)).length,nb=bugCount(),on=sh.length>0||meteors.length>0||nb>0||st.time>60;$('gridRow').hidden=!on;
+    if(on){$('gFill').style.width=(bs.length?cov/bs.length*100:0)+'%';$('gFill').classList.toggle('hi',meteors.length>0||nb>0);$('gNum').textContent=Math.round(bs.length?cov/bs.length*100:0)+'%';
+      $('gMeta').textContent=meteors.length?(meteors.length===1?'1 meteorito en camino':meteors.length+' meteoritos en camino'):nb?nb+(nb===1?' dañado':' dañados'):sh.length?'cielo tranquilo':'sin escudos';}}
   else if(ERA.robots){const bots=vil.filter(v=>v.bot),nb=bots.length,bad=bots.filter(v=>v.bad).length,on=nb>0||!!st.techs[ERA.robots];$('gridRow').hidden=!on;
     if(on){$('gFill').style.width=(nb?(nb-bad)/nb*100:0)+'%';$('gFill').classList.toggle('hi',bad>0);$('gNum').textContent=nb+'';$('gMeta').textContent=bad?bad+(bad===1?' desalineado':' desalineados'):nb?'todos alineados':'sin robots';}}
 }
@@ -1061,7 +1109,7 @@ function showIntro(){
   showModalI('<div class="kicker">Mundo abierto · '+E.when+'</div><h1>'+E.title+'</h1><p>'+E.intro+'</p>'+erasHTML(ERA.n-1)+leg+'<p class="muted">'+E.news+'</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
 }
 const nextBtn=cls=>ERA.next?'<button class="'+cls+'" data-m="next">Pasar '+ERA.next.to+'</button>':'';
-function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">'+ERA.text.menu+'</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?nextBtn('btn ghost'):'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
+function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+pctText()+'</div><h2>Menú</h2><p class="muted">'+ERA.text.menu+'</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?nextBtn('btn ghost'):'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
 function showWin(){const E=ERA.text;showModal('<div class="kicker">Mundo abierto · '+ERA.name+'</div><h1>'+E.win+'</h1><p>'+E.winText()+'</p>'+erasHTML(ERA.n)+'<p class="muted">'+E.winNote+'</p><div class="row">'+nextBtn('btn')+'<button class="'+(ERA.next?'btn ghost':'btn')+'" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
 // El rival llegó primero: se puede reintentar la era (con doble toque, como en el menú) o seguir mirando.
 function showLose(){const E=ERA.text;showModal('<div class="kicker">Mundo abierto · '+ERA.name+'</div><h1>'+E.lose+'</h1><p>'+E.loseText+'</p><div class="row"><button class="btn" data-m="reset">Intentar de nuevo</button><button class="btn ghost" data-m="close">Seguir mirando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
@@ -1083,6 +1131,9 @@ const INFO=ERA.info;
 function onTap(tx,ty){
   if(placing){tryPlace(tx,ty);return;}
   {const hit=viruses.find(v=>Math.hypot(v.x-tx,v.y-ty)<=1.2);if(hit){hit.dead=true;viruses=viruses.filter(v=>!v.dead);st.res.ideas+=2;float(hit.x,hit.y,'+2 ideas',RCOL.ideas);return;}}
+  // Un meteorito se toca donde se lo ve, o en la marca del suelo.
+  {const hit=meteors.find(m=>{const p=meteorPos(m);return Math.hypot(p.x-tx,p.y-ty)<=1.6||Math.hypot(m.x-tx,m.y-ty)<=1.2;});
+    if(hit){hit.dead=true;meteors=meteors.filter(m=>!m.dead);const p=meteorPos(hit);zaps.push({x:p.x,y:p.y,t:0.5});st.res.ideas+=2;float(p.x,p.y,'+2 ideas',RCOL.ideas);return;}}
   {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){hit.bad=false;hit.badT=0;hit.state='idle';hit.t=0.5;st.res.ideas+=3;float(hit.x,hit.y-0.6,'+3 ideas',RCOL.ideas);toast('Robot realineado');save();return;}}
   if(!inb(tx,ty))return;
   let o=obj[ty*MW+tx];
@@ -1090,6 +1141,7 @@ function onTap(tx,ty){
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
   if(o){
     if(o.bug&&o.t==='servidor'){o.bug=false;GRID=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Servidor limpio! La red vuelve a andar.');save();return;}
+    if(o.bug&&ERA.meteors){o.bug=false;BROKEN=null;float(tx,ty,'¡reparado!','#93d36c');toast(BUILD[o.t].name+' reparado.');save();return;}
     if(o.bug){o.bug=false;o.bugAge=0;st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);toast('¡Bicho aplastado!');save();return;}
     if(!RES[o.t]){const b=BUILD[o.t];toast(INFO[o.t]+(o.t==='rival'?' Va '+Math.floor(st.rival)+'%.':'')+(o.t==='ciudad'?(grid().on.has(ty*MW+tx)?' Ya está conectada.':' Todavía no está conectada.'):'')+(b&&b.prod?prodLine(b):'')+(b&&b.elec?(grid().powered.has(ty*MW+tx)?' Tiene luz.':' Sin luz: poné un poste cerca.'):''));return;}
     if(o.hp<=0){toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');P.act=null;P.task=null;const p=bfs(px,py,(x,y)=>x===tx&&y===ty);if(p)P.path=p;return;}
@@ -1142,7 +1194,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
-  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
+  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
 </body></html>
