@@ -272,7 +272,7 @@ function renderGround(){
 let st,counts={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
-let GRID=null,BROKEN=null,OCEAN=null,bugT=0,viruses=[],meteors=[],pirates=[],swarms=[],ludds=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
+let GRID=null,BROKEN=null,OCEAN=null,bugT=0,viruses=[],meteors=[],pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
   const L=ERA.legacy,e=prevEra(),out=L.monedas?{has:!!e,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]}:{has:!!e,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e){
@@ -289,7 +289,7 @@ function readLegacy(){
 function freshState(){return{res:{madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
 function recount(){GRID=null;BROKEN=null;counts={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined)counts[o.t]++;}
 function newGame(){
-  obj=genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];
+  obj=genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];spies=[];
   Object.assign(P,{x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1});
   recount();
   const hx=SPAWN[0]-2,hy=SPAWN[1]-2;for(let i=0;i<st.legacy.aldeanos;i++)addVillager(hx,hy);
@@ -626,6 +626,35 @@ function updateLuddites(dt){const D=ERA.defense,halls=[];if(D)obj.forEach((o,i)=
     if(l.state==='go'){const o=obj[l.target];if(o&&!o.bug&&ERA.luddites.includes(o.t)){l.state='smash';l.t=0;const tx=l.target%MW;if(Math.abs(tx-l.x)>0.1)l.face=tx>l.x?1:-1;}else luddHome(l);}
     else l.dead=true;}
   ludds=ludds.filter(l=>!l.dead);}
+// Espías (ERA.spies: los edificios con tu investigación, con su nombre para los avisos): desde los 2 minutos, cada tanto sale
+// uno del laboratorio rival y camina hasta uno de esos edificios, al azar. Si llega, copia los planos SPY_COPY segundos: el
+// rival avanza SPY_GAIN puntos y el espía vuelve a su laboratorio con lo copiado. Tocarlo lo atrapa (+2 ideas) y, si ya
+// copió, el rival pierde lo que había ganado. La defensa de la era (el puesto de guardia) atrapa solos a los que pasan a
+// ERA.defense.r casilleros. Salen más seguido con cada invento (+10%); desde 5 inventos salen de a dos. No se guardan.
+const SPY_START=120,SPY_SPD=1.5,SPY_COPY=4,SPY_GAIN=2;
+const spyEvery=()=>60/(1+0.1*Object.keys(st.techs).length);
+const spyOut=s=>!(s.wait>0);
+function spawnSpies(){const r=obj.findIndex(o=>o&&o.t==='rival'),ts=[];if(r<0)return;obj.forEach((o,i)=>{if(o&&ERA.spies[o.t])ts.push(i);});if(!ts.length)return;
+  const start=DIRS.map(([dx,dy])=>[r%MW+dx,((r/MW)|0)+dy]).find(([x,y])=>inb(x,y)&&passable(x,y));if(!start)return;
+  const n=Object.keys(st.techs).length>=5?2:1;let sent=0;
+  for(let k=0;k<n;k++){const ti=ts[Math.floor(Math.random()*ts.length)],path=pathAdj(start[0],start[1],ti%MW,(ti/MW)|0);if(!path)continue;
+    spies.push({x:start[0],y:start[1],path,home:start,target:ti,state:'go',face:1,moving:false,t:0,wait:sent*1.5,spy:true,loot:0});sent++;}
+  if(sent)toast(sent>1?'¡Espías del rival! Vienen dos a copiar tus planos: tocalos para atraparlos.':'¡Un espía del rival! Viene a copiar tus planos: tocalo para atraparlo.');}
+function spyHome(s){s.state='home';const[x,y]=tileOf(s);s.path=bfs(x,y,(a,b)=>a===s.home[0]&&b===s.home[1])||[];if(!s.path.length)s.dead=true;}
+// Atrapar a un espía: si ya había copiado, el rival pierde lo que ganó.
+function catchSpy(s,txt){s.dead=true;zaps.push({x:s.x,y:s.y,t:0.5});if(s.loot&&!st.won&&!st.lost){st.rival=Math.max(0,st.rival-s.loot);float(s.x,s.y-1.4,'rival −'+s.loot+'%','#93d36c');}float(s.x,s.y-0.6,txt,'#ffd35a');}
+function updateSpies(dt){const D=ERA.defense,posts=[];if(D)obj.forEach((o,i)=>{if(o&&o.t===D.id)posts.push(i);});
+  for(const s of spies){if(s.wait>0){s.wait-=dt;continue;}
+    if(posts.some(i=>Math.hypot(i%MW-s.x,((i/MW)|0)-s.y)<=D.r)){catchSpy(s,'¡atrapado!');continue;}
+    if(s.state==='copy'){s.t+=dt;if(s.t>=SPY_COPY){const o=obj[s.target];if(!st.won&&!st.lost){s.loot=SPY_GAIN;st.rival=Math.min(100,st.rival+SPY_GAIN);}
+        float(s.x,s.y-1,'rival +'+SPY_GAIN+'%','#e8654d');toast('Un espía copió los planos de '+(o&&ERA.spies[o.t]||'tu ciudad')+': el rival avanza '+SPY_GAIN+'%. Tocalo antes de que vuelva y los recuperás.');spyHome(s);}
+      continue;}
+    stepEnt(s,dt,SPY_SPD);
+    if(s.blocked){s.blocked=false;const[x,y]=tileOf(s);if(s.state==='go')s.path=pathAdj(x,y,s.target%MW,(s.target/MW)|0)||[];else spyHome(s);}
+    if(s.path.length)continue;
+    if(s.state==='go'){const o=obj[s.target];if(o&&ERA.spies[o.t]){s.state='copy';s.t=0;const tx=s.target%MW;if(Math.abs(tx-s.x)>0.1)s.face=tx>s.x?1:-1;}else spyHome(s);}
+    else s.dead=true;}
+  spies=spies.filter(s=>!s.dead);}
 // Peste (ERA.plague: los edificios donde se junta gente): desde los 2 minutos, cada tanto se enferma uno (o.bug, se guarda).
 // Uno enfermo rinde la mitad (act() descuenta medio por cada uno) y los aldeanos de una casa enferma andan y trabajan a la mitad.
 // Si nadie lo cura, contagia a otro a 5 casilleros cada 25 s. Tocarlo lo cura (+2 ideas).
@@ -796,12 +825,14 @@ function update(dt){
     if(ERA.locusts&&st.time>=LOCUST_START&&Math.random()<step/locustEvery())spawnLocusts();
     if(ERA.luddites&&st.time>=LUDD_START&&Math.random()<step/ludditeEvery())spawnLuddites();
     if(ERA.storms&&st.time>=STORM_START&&Math.random()<step/stormEvery())spawnStorm();
-    if(ERA.moths&&st.time>=MOTH_START&&Math.random()<step/mothEvery())spawnMoth();}
+    if(ERA.moths&&st.time>=MOTH_START&&Math.random()<step/mothEvery())spawnMoth();
+    if(ERA.spies&&!st.won&&!st.lost&&st.time>=SPY_START&&Math.random()<step/spyEvery())spawnSpies();}
   if(ERA.cities)updateViruses(dt);
   if(ERA.meteors)updateMeteors(dt);
   if(ERA.pirates)updatePirates(dt);
   if(ERA.locusts)updateLocusts(dt);
   if(ERA.luddites)updateLuddites(dt);
+  if(ERA.spies)updateSpies(dt);
   if(ERA.storms)updateStorms(dt);
   if(ERA.moths)updateMoths(dt);
   for(const z of zaps)z.t-=dt;zaps=zaps.filter(z=>z.t>0);
@@ -1074,7 +1105,11 @@ function drawPlague(px,py){const t=performance.now()/1000,a=0.55+0.3*Math.sin(t*
   for(let k=0;k<3;k++){const ph=(t*0.4+k/3)%1;miasma(px+4+k*4+Math.sin(ph*6+k)*1.5,py+3-ph*8,1+ph*1.6,1-ph);}}
 function drawSick(){if(!ERA.plague)return;const t=performance.now()/1000;for(const v of vil)if(sickHome(v))miasma(v.x*T+8,v.y*T-3+Math.sin(t*3+v.x)*0.6,1.6,0.9);}
 // Halo rojo que late debajo de los robots desalineados.
-function drawBadBots(){const t=performance.now()/1000;for(const v of vil.concat(pirates,ludds)){if(!v.bad&&!v.boat&&!(v.lud&&angry(v)))continue;ctx.fillStyle='rgba(232,101,77,'+(0.25+0.12*Math.sin(t*8)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(v.x*T+8,v.y*T+13,7,3,0,0,6.29);ctx.fill();}}
+function drawBadBots(){const t=performance.now()/1000;for(const v of vil.concat(pirates,ludds,spies)){if(!v.bad&&!v.boat&&!(v.lud&&angry(v))&&!(v.spy&&spyOut(v)))continue;ctx.fillStyle='rgba(232,101,77,'+(0.25+0.12*Math.sin(t*8)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(v.x*T+8,v.y*T+13,7,3,0,0,6.29);ctx.fill();}}
+// Espías: un marco rojo que late sobre el edificio que copian y una carpeta con los planos en la mano del que vuelve.
+function drawSpies(){if(!spies.length)return;const t=performance.now()/1000,a=0.55+0.3*Math.sin(t*6);
+  for(const s of spies){if(s.state==='copy'){ctx.strokeStyle='rgba(232,101,77,'+a.toFixed(2)+')';ctx.lineWidth=0.6;ctx.strokeRect((s.target%MW)*T+0.5,((s.target/MW)|0)*T+0.5,T-1,T-1);}
+    if(s.loot){const x=s.x*T+(s.face<0?2:11),y=s.y*T+8;ctx.fillStyle='#1b1a24';ctx.fillRect(x-0.5,y-0.5,4,5);ctx.fillStyle='#e8f4ff';ctx.fillRect(x,y,3,4);ctx.fillStyle='#4a78b8';ctx.fillRect(x+0.5,y+1,2,0.5);ctx.fillRect(x+0.5,y+2.2,2,0.5);}}}
 // Virus viajando por la red, con un halo rojo que late.
 function drawViruses(){const t=performance.now()/1000;for(const v of viruses){const x=v.x*T+8,y=v.y*T+8;ctx.fillStyle='rgba(232,101,77,.28)';ctx.beginPath();ctx.arc(x,y,5+Math.sin(t*8)*0.8,0,6.29);ctx.fill();ctx.drawImage(HS.bug[Math.floor(t*6)%2],x-4,y-4,8,8);}}
 // Bicho o virus que se metió en una máquina, con un marco rojo que late.
@@ -1160,6 +1195,7 @@ function render(){
   // Piratas y sus barcos (un barco por desembarco, en el agua junto a la costa).
   {const seen=new Set();for(const p of pirates){const k=p.boat&&p.boat.join();if(k&&!seen.has(k)){seen.add(k);hd(HS.boat,p.boat[0]*T,p.boat[1]*T);}if(!(p.wait>0))list.push({k:p.y+1,z:1,e:p,f:HS.pirate});}}
   for(const l of ludds)if(!(l.wait>0))list.push({k:l.y+1,z:1,e:l,f:HS.luddite});
+  for(const s of spies)if(spyOut(s))list.push({k:s.y+1,z:1,e:s,f:HS.spy});
   drawBadBots();
   list.sort((a,b)=>a.k-b.k||a.z-b.z);
   for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else drawEnt(it.e,it.f,it.p);}
@@ -1168,6 +1204,7 @@ function render(){
   drawMeteors();
   drawLocusts();
   drawSmash();
+  drawSpies();
   drawStorms();
   drawMoths();
   drawSick();
@@ -1197,7 +1234,7 @@ function render(){
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.t*1.5);ctx.strokeStyle='#1b1a24';ctx.strokeText(f.txt,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y);}
   ctx.globalAlpha=1;
   // Flechas rojas en el borde para los virus y los robots desalineados que están fuera de la pantalla.
-  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos),pirates,swarms,ludds.filter(angry),storms,moths.filter(loose));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
+  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos),pirates,swarms,ludds.filter(angry),storms,moths.filter(loose),spies.filter(spyOut));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
     for(const v of TH){const sx=(v.x*T+8-cam.x)*s,sy=(v.y*T+8-cam.y)*s;if(sx>=0&&sx<=W&&sy>=top&&sy<=bot)continue;
       const cx=clamp(sx,14*DPR,W-14*DPR),cy=clamp(sy,top,bot),an=Math.atan2(sy-cy,sx-cx);ctx.save();ctx.translate(cx,cy);ctx.rotate(an);
       ctx.fillStyle='#e8654d';ctx.strokeStyle='#1b1a24';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(10*DPR,0);ctx.lineTo(-6*DPR,-7*DPR);ctx.lineTo(-6*DPR,7*DPR);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();}}}
@@ -1240,6 +1277,7 @@ function goalText(){
 // La amenaza que está pasando ahora, si hay una: la carrera, un servidor caído o virus, robots desalineados o bichos.
 function threat(){
   if(ERA.rival){if(st.lost)return['Perdiste la carrera:','el rival llegó primero. Podés reintentar la era desde el menú.'];
+    if(ERA.spies&&!st.won){const out=spies.filter(spyOut),n=out.length,l=out.filter(s=>s.loot).length;if(n)return['¡Espías!',l?(l===1?'Uno se lleva tus planos al rival: tocalo para recuperarlos.':l+' se llevan tus planos al rival: tocalos para recuperarlos.'):(n===1?'Viene uno':'Vienen '+n)+' a copiar tus planos: tocalos para atraparlos.'];}
     if(!st.won&&st.rival>=70)return['¡El rival va '+Math.floor(st.rival)+'%!','Frenalo con embajadas o el tratado, o apurate.'];}
   if(ERA.cities){if(serverDown())return['Servidor caído:','tocalo para limpiar el virus y que vuelva la red.'];
     if(viruses.length)return['¡Virus!',viruses.length+(viruses.length===1?' viene':' vienen')+' por la red. Tocalos antes de que lleguen.'];
@@ -1298,7 +1336,7 @@ function hud(){
 function hudRows(){
   if(ERA.rival){const sf=st.safety;$('smogRow').hidden=false;$('sFill').style.width=sf+'%';$('sNum').textContent=Math.floor(sf)+'%';$('sMeta').textContent=sf>=100?'lista para la AGI':'la AGI necesita 100%';
     const R=st.rival;$('gridRow').hidden=false;$('gFill').style.width=R+'%';$('gNum').textContent=Math.floor(R)+'%';
-    $('gMeta').textContent=st.won?'le ganaste':st.lost?'llegó primero':'llega en ~'+Math.max(1,Math.ceil(rivalEta()/60))+' min';return;}
+    const ns=spies.filter(spyOut).length;$('gMeta').textContent=st.won?'le ganaste':st.lost?'llegó primero':(ns?(ns===1?'1 espía · ':ns+' espías · '):'')+'llega en ~'+Math.max(1,Math.ceil(rivalEta()/60))+' min';return;}
   const sv=st.smog,sOn=sv>=0.5||BUILDS.some(b=>b.smoke&&counts[b.id]);$('smogRow').hidden=!sOn;
   if(sOn){const r=smogRate(),pen=Math.round(sv/2);$('sFill').style.width=sv+'%';$('sFill').classList.toggle('hi',sv>=50);$('sNum').textContent=Math.round(sv)+'%'+(r>0.004?' ↑':r<-0.004?' ↓':'');$('sMeta').textContent=pen?'juntás y cosechás −'+pen+'%':'aire limpio';}
   if(ERA.grid==='power'){const g=grid(),gOn=(ERA.gridTech&&!!st.techs[ERA.gridTech])||g.on.size>0||BUILDS.some(b=>b.elec&&counts[b.id]);$('gridRow').hidden=!gOn;
@@ -1447,6 +1485,8 @@ function onTap(tx,ty){
     if(hit){hit.dead=true;moths=moths.filter(m=>!m.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Polilla atrapada!');return;}}
   {const hit=storms.find(w=>Math.hypot(w.x-tx,w.y-0.6-ty)<=1.8);
     if(hit){hit.dead=true;storms=storms.filter(w=>!w.dead);zaps.push({x:hit.x,y:hit.y-0.6,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-1,'+2 ideas',RCOL.ideas);toast('¡Tormenta disipada!');return;}}
+  {const hit=spies.find(s=>spyOut(s)&&Math.hypot(s.x-tx,s.y-ty)<=1.3);
+    if(hit){catchSpy(hit,'+2 ideas');spies=spies.filter(s=>!s.dead);st.res.ideas+=2;toast(hit.loot?'¡Espía atrapado! Recuperaste los planos.':'¡Espía atrapado!');return;}}
   {const hit=ludds.find(l=>angry(l)&&Math.hypot(l.x-tx,l.y-ty)<=1.3);
     if(hit){luddHome(hit);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('Luddita calmado: vuelve a su casa.');return;}}
   {const hit=swarms.find(w=>Math.hypot(w.x-tx,w.y-ty)<=1.5);
@@ -1513,7 +1553,7 @@ resize();hud();
 if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
-  bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),virusEvery:()=>virusEvery(),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
+  bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),virusEvery:()=>virusEvery(),spies:()=>spies,spawnSpies:()=>spawnSpies(),spyEvery:()=>spyEvery(),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
   rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
