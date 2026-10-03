@@ -109,10 +109,11 @@ const ERAS=[
 const PROTOS=[
   {id:'carrera',name:'Carrera a la obra',what:'Por turnos: mapa con niebla, tecnologías y un rival que corre hacia la misma obra.',file:'carrera.html',save:'rtagi-carrera-v1',
     state:s=>s&&s.G&&s.G.tiles&&!s.G.over?'En curso · turno '+s.G.turn+' de 30':null},
-  {id:'mundo',name:'Mundo abierto',what:'Explorá, juntá recursos y sumá aldeanos: Prehistoria hasta el ábaco, Antigüedad hasta el mecanismo de Anticitera, Edad Media hasta la imprenta y Renacimiento hasta la pascalina.',save:'rtagi-mundo-v1',
+  {id:'mundo',name:'Mundo abierto',what:'Explorá, juntá recursos y sumá aldeanos: Prehistoria hasta el ábaco, Antigüedad hasta el mecanismo de Anticitera, Edad Media hasta la imprenta, Renacimiento hasta la pascalina e Industria hasta la máquina analítica.',save:'rtagi-mundo-v1',
     // El botón te lleva a la era más avanzada que empezaste.
-    file:()=>mundoSave('rtagi-mundo4-v1')?'mundo4.html':mundoSave('rtagi-mundo3-v1')?'mundo3.html':mundoSave('rtagi-mundo2-v1')?'mundo2.html':'mundo.html',
-    state:s=>{const r=mundoSave('rtagi-mundo4-v1');if(r)return(r.won?'Renacimiento · pascalina terminada':'Renacimiento')+' · día '+(Math.floor((r.time||0)/160)+1);
+    file:()=>mundoSave('rtagi-mundo5-v1')?'mundo5.html':mundoSave('rtagi-mundo4-v1')?'mundo4.html':mundoSave('rtagi-mundo3-v1')?'mundo3.html':mundoSave('rtagi-mundo2-v1')?'mundo2.html':'mundo.html',
+    state:s=>{const i=mundoSave('rtagi-mundo5-v1');if(i)return(i.won?'Industria · máquina analítica terminada':'Industria')+' · día '+(Math.floor((i.time||0)/160)+1);
+      const r=mundoSave('rtagi-mundo4-v1');if(r)return(r.won?'Renacimiento · pascalina terminada':'Renacimiento')+' · día '+(Math.floor((r.time||0)/160)+1);
       const m=mundoSave('rtagi-mundo3-v1');if(m)return(m.won?'Edad Media · imprenta terminada':'Edad Media')+' · día '+(Math.floor((m.time||0)/160)+1);
       const a=mundoSave('rtagi-mundo2-v1');if(a)return(a.won?'Antigüedad · Anticitera terminado':'Antigüedad')+' · día '+(Math.floor((a.time||0)/160)+1);
       return s&&s.st?'Prehistoria · '+(s.st.won?'ábaco terminado':'día '+(Math.floor((s.st.time||0)/150)+1)):null;}}];

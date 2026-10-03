@@ -1038,7 +1038,7 @@ function goalText(){
   const miss=Object.entries(n.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>Math.ceil(v-st.res[k])+' '+RN[k].toLowerCase());
   return miss.length?['Próximo: '+n.name+'.','Faltan '+miss.join(', ')+'.']:['Próximo: '+n.name+'.','Listo, abrí Inventos.'];
 }
-let sheetMode=null,sheetSel=null,sheetSig='',lastGoal='';
+let sheetMode=null,sheetSel=null,sheetSig='',sheetHeld=false,lastGoal='';
 const upgNext=u=>u.levels[st.upg[u.id]+1];
 const upgOpen=nx=>nx&&(!nx.req||st.techs[nx.req])&&(!nx.taller||tallerLv()>=nx.taller);
 function hud(){
@@ -1060,7 +1060,7 @@ function hud(){
   $('tribeDot').classList.toggle('on',hungry>0||upgOk);$('tribeDot').classList.toggle('warn',hungry>0);
   $('tribeHint').textContent=upgOk?'mejorar':vil.length?vil.length+(vil.length===1?' aldeano':' aldeanos'):'vos';
   $('eatHint').textContent=nearFire(P.x,P.y,4)?'+25 al fuego':'+12 energía';
-  if(sheetMode){const sig=RK.map(k=>Math.floor(st.res[k])).join()+'|'+Object.keys(st.techs).length+'|'+JSON.stringify(agg.lvsum)+agg.obras+'|'+vil.length+'|'+hungry+'|'+st.prio+'|'+JSON.stringify(st.upg)+'|'+(st.rs?Math.floor(st.rs.p):'')+'|'+vil.map(v=>vStatus(v)[0]).join()+(sheetSel!=null&&obj[sheetSel]?obj[sheetSel].lv+'-'+Math.floor(obj[sheetSel].work):'');if(sig!==sheetSig){sheetSig=sig;renderSheet();}}
+  if(sheetMode&&!sheetHeld){const sig=RK.map(k=>Math.floor(st.res[k])).join()+'|'+Object.keys(st.techs).length+'|'+JSON.stringify(agg.lvsum)+agg.obras+'|'+vil.length+'|'+hungry+'|'+st.prio+'|'+JSON.stringify(st.upg)+'|'+(st.rs?Math.floor(st.rs.p):'')+'|'+vil.map(v=>vStatus(v)[0]).join()+(sheetSel!=null&&obj[sheetSel]?obj[sheetSel].lv+'-'+Math.floor(obj[sheetSel].work):'');if(sig!==sheetSig){sheetSig=sig;renderSheet();}}
   measure();
 }
 
@@ -1122,6 +1122,8 @@ function openSheet(m,sel){if(placing){placing=null;$('place').hidden=true;}else 
 function closeSheet(fromBack){if(!sheetMode)return;sheetMode=null;sheetSel=null;$('sheet').hidden=true;if(!fromBack)navPop();}
 $('sheetClose').onclick=()=>closeSheet();$('sheetBack').onclick=()=>closeSheet();
 $('sheet').addEventListener('click',e=>{if(e.target===$('sheet')&&performance.now()-sheetOpenedAt>450)closeSheet();});
+// Mientras el dedo está apoyado en la hoja no se rehace, así el toque llega al botón que tocaste.
+$('sheetBody').addEventListener('pointerdown',()=>{sheetHeld=true;});document.addEventListener('pointerup',()=>{sheetHeld=false;});document.addEventListener('pointercancel',()=>{sheetHeld=false;});
 $('sheetBody').addEventListener('click',e=>{
   const q=s=>e.target.closest(s);let b;
   if((b=q('[data-tech]'))&&!b.disabled)startResearch(b.dataset.tech);

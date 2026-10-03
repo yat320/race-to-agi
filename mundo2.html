@@ -727,7 +727,7 @@ function goalText(){
   const miss=Object.entries(next.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>Math.ceil(v-st.res[k])+' '+RN[k].toLowerCase());
   return miss.length?['Próximo: '+next.name+'.','Faltan '+miss.join(', ')+'.']:['Próximo: '+next.name+'.','Listo, abrí Inventos.'];
 }
-let sheetMode=null,sheetSig='',lastGoal='';
+let sheetMode=null,sheetSig='',sheetHeld=false,lastGoal='';
 function hud(){
   const{pr,us}=economy();
   for(const k of RK){
@@ -746,7 +746,10 @@ function hud(){
   const hungry=vil.filter(v=>v.hungry).length;$('tribeDot').classList.toggle('on',hungry>0);
   $('tribeHint').textContent=vil.length+(vil.length===1?' aldeano':' aldeanos');
   $('eatHint').textContent=nearFire(P.x,P.y,4)?'+25 al fuego':'+12 energía';
-  if(sheetMode){const sig=RK.map(k=>Math.floor(st.res[k])).join()+'|'+Object.keys(st.techs).length+'|'+Object.values(counts).join()+'|'+vil.length+'|'+hungry+'|'+st.prio;if(sig!==sheetSig){sheetSig=sig;renderSheet();}}
+  // La hoja se rehace solo si cambia algo que se ve: si un botón se reemplaza entre que apoyás el dedo y lo levantás, el toque se pierde.
+  if(sheetMode&&!sheetHeld){const ok=c=>Object.entries(c).map(([k,v])=>st.res[k]>=v?1:0).join('');
+    const what=sheetMode==='tech'?TECHS.map(t=>ok(t.cost)).join():sheetMode==='build'?BUILDS.map(b=>ok(buildCost(b))).join():(()=>{const{pr,us}=economy();return vil.filter(v=>v.state!=='idle').length+':'+RK.map(k=>fmt((pr[k]-us[k])*60)).join();})();
+    const sig=what+'|'+Object.keys(st.techs).length+'|'+Object.values(counts).join()+'|'+vil.length+'|'+hungry+'|'+st.prio;if(sig!==sheetSig){sheetSig=sig;renderSheet();}}
   measure();
 }
 
@@ -784,6 +787,8 @@ function openSheet(m){if(placing){placing=null;$('place').hidden=true;}else if(!
 function closeSheet(fromBack){if(!sheetMode)return;sheetMode=null;$('sheet').hidden=true;if(!fromBack)navPop();}
 $('sheetClose').onclick=()=>closeSheet();$('sheetBack').onclick=()=>closeSheet();
 $('sheet').addEventListener('click',e=>{if(e.target===$('sheet')&&performance.now()-sheetOpenedAt>450)closeSheet();});
+// Mientras el dedo está apoyado en la hoja no se rehace, así el toque llega al botón que tocaste.
+$('sheetBody').addEventListener('pointerdown',()=>{sheetHeld=true;});document.addEventListener('pointerup',()=>{sheetHeld=false;});document.addEventListener('pointercancel',()=>{sheetHeld=false;});
 $('sheetBody').addEventListener('click',e=>{
   const t=e.target.closest('[data-tech]'),b=e.target.closest('[data-build]'),p=e.target.closest('[data-prio]');
   if(t&&!t.disabled)research(t.dataset.tech);
