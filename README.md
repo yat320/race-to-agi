@@ -6,7 +6,7 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI e
 
 | Archivo | Qué es | Estado |
 |---|---|---|
-| `index.html` | Hub: lista de eras, prototipos, progreso total, código de legado | funciona |
+| `index.html` | Hub: las 10 eras del mundo abierto (con la que toca jugar marcada), las misiones, prototipos, progreso total, código de legado | funciona |
 | `era1.html` | Prehistoria por misiones (10 misiones, estilo Farm Frenzy) | jugable, probado con bot |
 | `era2.html` | Antigüedad por misiones (10 misiones, ciudad que crece) | jugable, probado con bot |
 | `carrera.html` | Prototipo por turnos (mapa, árbol de tecnologías, rival que corre a la obra) | prototipo, probado con simulaciones |
