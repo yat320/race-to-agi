@@ -15,6 +15,7 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI e
 | `mundo3.html` | Mundo abierto, Edad Media: hierro, monasterios, ferias, molinos de viento, universidades y la imprenta; arranca con lo que trae la ciudad de la Antigüedad | prototipo |
 | `mundo4.html` | Mundo abierto, Renacimiento: plata, talleres de artistas, bancos, jardines botánicos, carabelas, academias y la pascalina; arranca con lo que trae la ciudad de la Edad Media | prototipo |
 | `mundo5.html` | Mundo abierto, Industria: carbón, minas, fábricas, trenes, barcos de vapor y la máquina analítica; las chimeneas echan humo que hace juntar y cosechar menos, y los parques lo limpian; arranca con lo que trae la ciudad del Renacimiento | prototipo |
+| `mundo6.html` | Mundo abierto, Electricidad: cobre, usinas, represas, postes y cables; los edificios con ⚡ andan solo si están conectados a la red; obra final: la tabuladora eléctrica; arranca con lo que trae la ciudad de la Industria | prototipo |
 | `arbol.html` | Prototipo del árbol de progreso de las 10 eras (sin juego atrás) | prototipo |
 
 ## Correr
