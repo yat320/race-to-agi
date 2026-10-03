@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Race to AGI · Mundo abierto · Electricidad</title>
+<title>Race to AGI · Mundo abierto · Computación</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700&family=Pixelify+Sans:wght@400;600;700&display=swap">
@@ -124,7 +124,7 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
   <canvas id="world" aria-label="Mundo del juego"></canvas>
   <div id="hud">
     <div>
-      <div class="agi-top"><span class="brand">RACE TO AGI</span><span id="era">Electricidad</span><span id="agiPct">50% a la AGI</span></div>
+      <div class="agi-top"><span class="brand">RACE TO AGI</span><span id="era">Computación</span><span id="agiPct">60% a la AGI</span></div>
       <div class="agi-bar" id="agiBar"><div class="agi-fill" id="agiFill"></div></div>
     </div>
     <div class="res" id="res"></div>
@@ -155,16 +155,16 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
 <script>
 (function(){
 'use strict';
-const ERA_ID='mundo6-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
-const T=16,MW=64,MH=64,DAY=160,KEY='rtagi-mundo6-v1';
+const ERA_ID='mundo7-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
+const T=16,MW=64,MH=64,DAY=160,KEY='rtagi-mundo7-v1';
 const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
 const $=id=>document.getElementById(id);
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:1});
 const inb=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH;
-// Lo que trae la ciudad desde la Industria del mundo abierto, si terminó la máquina analítica. No usa el legado de las eras.
-function industria(){try{const d=JSON.parse(localStorage.getItem('rtagi-mundo5-v1'));if(d&&d.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor((d.res&&d.res.ideas)||0),monedas:Math.floor((d.res&&d.res.monedas)||0),techs:Object.keys(d.techs||{})};}catch(e){}return null;}
+// Lo que trae la ciudad desde la Electricidad del mundo abierto, si terminó la tabuladora. No usa el legado de las eras.
+function electricidad(){try{const d=JSON.parse(localStorage.getItem('rtagi-mundo6-v1'));if(d&&d.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor((d.res&&d.res.ideas)||0),monedas:Math.floor((d.res&&d.res.monedas)||0),techs:Object.keys(d.techs||{})};}catch(e){}return null;}
 
 /* ---------- sprites ---------- */
 const PAL={k:'#1b1a24',g:'#2f6b3a',G:'#3f8f47',l:'#6cbf5a',b:'#7a5434',B:'#4f3522',s:'#5d6270',S:'#8a8f9c',w:'#c3c7cf',r:'#c8413b',R:'#f08a7c',f:'#f08a24',F:'#ffd35a',o:'#c43d20',h:'#d4ae62',H:'#9a7a3a',p:'#e3ab7d',P:'#b97a55',c:'#8b5a2b',C:'#63401f',y:'#3a2418',d:'#7a5634',D:'#5a3d24',n:'#8fd06a',N:'#5aa347',W:'#f6f1e4',u:'#5fe3d0',x:'#ecd67e',
@@ -175,27 +175,27 @@ const I={
   madera:sprite(['........','.kkkkkk.','kbBbbBhk','kbbBbbhk','kBbbbBhk','.kkkkkk.','........','........'],8),
   piedra:sprite(['........','..kkkk..','.kSwwSk.','kSSwSSsk','kSSSSssk','kssssssk','.kkkkkk.','........'],8),
   comida:sprite(['....kk..','...kNk..','..kNk...','.kkrkk..','krRrrrk.','krrrrrk.','kRrrrrk.','.kkkkk..'],8),
-  cobre:sprite(['........','..kkkk..','.kqqQqk.','kqvqqQqk','kqqqQqQk','kQqqqQQk','.kkkkkk.','........'],8),
+  silicio:sprite(['........','...k....','..kvk.k.','..kqkkvk','.kqqkqk.','.kqQkQk.','..kkkk..','........'],8,{q:'#c8b8e8',Q:'#8a7ab8',v:'#ffffff'}),
   monedas:sprite(['..kkkk..','.kzzzZk.','kzZzzzZk','kzzkkzZk','kzzzzzZk','kZzzzZZk','.kZZZZk.','..kkkk..'],8),
   ideas:sprite(['...kk...','..kuuk..','.kuWWuk.','kuWWWWuk','kuWWWWuk','.kuWWuk.','..kuuk..','...kk...'],8)};
 const ICON={};for(const k in I)ICON[k]=I[k].toDataURL();
 
 /* ---------- datos ---------- */
-const RK=['madera','piedra','comida','cobre','monedas','ideas'];
-const RN={madera:'Madera',piedra:'Piedra',comida:'Comida',cobre:'Cobre',monedas:'Monedas',ideas:'Ideas'};
-const RCOL={madera:'#e0b27a',piedra:'#d6dae2',comida:'#ff9a8a',cobre:'#f0a066',monedas:'#f0cc4a',ideas:'#5fe3d0'};
-const RES={tree:{give:'madera',hp:4,regen:50,empty:'Tocón'},rock:{give:'piedra',hp:6,regen:90,empty:'Piedras sueltas'},bush:{give:'comida',hp:3,regen:35,empty:'Arbusto sin frutos'},ore:{give:'cobre',hp:5,regen:110,empty:'Veta de cobre agotada'}};
-const TYPE_OF={madera:'tree',piedra:'rock',comida:'bush',cobre:'ore'};
+const RK=['madera','piedra','comida','silicio','monedas','ideas'];
+const RN={madera:'Madera',piedra:'Piedra',comida:'Comida',silicio:'Silicio',monedas:'Monedas',ideas:'Ideas'};
+const RCOL={madera:'#e0b27a',piedra:'#d6dae2',comida:'#ff9a8a',silicio:'#d8ccf0',monedas:'#f0cc4a',ideas:'#5fe3d0'};
+const RES={tree:{give:'madera',hp:4,regen:50,empty:'Tocón'},rock:{give:'piedra',hp:6,regen:90,empty:'Piedras sueltas'},bush:{give:'comida',hp:3,regen:35,empty:'Arbusto sin frutos'},ore:{give:'silicio',hp:5,regen:110,empty:'Veta de cuarzo agotada'}};
+const TYPE_OF={madera:'tree',piedra:'rock',comida:'bush',silicio:'ore'};
 const TECHS=[
- {id:'dinamo',name:'Dínamo',cost:{cobre:15,ideas:30},req:[],desc:'Desbloquea la usina, los postes, la herrería y la cantera.'},
- {id:'motor',name:'Motor eléctrico',cost:{cobre:20,ideas:50},req:['dinamo'],desc:'Desbloquea la fábrica eléctrica, que da muchas monedas.'},
- {id:'lamparita',name:'Lamparita',cost:{piedra:15,ideas:40},req:['dinamo'],desc:'Desbloquea el laboratorio. Ideas +50% y de noche ves más lejos.'},
- {id:'frio',name:'Refrigeración',cost:{madera:40,piedra:20,ideas:65},req:['dinamo'],desc:'Desbloquea el frigorífico, que potencia las granjas.'},
- {id:'hidro',name:'Hidroelectricidad',cost:{madera:60,cobre:20,ideas:95},req:['motor'],desc:'Desbloquea la represa: luz sin humo, pegada al agua.'},
- {id:'escuelas',name:'Escuela pública',cost:{monedas:30,ideas:130},req:['lamparita','motor'],desc:'Desbloquea la escuela. Ideas +50%.'},
- {id:'telefono',name:'Teléfono',cost:{monedas:45,ideas:270},req:['hidro','escuelas'],desc:'Los inventores hablan a distancia: ideas +50%.'},
- {id:'valvulas',name:'Válvulas de vacío',cost:{cobre:60,monedas:45,ideas:320},req:['motor','escuelas'],desc:'Electrónica: todos los edificios producen +50%.'},
- {id:'tabuladora',name:'Tabuladora eléctrica',cost:{piedra:110,cobre:90,monedas:100,ideas:650},req:['telefono','valvulas'],desc:'Tarjetas perforadas y electricidad: cuenta un censo entero en meses. Cierra la Electricidad.'}];
+ {id:'eniac',name:'Computadora electrónica',cost:{silicio:15,ideas:30},req:[],desc:'Desbloquea la computadora, el taller y la cantera. A las máquinas les salen bichos.'},
+ {id:'tractor',name:'Tractores',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea el galpón de tractores, que potencia las granjas.'},
+ {id:'transistor',name:'Transistor',cost:{silicio:20,ideas:50},req:['eniac'],desc:'Desbloquea la oficina, que da monedas. Las máquinas fallan 40% menos.'},
+ {id:'lenguajes',name:'Lenguajes de programación',cost:{madera:40,piedra:20,ideas:65},req:['eniac'],desc:'Programar se vuelve más fácil: ideas +50%.'},
+ {id:'satelite',name:'Satélites',cost:{madera:60,silicio:20,ideas:95},req:['transistor'],desc:'Mirás desde el cielo: ideas +50% y de noche ves más lejos.'},
+ {id:'universidades',name:'Carreras de computación',cost:{monedas:30,ideas:130},req:['lenguajes','transistor'],desc:'Desbloquea la universidad. Ideas +50%.'},
+ {id:'depuracion',name:'Depuración',cost:{monedas:45,ideas:270},req:['satelite','universidades'],desc:'Programas probados: las máquinas fallan 40% menos y los bichos tardan el doble en contagiarse.'},
+ {id:'circuito',name:'Circuito integrado',cost:{silicio:60,monedas:45,ideas:320},req:['transistor','universidades'],desc:'Muchos transistores en un chip: todos los edificios producen +50%.'},
+ {id:'micro',name:'Microprocesador',cost:{piedra:110,silicio:90,monedas:100,ideas:650},req:['depuracion','circuito'],desc:'Toda una computadora en un chip. Cierra la Computación.'}];
 const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
@@ -204,18 +204,18 @@ const BUILDS=[
  {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
  {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
  {id:'parque',name:'Parque',req:null,base:{madera:15,piedra:10},grow:1.3,done:'Parque plantado: el aire se limpia',desc:'Árboles que limpian el humo de las usinas.'},
- {id:'herreria',name:'Herrería',req:'dinamo',base:{madera:25,piedra:20,cobre:10},grow:1.6,done:'Herrería lista',desc:'Herramientas de acero: vos y los aldeanos juntan +30% por cada herrería.'},
- {id:'cantera',name:'Cantera',req:'dinamo',base:{madera:20,cobre:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
- {id:'usina',name:'Usina',req:'dinamo',base:{madera:30,piedra:30,cobre:10},grow:1.5,done:'Usina encendida',desc:'Da luz a 6 edificios con ⚡. Echa humo.',power:6,node:true,smoke:0.06},
- {id:'poste',name:'Poste',req:'dinamo',base:{madera:6,cobre:3},grow:1.06,done:'Poste instalado',desc:'Estira la red: se conecta con otro poste o una usina a 4 casilleros, y da luz a lo que esté a 3.',node:true},
- {id:'represa',name:'Represa',req:'hidro',base:{piedra:50,cobre:25},grow:1.5,done:'Represa funcionando',desc:'Va pegada al agua. Da luz a 6 edificios con ⚡ sin echar humo.',power:6,node:true,water:true},
- {id:'fabrica',name:'Fábrica eléctrica',req:'motor',base:{madera:30,piedra:25,cobre:5},grow:1.4,done:'Fábrica en marcha',desc:'Motores eléctricos: da muchas monedas.',prod:{monedas:0.35},elec:true},
- {id:'laboratorio',name:'Laboratorio',req:'lamparita',base:{piedra:40,cobre:10},grow:1.5,done:'Laboratorio abierto',desc:'Inventores con luz eléctrica: genera muchas ideas.',prod:{ideas:0.4},elec:true},
- {id:'frigorifico',name:'Frigorífico',req:'frio',base:{madera:35,piedra:30},grow:1.6,done:'Frigorífico funcionando',desc:'La cosecha no se pudre: cada frigorífico hace rendir +50% a todas las granjas.',elec:true},
- {id:'escuela',name:'Escuela',req:'escuelas',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Escuela abierta',desc:'Ideas +30% por cada escuela.',elec:true}];
+ {id:'usina',name:'Usina',req:null,base:{madera:30,piedra:30,silicio:10},grow:1.5,done:'Usina encendida',desc:'Da luz a 6 edificios con ⚡. Echa humo.',power:6,node:true,smoke:0.06},
+ {id:'poste',name:'Poste',req:null,base:{madera:6,silicio:3},grow:1.06,done:'Poste instalado',desc:'Estira la red: se conecta con otro poste o una usina a 4 casilleros, y da luz a lo que esté a 3.',node:true},
+ {id:'represa',name:'Represa',req:null,base:{piedra:50,silicio:25},grow:1.5,done:'Represa funcionando',desc:'Va pegada al agua. Da luz a 6 edificios con ⚡ sin echar humo.',power:6,node:true,water:true},
+ {id:'herreria',name:'Taller',req:'eniac',base:{madera:25,piedra:20,silicio:10},grow:1.6,done:'Taller listo',desc:'Herramientas eléctricas: vos y los aldeanos juntan +30% por cada taller.'},
+ {id:'cantera',name:'Cantera',req:'eniac',base:{madera:20,silicio:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
+ {id:'computadora',name:'Computadora',req:'eniac',base:{piedra:40,silicio:10},grow:1.5,done:'Computadora encendida',desc:'Ocupa una sala entera y genera muchas ideas. Le salen bichos: tocala para aplastarlos.',prod:{ideas:0.45},elec:true,bug:true},
+ {id:'oficina',name:'Oficina',req:'transistor',base:{madera:30,piedra:25,silicio:5},grow:1.4,done:'Oficina abierta',desc:'Empleados con computadoras: da muchas monedas. Le salen bichos.',prod:{monedas:0.35},elec:true,bug:true},
+ {id:'galpon',name:'Galpón de tractores',req:'tractor',base:{madera:35,piedra:30},grow:1.6,done:'Galpón listo',desc:'Cada galpón hace rendir +50% a todas las granjas.'},
+ {id:'universidad',name:'Universidad',req:'universidades',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Universidad abierta',desc:'Ideas +30% por cada universidad.',elec:true}];
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
 const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI'];
-const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],['cobre','Cobre'],['comida','Comida']];
+const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],['silicio','Silicio'],['comida','Comida']];
 
 /* ---------- mundo ---------- */
 const GRASS=0,WATER=1,SAND=2,DGRASS=3,HILL=4;
@@ -224,7 +224,7 @@ const ground=new Uint8Array(MW*MH);
 let obj=new Array(MW*MH).fill(null);
 function makeNoise(seed,cell){const r=mulberry32(seed);const gw=Math.ceil(MW/cell)+2,gh=Math.ceil(MH/cell)+2;const g=[];for(let i=0;i<gw*gh;i++)g.push(r());const sm=t=>t*t*(3-2*t);
   return(x,y)=>{const fx=x/cell,fy=y/cell,ix=Math.floor(fx),iy=Math.floor(fy),u=sm(fx-ix),v=sm(fy-iy);const a=g[iy*gw+ix],b=g[iy*gw+ix+1],c=g[(iy+1)*gw+ix],d=g[(iy+1)*gw+ix+1];return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;};}
-const nLake=makeNoise(611,9),nForest=makeNoise(621,7),nHill=makeNoise(631,10),nCoast=makeNoise(641,6);
+const nLake=makeNoise(711,9),nForest=makeNoise(721,7),nHill=makeNoise(731,10),nCoast=makeNoise(741,6);
 function genGround(){
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
     const i=y*MW+x,edge=Math.min(x,y,MW-1-x,MH-1-y),ds=Math.hypot(x-SPAWN[0],y-SPAWN[1]);
@@ -282,21 +282,21 @@ function renderGround(){
 let st,counts={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
-let GRID=null,floats=[],marker=null,placing=null,paused=false,last=performance.now();
+let GRID=null,bugT=0,floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
-  const e2=industria();const out={has:!!e2,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]};
+  const e2=electricidad();const out={has:!!e2,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e2){
     out.aldeanos=clamp(e2.aldeanos|0,2,8);out.ideas=clamp(e2.ideas|0,0,200);out.monedas=clamp(e2.monedas|0,0,80);
     const t=new Set(e2.techs||[]);
     out.perks.push(out.aldeanos+' aldeanos de tu ciudad se mudan con vos');
-    if(out.ideas)out.perks.push(out.ideas+' ideas guardadas de la Industria');
+    if(out.ideas)out.perks.push(out.ideas+' ideas guardadas de la Electricidad');
     if(out.monedas)out.perks.push(out.monedas+' monedas para arrancar');
-    if(t.has('analitica')){out.ideaMult=1.25;out.perks.push('Máquina analítica: ideas +25% durante toda la era');}
-    if(t.has('ferrocarril')){out.agri=1.25;out.perks.push('Ferrocarril: granjas +25%');}
+    if(t.has('tabuladora')){out.ideaMult=1.25;out.perks.push('Tabuladora eléctrica: ideas +25% durante toda la era');}
+    if(t.has('frio')){out.agri=1.25;out.perks.push('Refrigeración: granjas +25%');}
   }
   return out;
 }
-function freshState(){return{res:{madera:20,piedra:10,comida:15,cobre:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,legacy:readLegacy()};}
+function freshState(){return{res:{madera:20,piedra:10,comida:15,silicio:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,legacy:readLegacy()};}
 function recount(){GRID=null;counts={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined)counts[o.t]++;}
 function newGame(){
   obj=genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;vil.length=0;floats=[];
@@ -305,13 +305,13 @@ function newGame(){
   const hx=SPAWN[0]-2,hy=SPAWN[1]-2;for(let i=0;i<st.legacy.aldeanos;i++)addVillager(hx,hy);
 }
 function serialize(){
-  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b)o.push([i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10]);}
+  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b)o.push([i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0]);}
   return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[Math.round(v.x),Math.round(v.y),v.home[0],v.home[1],v.skin]),obj:o};
 }
 function load(d){
   if(!d||d.v!==1||!Array.isArray(d.obj))return false;
   genObjects();/* restaura el suelo modificado junto al inicio */renderGround();
-  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen]of d.obj)obj[i]={t,hp,regen};
+  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug]of d.obj)obj[i]={t,hp,regen,bug:!!bug};
   const f=freshState();
   st=Object.assign(f,{res:Object.assign(f.res,d.res),energy:d.energy,techs:d.techs||{},time:d.time||0,gathers:d.gathers||0,won:!!d.won,seen:!!d.seen,prio:d.prio||'auto',smog:clamp(+d.smog||0,0,100),legacy:d.legacy||f.legacy});
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null});
@@ -335,11 +335,11 @@ const buildCost=b=>{const n=counts[b.id]||0,c={};for(const k in b.base)c[k]=Math
 // El humo enferma: con el aire todo sucio se junta y se cosecha la mitad.
 const smogPen=()=>1-0.5*st.smog/100;
 const gatherMult=()=>(1+0.3*(counts.herreria||0))*smogPen();
-function ideaMult(){let m=(1+0.05*vil.length)*(st.legacy.ideaMult||1)*(1+0.3*act('escuela'));if(st.techs.lamparita)m*=1.5;if(st.techs.escuelas)m*=1.5;if(st.techs.telefono)m*=1.5;return m;}
+function ideaMult(){let m=(1+0.05*vil.length)*(st.legacy.ideaMult||1)*(1+0.3*act('universidad'));if(st.techs.lenguajes)m*=1.5;if(st.techs.satelite)m*=1.5;if(st.techs.universidades)m*=1.5;return m;}
 function prodOf(b){ // producción por segundo de un tipo de edificio (todas sus copias)
   const n=act(b.id),out={};if(!n||!b.prod)return out;
-  const eng=st.techs.valvulas?1.5:1;
-  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*act('frigorifico'))*(st.legacy.agri||1)*smogPen();if(k==='ideas')v*=ideaMult();out[k]=v;}
+  const eng=st.techs.circuito?1.5:1;
+  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*act('galpon'))*(st.legacy.agri||1)*smogPen();if(k==='ideas')v*=ideaMult();out[k]=v;}
   return out;
 }
 // Un edificio que gasta algo se frena cuando le falta.
@@ -360,8 +360,15 @@ function grid(){if(GRID)return GRID;const nodes=[],els=[];
   return GRID={on,links,powered,drops,pc,supply,demand,unlit:els.length-powered.size,f:demand?Math.min(1,supply/demand):1};}
 // Distancia del casillero a la parte conectada de la red.
 function nearNode(g,x,y){let d=1e9;for(const n of g.on.values())d=Math.min(d,Math.hypot(n.x-x,n.y-y));return d;}
-// Cuántos edificios de un tipo andan: los que tienen ⚡ cuentan solo si tienen luz, y rinden según alcance la red.
-const act=id=>BUILD[id].elec?(grid().pc[id]||0)*grid().f:(counts[id]||0);
+// Cuántos edificios de un tipo andan: los que tienen ⚡ cuentan solo si tienen luz y no tienen un bicho, y rinden según alcance la red.
+function act(id){if(!BUILD[id].elec)return counts[id]||0;const g=grid();let n=0;for(const i of g.powered)if(obj[i].t===id&&!obj[i].bug)n++;return n*g.f;}
+// Bichos: a cada máquina que anda le sale uno cada ~90 s (el transistor y la depuración los hacen más raros).
+// Una máquina con bicho no produce; si nadie lo aplasta, se contagia a otra máquina a 5 casilleros.
+const bugRate=()=>(1/90)*(st.techs.transistor?0.6:1)*(st.techs.depuracion?0.6:1);
+const bugSpread=()=>st.techs.depuracion?50:25;
+function bugCount(){let n=0;for(const o of obj)if(o&&o.bug)n++;return n;}
+function spreadBug(i){const x=i%MW,y=(i/MW)|0,c=[];for(const j of grid().powered){const o=obj[j];if(j===i||o.bug||!BUILD[o.t].bug)continue;if(Math.hypot(j%MW-x,((j/MW)|0)-y)<=5)c.push(j);}
+  if(c.length){const o=obj[c[Math.floor(Math.random()*c.length)]];o.bug=true;o.bugAge=0;}}
 function economy(){ // producción y consumo por segundo
   const pr={},us={};RK.forEach(k=>{pr[k]=0;us[k]=0;});
   for(const b of BUILDS){const p=prodOf(b);for(const k in p)pr[k]+=p[k];if(b.use&&counts[b.id])for(const k in b.use)us[k]+=b.use[k]*counts[b.id];}
@@ -444,9 +451,9 @@ function pickTarget(v){
   let tgt=null;
   const find=ty=>bfs(sx,sy,(x,y)=>{for(const[dx,dy]of DIRS8){const nx=x+dx,ny=y+dy;if(!inb(nx,ny))continue;const o=obj[ny*MW+nx];if(o&&o.t===ty&&o.hp>0&&!taken.has(nx+','+ny)){tgt=[nx,ny];return true;}}return false;});
   let order;
-  if(st.prio!=='auto'){order=[st.prio].concat(['madera','piedra','cobre','comida'].filter(k=>k!==st.prio));}
+  if(st.prio!=='auto'){order=[st.prio].concat(['madera','piedra','silicio','comida'].filter(k=>k!==st.prio));}
   else{
-    order=['madera','piedra','cobre','comida'].filter(k=>st.res[k]<cap(k)).sort((a,b)=>st.res[a]-st.res[b]);
+    order=['madera','piedra','silicio','comida'].filter(k=>st.res[k]<cap(k)).sort((a,b)=>st.res[a]-st.res[b]);
     if(st.res.comida<vil.length*4&&order.includes('comida')){order.splice(order.indexOf('comida'),1);order.unshift('comida');}
     else if(Math.random()<0.3)order.push(order.shift());
   }
@@ -487,6 +494,11 @@ function update(dt){
     if(b.use)for(const k in b.use)st.res[k]=Math.max(0,st.res[k]-b.use[k]*counts[b.id]*dt);
   }
   st.smog=clamp(st.smog+smogRate()*dt,0,100);
+  bugT+=dt;if(bugT>=0.5){const step=bugT,had=bugCount();bugT=0;
+    for(const i of grid().powered){const o=obj[i];if(!BUILD[o.t].bug)continue;
+      if(o.bug){o.bugAge=(o.bugAge||0)+step;if(o.bugAge>=bugSpread()){o.bugAge=0;spreadBug(i);}}
+      else if(Math.random()<bugRate()*step){o.bug=true;o.bugAge=0;}}
+    if(!had&&bugCount())toast('¡Un bicho trabó una máquina! Tocala para aplastarlo.');}
   for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&RES[o.t]&&o.hp<=0){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
   updatePlayer(dt);
   for(const v of vil)updateVillager(v,dt);
@@ -641,17 +653,6 @@ function brickWall(a,x,y,w,h,dark){for(let j=0;j<h;j++)for(let i=0;i<w;i++){cons
 const YEL=hx('#ffd35a');
 // Rayo amarillo de cartel, con la punta de arriba en (x,y).
 function bolt(a,x,y){poly(a,[[x+1,y],[x-4,y+7],[x,y+7],[x-2,y+13],[x+5,y+5],[x+1,y+5],[x+3,y]],YEL);}
-function copperOreArt(){return mkA(64,52,a=>{blob(a,[[32,32,17],[20,38,12],[45,38,13],[30,22,11]],ROCK,null);
-  const r=mulberry32(9);for(let k=0;k<12;k++){const x=12+Math.floor(r()*40),y=16+Math.floor(r()*26);if(!a.get(x,y)||!a.get(x+3,y+2))continue;const C=r()<0.6?COPPER:MALA;ell(a,x+1.5,y+1,2.2,1.5,C[1]);a.set(x+1,y,C[C.length-1]);}
-  for(let x=8;x<58;x++)for(let y=44;y<52;y++)if(a.get(x,y))a.set(x,y,mulc(a.get(x,y),0.8));outlineAll(a,OUTL);});}
-// Casa italianizante: fachada rosada, azotea con baranda, ventanas altas con balcón de hierro y puerta con banderola.
-function italianHouseArt(){return mkA(64,64,a=>{const PK=P4('#b0706a','#d0928a','#e8b0a4','#f4cfc4'),SH=hx('#3f6b4a');
-  rect(a,8,18,48,42,PK[2]);rect(a,46,18,10,42,PK[1]);
-  rect(a,6,6,52,2,PLAST[3]);for(let x=8;x<56;x+=4)rect(a,x,8,2,6,PLAST[2]);rect(a,6,14,52,4,PLAST[3]);rect(a,6,18,52,1,PK[0]);
-  for(const x of[13,41]){rect(a,x,24,10,18,DKW);rect(a,x-2,23,2,20,SH);rect(a,x+10,23,2,20,SH);rect(a,x-1,22,12,1,PLAST[3]);
-    rect(a,x-2,40,14,1,IRON[1]);for(let i=x-2;i<x+12;i+=2)rect(a,i,41,1,4,IRON[1]);rect(a,x-2,44,14,1,IRON[1]);}
-  rect(a,27,30,10,30,WOOD[1]);ell(a,32,30,5,4,(i,j)=>j<=0?GLASS[2]:null);rect(a,32,31,1,29,WOOD[0]);rect(a,25,58,14,2,STONE2[2]);
-  outlineAll(a,OUTL);});}
 // Usina: nave de ladrillo, dos chimeneas (el humo va aparte), un rayo en el frente y el transformador.
 function powerPlantArt(){return mkA(64,64,a=>{for(const x of[8,20]){for(let y=0;y<34;y++)for(let i=0;i<6;i++)a.set(x+i,y,y%4===3?MORT:i<2?BRICK[3]:i>3?BRICK[1]:BRICK[2]);rect(a,x-1,0,8,2,BRICK[0]);}
   brickWall(a,2,30,44,30);gable(a,0,48,18,30,SLATE);bolt(a,24,17);
@@ -671,37 +672,6 @@ function damArt(){return mkA(64,64,a=>{const CON=P4('#7a7a80','#9a9aa0','#b8b8bc
   for(const x of[10,28,46]){rect(a,x,24,8,6,DKW);for(let y=30;y<58;y++)rect(a,x+1,y,6,1,(y*3+x)%7===0?FOAM:SHL[1]);}
   rect(a,1,58,62,4,SHL[1]);for(let x=2;x<62;x++)if(hash(x,1,4)<0.45)a.set(x,58,FOAM);
   outlineAll(a,OUTL);});}
-// Fábrica eléctrica: hormigón claro, ventanales con marco de acero, tanque de agua y cartel con un rayo. No echa humo.
-function elecFactoryArt(){return mkA(64,64,a=>{const CR=P4('#a89c84','#c4b89e','#ddd2b8','#eee6d2');
-  rect(a,45,16,1,6,IRON[0]);rect(a,54,16,1,6,IRON[0]);rect(a,44,6,12,10,WOOD[2]);for(let x=44;x<56;x+=3)rect(a,x,6,1,10,WOOD[1]);poly(a,[[43,6],[50,1],[57,6]],WOOD[1]);
-  rect(a,10,21,1,3,IRON[0]);rect(a,27,21,1,3,IRON[0]);rect(a,8,11,22,10,DKW);bolt(a,20,13);
-  rect(a,2,24,60,36,CR[2]);rect(a,48,24,14,36,CR[1]);rect(a,0,22,64,3,CR[3]);rect(a,0,25,64,1,CR[0]);
-  for(const x of[5,23,41]){rect(a,x,30,16,16,GLASS[1]);for(let i=0;i<=16;i+=4)rect(a,x+i,30,1,16,IRON[1]);for(let j=0;j<=16;j+=4)rect(a,x,30+j,16,1,IRON[1]);}
-  rect(a,26,50,12,10,IRON[2]);for(let y=50;y<60;y+=2)rect(a,26,y,12,1,IRON[1]);
-  outlineAll(a,OUTL);});}
-// Laboratorio de inventor: casa de tablas blancas con galería y una lamparita gigante en el techo.
-function edisonLabArt(){return mkA(64,64,a=>{const WH=P4('#a8a49a','#c8c4ba','#e6e2d8','#f8f6f0');
-  for(let y=26;y<60;y++){rect(a,8,y,36,1,y%3===0?WH[1]:WH[2]);rect(a,44,y,12,1,y%3===0?WH[0]:WH[1]);}
-  gable(a,4,60,12,26,SLATE);
-  for(const x of[12,24,36,47]){rect(a,x-1,29,8,10,WH[3]);rect(a,x,30,6,8,DKW);rect(a,x+2,30,1,8,WH[3]);}
-  rect(a,6,44,52,2,WOOD[3]);for(const x of[8,22,42,55])rect(a,x,46,2,14,WH[3]);rect(a,28,47,8,13,WOOD[1]);
-  rect(a,29,13,6,5,IRON[2]);rect(a,29,14,6,1,IRON[3]);rect(a,30,18,4,2,IRON[0]);ell(a,32,7,6,6,hx('#ffe98a'));ell(a,30,5,2,2,hx('#ffffff'));rect(a,31,6,1,5,hx('#c8a050'));rect(a,33,6,1,5,hx('#c8a050'));
-  outlineAll(a,OUTL);});}
-// Frigorífico: galpón blanco y celeste con un copo de nieve, carámbanos y puertas de carga.
-function frigoArt(){return mkA(64,64,a=>{const IC=P4('#6a8aa8','#9ab8d0','#d0e2ee','#f0f8fc');
-  rect(a,2,22,60,38,IC[2]);rect(a,48,22,14,38,IC[1]);rect(a,0,18,64,4,IC[3]);rect(a,0,22,64,1,IC[0]);
-  for(let x=2;x<62;x+=3)rect(a,x,23,1,1+((x*7)%4),IC[3]);
-  const cx=17,cy=38;for(let k=0;k<3;k++){const an=k*Math.PI/3,c=Math.cos(an),s2=Math.sin(an);for(let t=-8;t<=8;t++)a.set(cx+c*t,cy+s2*t,BLUER[1]);for(const t of[-5,5]){a.set(cx+c*t-s2*2,cy+s2*t+c*2,BLUER[1]);a.set(cx+c*t+s2*2,cy+s2*t-c*2,BLUER[1]);}}
-  ell(a,cx,cy,1.5,1.5,BLUER[2]);
-  for(const x of[31,46]){rect(a,x,38,12,20,BLUER[1]);for(let y=40;y<58;y+=3)rect(a,x,y,12,1,BLUER[0]);}
-  rect(a,0,58,64,2,STONE2[2]);outlineAll(a,OUTL);});}
-// Escuela: columnas, frontón con reloj, escalinata y bandera celeste y blanca.
-function schoolArt(){return mkA(64,64,a=>{const CEL=hx('#7ec0ee');rect(a,33,4,1,12,IRON[0]);rect(a,34,4,9,2,CEL);rect(a,34,6,9,2,hx('#ffffff'));rect(a,34,8,9,2,CEL);
-  rect(a,4,30,56,28,MARBLE[2]);rect(a,48,30,12,28,MARBLE[1]);
-  for(const x of[7,52]){rect(a,x,36,6,14,DKW);ell(a,x+3,36,3,3,(i,j)=>j<=0?DKW:null);}
-  rect(a,30,40,6,16,WOOD[1]);columns(a,[16,24,36,44],32,56,MARBLE);rect(a,12,28,42,4,MARBLE[3]);poly(a,[[33,16],[54,28],[12,28]],(x,y)=>x<33?MARBLE[3]:MARBLE[2]);
-  ell(a,33,23,3,3,IRON[0]);ell(a,33,23,2.2,2.2,hx('#f6f1e4'));a.set(33,22,IRON[0]);a.set(34,23,IRON[0]);
-  rect(a,10,56,46,2,MARBLE[3]);rect(a,8,58,50,2,MARBLE[1]);outlineAll(a,OUTL);});}
 // Parque: pasto, caminito, árboles, banco, farol y reja.
 function parkArt(){return mkA(64,64,a=>{const PG=P4('#3c6b2e','#467f36','#58963f','#6aa84f');
   for(let y=10;y<60;y++)for(let x=2;x<62;x++)a.set(x,y,hash(x,y,9)<0.2?PG[1]:PG[2]);
@@ -712,10 +682,58 @@ function parkArt(){return mkA(64,64,a=>{const PG=P4('#3c6b2e','#467f36','#58963f
   for(const[x,y,r]of[[14,24,9],[51,22,8],[15,46,7]]){rect(a,x-1,y+r-3,3,6,WOOD[1]);blob(a,[[x,y,r],[x-r*0.5,y+2,r*0.7],[x+r*0.5,y+2,r*0.7]],LEAF,LEAFL);}
   for(let x=2;x<62;x++){if(Math.abs(x-33)<5)continue;a.set(x,55,IRON[2]);if(x%3===2)rect(a,x,55,1,4,IRON[1]);}
   });}
-const VILPAL2=[{c:'#3a3a48',C:'#28283a',j:'#d8d0bc',y:'#3a2418'},{c:'#3f5f8a',C:'#2c4466',j:'#7a5434',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#7a4a6a',C:'#58324c',j:'#e3ddcc',y:'#8a5a2a'}];
-const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:copperOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:italianHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),parque:parkArt(),usina:powerPlantArt(),poste:poleArt(),represa:damArt(),fabrica:elecFactoryArt(),laboratorio:edisonLabArt(),frigorifico:frigoArt(),escuela:schoolArt(),
-  hero:[personArt({c:'#4a6a3a',C:'#33492a',j:'#d4ae62'},0),personArt({c:'#4a6a3a',C:'#33492a',j:'#d4ae62'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
+// Veta de silicio: roca con cristales de cuarzo.
+function quartzOreArt(){return mkA(64,52,a=>{blob(a,[[32,32,17],[20,38,12],[45,38,13],[30,22,11]],ROCK,null);
+  const QZ=P4('#8a7ab8','#b8a8e0','#ddd4f4','#ffffff');
+  const prism=(x,y,h,lean)=>{for(let j=0;j<h;j++){const xx=x+Math.round(lean*j/h);for(let i=0;i<4;i++)a.set(xx+i,y-j,i===0?QZ[3]:i===3?QZ[0]:QZ[2]);}const tx=x+Math.round(lean);poly(a,[[tx,y-h],[tx+4,y-h],[tx+2,y-h-3]],QZ[3]);};
+  prism(16,40,7,-2);prism(22,34,10,-2);prism(27,36,14,0);prism(33,35,11,2);prism(40,40,8,3);
+  for(let x=8;x<58;x++)for(let y=44;y<52;y++)if(a.get(x,y))a.set(x,y,mulc(a.get(x,y),0.8));outlineAll(a,OUTL);});}
+// Casa moderna: techo plano con alero, ventanal, panel de madera, puerta roja y antena de tele.
+function modernHouseArt(){return mkA(64,64,a=>{const WL=P4('#b8b0a0','#d8d0c0','#ece6d8','#f8f4ec');
+  rect(a,20,6,1,16,IRON[1]);rect(a,14,8,13,1,IRON[1]);rect(a,16,12,9,1,IRON[1]);rect(a,17,16,7,1,IRON[1]);
+  rect(a,6,26,52,34,WL[2]);rect(a,46,26,12,34,WL[1]);rect(a,2,22,60,4,hx('#4a4e5a'));rect(a,2,22,60,1,hx('#6a6e7a'));
+  rect(a,10,32,24,12,GLASS[1]);for(let x=10;x<=34;x+=8)rect(a,x,32,1,12,WOOD[0]);rect(a,10,32,24,1,WOOD[0]);rect(a,10,43,24,1,WOOD[0]);for(let t=0;t<6;t++)a.set(13+t,41-t,GLASS[3]);
+  rect(a,38,30,14,30,WOOD[2]);for(let y=30;y<60;y+=3)rect(a,38,y,14,1,WOOD[1]);rect(a,41,40,8,20,RED);a.set(47,50,GOLD);
+  rect(a,8,54,26,6,WOOD[1]);for(const x of[11,18,25,31])ell(a,x,53,2.5,2,LEAF[2]);
+  outlineAll(a,OUTL);});}
+// Centro de cómputos: edificio de hormigón con un ventanal y adentro gabinetes con cintas y lucecitas.
+function computerArt(){return mkA(64,64,a=>{const CO=P4('#8a8f98','#a8adb6','#c8ccd2','#e2e4e8');
+  rect(a,10,13,1,2,IRON[0]);rect(a,35,13,1,2,IRON[0]);rect(a,8,4,30,9,DKW);for(let i=0;i<6;i++)rect(a,11+i*4,7,2,3,i%2?hx('#93d36c'):hx('#5fe3d0'));
+  rect(a,2,18,60,42,CO[2]);rect(a,48,18,14,42,CO[1]);rect(a,0,14,64,4,CO[3]);rect(a,0,18,64,1,CO[0]);
+  rect(a,6,24,44,30,hx('#1e2430'));
+  for(const x of[9,23,37]){rect(a,x,27,11,25,CO[2]);rect(a,x,27,11,1,hx('#ffffff'));
+    for(const y of[31,39])for(const dx of[3,8]){ell(a,x+dx,y,2.5,2.5,IRON[1]);ell(a,x+dx,y,1,1,CO[2]);}
+    for(let k=0;k<4;k++)a.set(x+2+k*2,46,[RED,YEL,hx('#93d36c'),hx('#5fa8c8')][k]);rect(a,x+1,48,9,3,IRON[2]);}
+  for(let x=6;x<=50;x+=11)rect(a,x,24,1,30,IRON[2]);rect(a,52,40,8,20,hx('#3a4250'));
+  outlineAll(a,OUTL);});}
+// Oficina: torre de vidrio y acero.
+function officeArt(){return mkA(64,64,a=>{const CO=P4('#5a6270','#7a828e','#9aa2ae','#c2c8d0');
+  rect(a,12,4,40,56,CO[2]);rect(a,42,4,10,56,CO[1]);rect(a,10,2,44,3,CO[3]);
+  for(let y=8;y<46;y+=7)for(let x=14;x<50;x+=6){rect(a,x,y,5,5,x>40?GLASS[0]:GLASS[1]);a.set(x,y,GLASS[3]);}
+  rect(a,26,50,12,10,GLASS[0]);rect(a,31,50,1,10,IRON[1]);rect(a,24,49,16,1,CO[3]);rect(a,8,58,48,2,STONE2[2]);
+  outlineAll(a,OUTL);});}
+// Galpón de chapa con techo curvo y un tractor rojo adelante.
+function tractorShedArt(){return mkA(64,64,a=>{const ZN=P4('#6a7078','#8a9098','#aab0b8','#cad0d6');
+  ell(a,32,40,28,22,(i,j)=>j<=0?ZN[((i+40)&3)<2?2:1]:null);rect(a,4,40,56,20,ZN[2]);for(let x=4;x<60;x+=4)rect(a,x,40,1,20,ZN[1]);rect(a,18,34,28,26,hx('#2a2a32'));
+  rect(a,22,44,16,8,RED);rect(a,30,37,8,9,RED);rect(a,31,38,6,4,GLASS[2]);rect(a,24,38,2,6,IRON[0]);
+  ell(a,34,53,6,6,IRON[0]);ell(a,34,53,2.5,2.5,YEL);ell(a,23,55,3.5,3.5,IRON[0]);ell(a,23,55,1.3,1.3,YEL);
+  outlineAll(a,OUTL);});}
+// Universidad moderna: hormigón sobre pilotes, ventanas verticales y una antena parabólica.
+function univModernArt(){return mkA(64,64,a=>{const CN=P4('#7a7670','#9a968e','#b8b4aa','#d4d0c6');
+  rect(a,44,10,2,8,IRON[1]);ell(a,46,8,7,3,hx('#e2e4e8'));ell(a,46,7,5,1.5,hx('#c8ccd2'));line(a,46,8,50,2,IRON[1],1);
+  rect(a,10,10,24,6,DKW);for(let i=0;i<5;i++)rect(a,12+i*4,12,2,2,hx('#f6f1e4'));
+  rect(a,4,22,56,26,CN[2]);rect(a,46,22,14,26,CN[1]);rect(a,2,18,60,4,CN[3]);for(let x=7;x<56;x+=7)rect(a,x,26,4,18,GLASS[1]);
+  rect(a,4,48,56,12,hx('#2a3040'));for(const x of[6,20,34,48])rect(a,x,48,4,12,CN[2]);rect(a,24,50,10,10,GLASS[0]);
+  outlineAll(a,OUTL);});}
+// Bicho (polilla) que se mete en las máquinas; dos cuadros de aleteo.
+function bugArt(f){return mkA(32,32,a=>{const WG=P4('#5a4632','#7a6448','#a08868','#c8b490'),BD=hx('#3a2a1e'),sp=f?10:7;
+  for(const s of[-1,1]){ell(a,16+s*sp*0.6,13,sp*0.75,6,(i,j)=>WG[j<-2?3:j<2?2:1]);ell(a,16+s*sp*0.5,20,sp*0.5,4,WG[1]);ell(a,16+s*sp*0.6,13,1.5,1.5,BD);}
+  rect(a,15,8,3,16,BD);ell(a,16.5,8,2,2,BD);line(a,16,7,12,2,BD,1);line(a,17,7,21,2,BD,1);
+  outlineAll(a,OUTL);});}
+const VILPAL2=[{c:'#c8902e',C:'#9a6c20',j:'#4a3a2a',y:'#3a2418'},{c:'#3a6a8a',C:'#284e68',j:'#e3ddcc',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#8a3a5a',C:'#662a42',j:'#e3ddcc',y:'#8a5a2a'}];
+const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:quartzOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
+  casa:modernHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),parque:parkArt(),usina:powerPlantArt(),poste:poleArt(),represa:damArt(),computadora:computerArt(),oficina:officeArt(),galpon:tractorShedArt(),universidad:univModernArt(),bug:[bugArt(0),bugArt(1)],
+  hero:[personArt({c:'#5a4a8a',C:'#40346a',j:'#e3ddcc'},0),personArt({c:'#5a4a8a',C:'#40346a',j:'#e3ddcc'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
 // Dibuja un sprite en alta con el tamaño que tenía el de 16 px.
 const hd=(c,x,y)=>ctx.drawImage(c,x,y,c.width/ART,c.height/ART);
 
@@ -735,6 +753,11 @@ function drawWires(x0,y0,x1,y1){const g=grid();if(!g.links.length&&!g.drops.leng
   for(const[a,b]of g.links.concat(g.drops)){if(Math.max(a.x,b.x)<x0-1||Math.min(a.x,b.x)>x1+1||Math.max(a.y,b.y)<y0-1||Math.min(a.y,b.y)>y1+1)continue;const[ax,ay]=at(a),[bx,by]=at(b);ctx.moveTo(ax,ay);ctx.quadraticCurveTo((ax+bx)/2,(ay+by)/2+1.6,bx,by);}
   ctx.stroke();}
 // Rayo tachado que titila arriba de un edificio sin luz.
+// Lucecitas de los gabinetes que titilan mientras la computadora anda.
+function blink(px,py){const t=Math.floor(performance.now()/180);ctx.fillStyle='#1b1a24';for(const c of[9,23,37])for(let k=0;k<4;k++)if(hash(c+k,t,7)<0.45)ctx.fillRect(px+(c+2+k*2)/ART,py+46/ART,1/ART,1/ART);}
+// Bicho que camina sobre la máquina trabada, con un marco rojo que late.
+function drawBug(px,py){const t=performance.now()/1000,a=0.55+0.3*Math.sin(t*6);ctx.strokeStyle='rgba(232,101,77,'+a.toFixed(2)+')';ctx.lineWidth=0.6;ctx.strokeRect(px+0.5,py+0.5,T-1,T-1);
+  ctx.drawImage(HS.bug[Math.floor(t*8)%2],px+4+Math.sin(t*1.7)*2.5,py+2+Math.cos(t*2.3)*2,8,8);}
 function noPower(px,py){if(Math.sin(performance.now()/160)<-0.3)return;const x=px+12.5,y=py+1;ctx.fillStyle='#1b1a24';ctx.beginPath();ctx.arc(x,y,2.6,0,6.29);ctx.fill();
   ctx.fillStyle='#ffd35a';ctx.beginPath();ctx.moveTo(x+0.4,y-1.9);ctx.lineTo(x-1.1,y+0.3);ctx.lineTo(x,y+0.3);ctx.lineTo(x-0.4,y+1.9);ctx.lineTo(x+1.1,y-0.3);ctx.lineTo(x,y-0.3);ctx.closePath();ctx.fill();
   ctx.strokeStyle='#e8654d';ctx.lineWidth=0.45;ctx.beginPath();ctx.moveTo(x-1.8,y-1.8);ctx.lineTo(x+1.8,y+1.8);ctx.stroke();}
@@ -750,7 +773,7 @@ function drawObj(o,x,y){
       for(let k=0;k<3;k++){const ph=(st.time*0.7+k/3)%1;ctx.fillStyle='rgba(200,200,210,'+(0.7*(1-ph))+')';ctx.fillRect(px+4+Math.round(Math.sin(ph*6+k)*1.5),py-1-Math.round(ph*10),2,2);}break;
     case'usina':shadow(px+8,py+15,8,2);hd(HS.usina,px,py);for(const[sx,sy]of SMK.usina)puffs(px+sx,py+sy,4);break;
     case'poste':shadow(px+8,py+15,3,1);hd(HS.poste,px,py);break;
-    default:if(HS[o.t]){shadow(px+8,py+15,8,2);hd(HS[o.t],px,py);if(BUILD[o.t]&&BUILD[o.t].elec&&!grid().powered.has(y*MW+x))noPower(px,py);}
+    default:if(HS[o.t]){shadow(px+8,py+15,8,2);hd(HS[o.t],px,py);const lit=grid().powered.has(y*MW+x);if(BUILD[o.t]&&BUILD[o.t].elec&&!lit)noPower(px,py);if(o.t==='computadora'&&lit&&!o.bug)blink(px,py);if(o.bug)drawBug(px,py);}
   }
   const cfg=RES[o.t];
   if(cfg&&o.hp>0&&o.hp<cfg.hp){ctx.fillStyle='#1b1a24';ctx.fillRect(px+2,top-3,12,3);ctx.fillStyle='#93d36c';ctx.fillRect(px+3,top-2,10*o.hp/cfg.hp,1);}
@@ -804,7 +827,7 @@ function render(){
     for(let y=Math.max(0,y0-5);y<=Math.min(MH-1,y1+5);y++)for(let x=Math.max(0,x0-5);x<=Math.min(MW-1,x1+5);x++){const o=obj[y*MW+x];if(!o)continue;
       if(o.t==='fogata')lights.push([x*T+8,y*T+9,5,1]);else if(o.t==='herreria'||o.t==='usina'||o.t==='represa'||(BUILD[o.t]&&BUILD[o.t].elec&&G.powered.has(y*MW+x)))lights.push([x*T+8,y*T+10,3,0.8]);else if(o.t==='poste'&&G.on.has(y*MW+x))lights.push([x*T+11,y*T+6,2.4,0.85]);else if(o.t==='casa')lights.push([x*T+8,y*T+10,1.8,0.6]);else if(o.t==='parque')lights.push([x*T+10,y*T+7,1.6,0.7]);}
     for(const[fx,fy,r,a]of lights)hole(fx,fy,T*s*(r+0.15*Math.sin(st.time*9+fx)),a);
-    hole(P.x*T+8,P.y*T+8,T*s*(st.techs.lamparita?4:2.2),0.75);
+    hole(P.x*T+8,P.y*T+8,T*s*(st.techs.satelite?4:2.2),0.75);
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(lc,0,0);
     ctx.globalCompositeOperation='lighter';
     for(const[fx,fy,r]of lights){if(r<3)continue;const sx=(fx-cam.x)*s,sy=(fy-cam.y)*s,R=T*s*r*0.65,g=ctx.createRadialGradient(sx,sy,0,sx,sy,R);g.addColorStop(0,'rgba(255,150,50,'+(0.26*d/0.62)+')');g.addColorStop(1,'rgba(255,150,50,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(sx,sy,R,0,Math.PI*2);ctx.fill();}
@@ -823,24 +846,25 @@ const chipEl={};
   const bar=$('agiBar');for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=(i*10)+'%';bar.appendChild(t);}
 })();
 function flashChip(k){const c=chipEl[k];if(!c)return;c.classList.add('flash');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('flash'),350);}
-const agiPct=()=>50+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10;
+const agiPct=()=>60+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10;
 function goalText(){
   if(st.energy<25)return['Comé algo:','tu energía está baja.'];
   const hungry=vil.filter(v=>v.hungry).length;
   if(hungry)return['Hambre:',hungry+(hungry===1?' aldeano no comió.':' aldeanos no comieron.')+' Construí granjas.'];
+  {const nb=bugCount();if(nb)return['¡Bichos!',nb+(nb===1?' máquina trabada.':' máquinas trabadas.')+' Tocalas para aplastarlos.'];}
   if(st.smog>=30&&!counts.parque)return['Mucho humo:','tu gente junta menos. Construí parques.'];
-  if(st.techs.dinamo&&!counts.usina&&!counts.represa)return['Construí','una usina: da luz a 6 edificios con ⚡.'];
+  if(st.techs.eniac&&!counts.usina&&!counts.represa)return['Construí','una usina o una represa: dan luz a las máquinas con ⚡.'];
   {const g=grid();if(g.unlit)return['Sin luz:',g.unlit+(g.unlit===1?' edificio no está conectado.':' edificios no están conectados.')+' Poné postes.'];
     if(g.f<1)return['Red sobrecargada:','todo rinde '+Math.round(g.f*100)+'%. Construí otra usina o represa.'];}
   if(st.smog>=60)return['Humo espeso:','juntás y cosechás −'+Math.round(st.smog/2)+'%. Más parques, o represas en vez de usinas.'];
-  if(st.gathers===0&&!counts.granja)return['Empezá:','construí una granja y juntá cobre en las colinas.'];
-  const full=['madera','piedra','cobre','comida','monedas'].find(k=>st.res[k]>=cap(k));
+  if(st.gathers===0&&!counts.granja)return['Empezá:','construí una granja y juntá silicio en las colinas.'];
+  const full=['madera','piedra','silicio','comida','monedas'].find(k=>st.res[k]>=cap(k));
   if(full)return['Granero lleno:','no entra más '+RN[full].toLowerCase()+'.'];
-  if(st.techs.lamparita&&!counts.laboratorio)return['Construí','un laboratorio con luz: genera muchas ideas.'];
-  if(st.techs.motor&&!counts.fabrica)return['Construí','una fábrica con luz para conseguir monedas.'];
-  if(st.techs.hidro&&!counts.represa)return['Construí','una represa pegada al agua: luz sin humo.'];
+  if(st.techs.eniac&&!counts.computadora)return['Construí','una computadora con luz: genera muchas ideas.'];
+  if(st.techs.transistor&&!counts.oficina)return['Construí','una oficina con luz para conseguir monedas.'];
+  if(st.techs.tractor&&!counts.galpon)return['Construí','un galpón de tractores: potencia las granjas.'];
   const next=TECHS.find(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r]));
-  if(!next)return['Electricidad completa.','Seguí creciendo tu ciudad.'];
+  if(!next)return['Computación completa.','Seguí creciendo tu ciudad.'];
   const miss=Object.entries(next.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>Math.ceil(v-st.res[k])+' '+RN[k].toLowerCase());
   return miss.length?['Próximo: '+next.name+'.','Faltan '+miss.join(', ')+'.']:['Próximo: '+next.name+'.','Listo, abrí Inventos.'];
 }
@@ -856,9 +880,9 @@ function hud(){
   const e=st.energy;$('eFill').style.width=e+'%';$('eFill').classList.toggle('low',e<25);$('eNum').textContent=Math.ceil(e);
   const sv=st.smog,sOn=sv>=0.5||BUILDS.some(b=>b.smoke&&counts[b.id]);$('smogRow').hidden=!sOn;
   if(sOn){const r=smogRate(),pen=Math.round(sv/2);$('sFill').style.width=sv+'%';$('sFill').classList.toggle('hi',sv>=50);$('sNum').textContent=Math.round(sv)+'%'+(r>0.004?' ↑':r<-0.004?' ↓':'');$('sMeta').textContent=pen?'juntás y cosechás −'+pen+'%':'aire limpio';}
-  const g=grid(),gOn=!!st.techs.dinamo||g.on.size>0;$('gridRow').hidden=!gOn;
+  const g=grid(),gOn=g.on.size>0||BUILDS.some(b=>b.elec&&counts[b.id]);$('gridRow').hidden=!gOn;
   if(gOn){$('gFill').style.width=(g.supply?Math.min(100,g.demand/g.supply*100):0)+'%';$('gFill').classList.toggle('hi',g.demand>g.supply);$('gNum').textContent=g.demand+'/'+g.supply;
-    $('gMeta').textContent=g.unlit?g.unlit+' sin luz':g.f<1?'todo rinde '+Math.round(g.f*100)+'%':g.supply?'alcanza':'sin usinas';}
+    const nb=bugCount();$('gMeta').textContent=g.unlit?g.unlit+' sin luz':nb?nb+(nb===1?' con bicho':' con bichos'):g.f<1?'todo rinde '+Math.round(g.f*100)+'%':g.supply?'alcanza':'sin usinas';}
   const day=Math.floor(st.time/DAY)+1;$('meta').textContent='Día '+day+(darkness()>0.3?' · noche':'')+' · '+vil.length+(vil.length===1?' aldeano':' aldeanos');
   const pct=agiPct();$('agiFill').style.width=pct+'%';$('agiPct').textContent=fmt(pct)+'% a la AGI';
   const[g1,g2]=goalText(),gk=g1+g2;if(gk!==lastGoal){lastGoal=gk;const g=$('goal');g.innerHTML='';const s=document.createElement('span');s.className='gl';s.textContent=g1;g.append(s,' '+g2);}
@@ -881,7 +905,7 @@ function prodLine(b){const p=prodOf(b);const parts=Object.entries(p).map(([k,v])
 function renderSheet(){
   const body=$('sheetBody');
   if(sheetMode==='tech'){
-    $('sheetTitle').textContent='Inventos';$('sheetSub').textContent=TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length+' inventos de la Electricidad';
+    $('sheetTitle').textContent='Inventos';$('sheetSub').textContent=TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length+' inventos de la Computación';
     body.innerHTML=TECHS.map(t=>{const done=st.techs[t.id],open=t.req.every(r=>st.techs[r]),can=open&&!done&&afford(t.cost);
       const right=done?'<span class="tag ok">Investigado</span>':open?'<button class="btn" data-tech="'+t.id+'"'+(can?'':' disabled')+'>Investigar</button>':'<span class="tag">Bloqueado</span>';
       const foot=done?'':open?costHTML(t.cost):'<p>Requiere: '+t.req.map(r=>TECH[r].name).join(' + ')+'</p>';
@@ -920,7 +944,7 @@ $('sheetBody').addEventListener('click',e=>{
 function research(id){
   const t=TECH[id];if(st.techs[id]||!t.req.every(r=>st.techs[r])||!afford(t.cost))return;
   pay(t.cost);st.techs[id]=true;toast('Investigaste: '+t.name);renderSheet();hud();
-  if(id==='tabuladora'&&!st.won){st.won=true;save();if(sheetMode){sheetMode=null;$('sheet').hidden=true;skipPush=true;}showWin();}
+  if(id==='micro'&&!st.won){st.won=true;save();if(sheetMode){sheetMode=null;$('sheet').hidden=true;skipPush=true;}showWin();}
   save();
 }
 function startPlace(id){if(sheetMode){sheetMode=null;$('sheet').hidden=true;}else navPush();placing=id;$('place').hidden=false;$('placeTxt').textContent='Tocá un lugar libre para: '+BUILD[id].name.toLowerCase()+(BUILD[id].water?' (junto al agua)':'');}
@@ -958,18 +982,15 @@ function hideModal(fromBack){if($('modal').hidden)return;if(!fromBack)navPop();$
 const erasHTML=done=>'<div class="eras">'+ERAS.map((e,i)=>'<span class="'+(i<done?'on':'')+'">'+e+'</span>').join('')+'</div>';
 function showIntro(){
   const L=st.legacy;
-  const leg=L.has?'<div class="kicker">Lo que trae tu ciudad de la Industria</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">No hay una Industria terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.</p>';
-  showModalI('<div class="kicker">Mundo abierto · 1880 d.C.</div><h1>La Electricidad</h1><p>Llega la luz eléctrica. Las usinas mueven fábricas, laboratorios y frigoríficos, pero solo si los conectás con postes y cables. La meta: construir la tabuladora eléctrica, la máquina que contó un censo entero.</p>'+erasHTML(5)+leg+'<p class="muted">Novedades: cobre y la red eléctrica. Los edificios con ⚡ andan solo si están cerca de una usina, una represa o un poste conectado. Las usinas echan humo; las represas no.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
+  const leg=L.has?'<div class="kicker">Lo que trae tu ciudad de la Electricidad</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">No hay una Electricidad terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.</p>';
+  showModalI('<div class="kicker">Mundo abierto · 1945 d.C.</div><h1>La Computación</h1><p>Las primeras computadoras ocupan salas enteras y calculan rapidísimo, pero se traban: les salen bichos. Tocalos para aplastarlos antes de que se contagien. La meta: el microprocesador, toda una computadora en un chip.</p>'+erasHTML(6)+leg+'<p class="muted">Novedades: silicio, computadoras, oficinas y bichos. Una máquina con bicho no produce; si no lo aplastás, se contagia a las vecinas. Usinas, represas y postes ya los sabés construir.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
 }
-function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Los edificios con ⚡ necesitan luz: tienen que quedar cerca de una usina, una represa o un poste conectado. Las usinas echan humo: con mucho humo juntás y cosechás menos, y los parques lo limpian. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?'<button class="btn ghost" data-m="next">Pasar a la Computación</button>':'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
-function showWin(){showModal('<div class="kicker">Mundo abierto · Electricidad</div><h1>Electricidad superada</h1><p>Terminaste la tabuladora eléctrica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las máquinas ya cuentan solas.</p>'+erasHTML(6)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan a la Computación.</p><div class="row"><button class="btn" data-m="next">Pasar a la Computación</button><button class="btn ghost" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
-// La Computación del mundo abierto se carga sobre esta página, como las eras desde el hub.
-function goPage(f){save();window.__rtagiActive='switching';fetch(f).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();}).catch(()=>{window.__rtagiActive=ERA_ID;requestAnimationFrame(frame);toast('No se pudo cargar. Volvé a abrir el juego.','bad');});}
+function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. A las computadoras y oficinas les salen bichos: tocalas para aplastarlos antes de que se contagien. Los edificios con ⚡ necesitan luz: tienen que quedar cerca de una usina, una represa o un poste conectado. Las usinas echan humo: con mucho humo juntás y cosechás menos, y los parques lo limpian. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button><button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
+function showWin(){showModal('<div class="kicker">Mundo abierto · Computación</div><h1>Computación superada</h1><p>Terminaste el microprocesador en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Una computadora ya entra en la palma de la mano.</p>'+erasHTML(7)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. Internet todavía no está.</p><div class="row"><button class="btn" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
 $('modalCard').addEventListener('click',e=>{
   const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
   if(m==='start'){st.seen=true;save();hideModal();}
   else if(m==='close')hideModal();
-  else if(m==='next'){goPage('mundo7.html');return;}
   else if(m==='hub'){save();window.__rtagiActive='switching';location.reload();}
   else if(m==='reset'){if(!resetArmed){resetArmed=true;b.textContent='Tocá de nuevo para borrar la era';b.classList.add('warn');return;}
     try{localStorage.removeItem(KEY);}catch(err){}newGame();closeSheet();stopPlace();showIntro();}
@@ -977,7 +998,7 @@ $('modalCard').addEventListener('click',e=>{
 $('bEat').onclick=eat;$('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tech');$('bTribe').onclick=()=>openSheet('tribe');$('bMenu').onclick=showMenu;
 
 /* ---------- entrada ---------- */
-const INFO={casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',parque:'Parque: limpia el humo.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',usina:'Usina: da luz a 6 edificios. Echa humo.',poste:'Poste: estira la red.',represa:'Represa: da luz a 6 edificios sin humo.',fabrica:'Fábrica eléctrica: da monedas.',laboratorio:'Laboratorio: genera ideas.',frigorifico:'Frigorífico: potencia las granjas.',escuela:'Escuela: más ideas.'};
+const INFO={casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',parque:'Parque: limpia el humo.',usina:'Usina: da luz a 6 edificios. Echa humo.',poste:'Poste: estira la red.',represa:'Represa: da luz a 6 edificios sin humo.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',computadora:'Computadora: genera ideas.',oficina:'Oficina: da monedas.',galpon:'Galpón: potencia las granjas.',universidad:'Universidad: más ideas.'};
 function onTap(tx,ty){
   if(placing){tryPlace(tx,ty);return;}
   if(!inb(tx,ty))return;
@@ -985,6 +1006,7 @@ function onTap(tx,ty){
   if(!o&&inb(tx,ty+1)){const b=obj[(ty+1)*MW+tx];if(b&&b.t==='tree'&&b.hp>0){ty++;o=b;}}
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
   if(o){
+    if(o.bug){o.bug=false;o.bugAge=0;st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);toast('¡Bicho aplastado!');save();return;}
     if(!RES[o.t]){const b=BUILD[o.t];toast(INFO[o.t]+(b&&b.prod?prodLine(b):'')+(b&&b.elec?(grid().powered.has(ty*MW+tx)?' Tiene luz.':' Sin luz: poné un poste cerca.'):''));return;}
     if(o.hp<=0){toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');P.act=null;P.task=null;const p=bfs(px,py,(x,y)=>x===tx&&y===ty);if(p)P.path=p;return;}
     P.act=null;P.retried=false;P.task={x:tx,y:ty};
@@ -1034,7 +1056,7 @@ if(!ok)newGame();
 resize();hud();
 if(!st.seen)showIntro();
 requestAnimationFrame(frame);
-if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,grid:()=>grid()};
+if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,grid:()=>grid(),act:id=>act(id),bugCount:()=>bugCount(),bugSpread:()=>bugSpread()};
 })();
 </script>
 </body></html>
