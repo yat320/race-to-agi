@@ -13,6 +13,7 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI e
 | `mundo.html` | Prototipo de mundo abierto, Prehistoria: explorar, juntar recursos, sumar aldeanos, construir el ábaco | prototipo, retomado |
 | `mundo2.html` | Mundo abierto, Antigüedad: cobre, monedas, 12 edificios y el mecanismo de Anticitera; arranca con lo que trae la tribu de la Prehistoria | prototipo, retomado |
 | `mundo3.html` | Mundo abierto, Edad Media: hierro, monasterios, ferias, molinos de viento, universidades y la imprenta; arranca con lo que trae la ciudad de la Antigüedad | prototipo |
+| `mundo4.html` | Mundo abierto, Renacimiento: plata, talleres de artistas, bancos, jardines botánicos, carabelas, academias y la pascalina; arranca con lo que trae la ciudad de la Edad Media | prototipo |
 | `arbol.html` | Prototipo del árbol de progreso de las 10 eras (sin juego atrás) | prototipo |
 
 ## Correr

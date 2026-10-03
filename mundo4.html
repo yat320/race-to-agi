@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Race to AGI · Mundo abierto · Edad Media</title>
+<title>Race to AGI · Mundo abierto · Renacimiento</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700&family=Pixelify+Sans:wght@400;600;700&display=swap">
@@ -121,7 +121,7 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
   <canvas id="world" aria-label="Mundo del juego"></canvas>
   <div id="hud">
     <div>
-      <div class="agi-top"><span class="brand">RACE TO AGI</span><span id="era">Edad Media</span><span id="agiPct">20% a la AGI</span></div>
+      <div class="agi-top"><span class="brand">RACE TO AGI</span><span id="era">Renacimiento</span><span id="agiPct">30% a la AGI</span></div>
       <div class="agi-bar" id="agiBar"><div class="agi-fill" id="agiFill"></div></div>
     </div>
     <div class="res" id="res"></div>
@@ -150,16 +150,16 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
 <script>
 (function(){
 'use strict';
-const ERA_ID='mundo3-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
-const T=16,MW=64,MH=64,DAY=160,KEY='rtagi-mundo3-v1';
+const ERA_ID='mundo4-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
+const T=16,MW=64,MH=64,DAY=160,KEY='rtagi-mundo4-v1';
 const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
 const $=id=>document.getElementById(id);
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:1});
 const inb=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH;
-// Lo que trae la ciudad desde la Antigüedad del mundo abierto, si terminó el mecanismo. No usa el legado de las eras.
-function antiguedad(){try{const d=JSON.parse(localStorage.getItem('rtagi-mundo2-v1'));if(d&&d.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor((d.res&&d.res.ideas)||0),monedas:Math.floor((d.res&&d.res.monedas)||0),techs:Object.keys(d.techs||{})};}catch(e){}return null;}
+// Lo que trae la ciudad desde la Edad Media del mundo abierto, si terminó la imprenta. No usa el legado de las eras.
+function edadMedia(){try{const d=JSON.parse(localStorage.getItem('rtagi-mundo3-v1'));if(d&&d.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor((d.res&&d.res.ideas)||0),monedas:Math.floor((d.res&&d.res.monedas)||0),techs:Object.keys(d.techs||{})};}catch(e){}return null;}
 
 /* ---------- sprites ---------- */
 const PAL={k:'#1b1a24',g:'#2f6b3a',G:'#3f8f47',l:'#6cbf5a',b:'#7a5434',B:'#4f3522',s:'#5d6270',S:'#8a8f9c',w:'#c3c7cf',r:'#c8413b',R:'#f08a7c',f:'#f08a24',F:'#ffd35a',o:'#c43d20',h:'#d4ae62',H:'#9a7a3a',p:'#e3ab7d',P:'#b97a55',c:'#8b5a2b',C:'#63401f',y:'#3a2418',d:'#7a5634',D:'#5a3d24',n:'#8fd06a',N:'#5aa347',W:'#f6f1e4',u:'#5fe3d0',x:'#ecd67e',
@@ -170,27 +170,27 @@ const I={
   madera:sprite(['........','.kkkkkk.','kbBbbBhk','kbbBbbhk','kBbbbBhk','.kkkkkk.','........','........'],8),
   piedra:sprite(['........','..kkkk..','.kSwwSk.','kSSwSSsk','kSSSSssk','kssssssk','.kkkkkk.','........'],8),
   comida:sprite(['....kk..','...kNk..','..kNk...','.kkrkk..','krRrrrk.','krrrrrk.','kRrrrrk.','.kkkkk..'],8),
-  hierro:sprite(['........','........','..kkkkk.','.kvqqqQk','kqqqqQQk','kQQQQQk.','.kkkkk..','........'],8,{q:'#9aa6b8',Q:'#5d6270',v:'#e3e8f0'}),
+  plata:sprite(['........','........','..kkkkkk','.kvvvvQk','kqqqqqQk','kQQQQQkk','kkkkkkk.','........'],8,{q:'#c9d1dc',Q:'#8a93a3',v:'#ffffff'}),
   monedas:sprite(['..kkkk..','.kzzzZk.','kzZzzzZk','kzzkkzZk','kzzzzzZk','kZzzzZZk','.kZZZZk.','..kkkk..'],8),
   ideas:sprite(['...kk...','..kuuk..','.kuWWuk.','kuWWWWuk','kuWWWWuk','.kuWWuk.','..kuuk..','...kk...'],8)};
 const ICON={};for(const k in I)ICON[k]=I[k].toDataURL();
 
 /* ---------- datos ---------- */
-const RK=['madera','piedra','comida','hierro','monedas','ideas'];
-const RN={madera:'Madera',piedra:'Piedra',comida:'Comida',hierro:'Hierro',monedas:'Monedas',ideas:'Ideas'};
-const RCOL={madera:'#e0b27a',piedra:'#d6dae2',comida:'#ff9a8a',hierro:'#b8c4d6',monedas:'#f0cc4a',ideas:'#5fe3d0'};
-const RES={tree:{give:'madera',hp:4,regen:50,empty:'Tocón'},rock:{give:'piedra',hp:6,regen:90,empty:'Piedras sueltas'},bush:{give:'comida',hp:3,regen:35,empty:'Arbusto sin frutos'},ore:{give:'hierro',hp:5,regen:110,empty:'Veta de hierro agotada'}};
-const TYPE_OF={madera:'tree',piedra:'rock',comida:'bush',hierro:'ore'};
+const RK=['madera','piedra','comida','plata','monedas','ideas'];
+const RN={madera:'Madera',piedra:'Piedra',comida:'Comida',plata:'Plata',monedas:'Monedas',ideas:'Ideas'};
+const RCOL={madera:'#e0b27a',piedra:'#d6dae2',comida:'#ff9a8a',plata:'#e3e8f0',monedas:'#f0cc4a',ideas:'#5fe3d0'};
+const RES={tree:{give:'madera',hp:4,regen:50,empty:'Tocón'},rock:{give:'piedra',hp:6,regen:90,empty:'Piedras sueltas'},bush:{give:'comida',hp:3,regen:35,empty:'Arbusto sin frutos'},ore:{give:'plata',hp:5,regen:110,empty:'Veta de plata agotada'}};
+const TYPE_OF={madera:'tree',piedra:'rock',comida:'bush',plata:'ore'};
 const TECHS=[
- {id:'forja',name:'Forja del hierro',cost:{hierro:15,ideas:30},req:[],desc:'Desbloquea la herrería y la cantera.'},
- {id:'monasterios',name:'Monasterios',cost:{piedra:15,ideas:35},req:[],desc:'Desbloquea el monasterio, donde los monjes copian libros. Ideas +50%.'},
- {id:'gremios',name:'Gremios',cost:{hierro:20,ideas:50},req:['forja'],desc:'Desbloquea la feria, que cambia comida por monedas.'},
- {id:'molinos',name:'Molinos de viento',cost:{madera:40,piedra:20,ideas:65},req:['monasterios'],desc:'Desbloquea el molino, que potencia las granjas.'},
- {id:'rutas',name:'Rutas comerciales',cost:{madera:60,hierro:20,ideas:95},req:['gremios'],desc:'Desbloquea el puerto: comercio con otras ciudades.'},
- {id:'universidades',name:'Universidades',cost:{monedas:30,ideas:130},req:['monasterios','gremios'],desc:'Desbloquea la universidad. Ideas +50%.'},
- {id:'anteojos',name:'Anteojos',cost:{monedas:45,ideas:270},req:['rutas','universidades'],desc:'Los sabios leen hasta viejos: ideas +50%. De noche ves más lejos.'},
- {id:'reloj',name:'Reloj mecánico',cost:{hierro:60,monedas:45,ideas:320},req:['forja','universidades'],desc:'Engranajes que miden el tiempo: todos los edificios producen +50%.'},
- {id:'imprenta',name:'Imprenta',cost:{piedra:110,hierro:90,monedas:100,ideas:650},req:['anteojos','reloj'],desc:'Tipos móviles de metal: los libros se copian por miles. Cierra la Edad Media.'}];
+ {id:'perspectiva',name:'Perspectiva',cost:{piedra:15,ideas:35},req:[],desc:'Desbloquea el taller de artistas, que genera muchas ideas. Ideas +50%.'},
+ {id:'mineria',name:'Minería de plata',cost:{plata:15,ideas:30},req:[],desc:'Desbloquea la herrería y la cantera.'},
+ {id:'banca',name:'Banca',cost:{plata:20,ideas:50},req:['mineria'],desc:'Desbloquea el banco, que cambia plata por monedas.'},
+ {id:'botanica',name:'Botánica',cost:{madera:40,piedra:20,ideas:65},req:['perspectiva'],desc:'Desbloquea el jardín botánico, que potencia las granjas.'},
+ {id:'carabelas',name:'Carabelas',cost:{madera:60,plata:20,ideas:95},req:['banca'],desc:'Desbloquea el puerto: barcos que cruzan el océano.'},
+ {id:'academias',name:'Academias',cost:{monedas:30,ideas:130},req:['perspectiva','banca'],desc:'Desbloquea la academia. Ideas +50%.'},
+ {id:'telescopio',name:'Telescopio',cost:{monedas:45,ideas:270},req:['carabelas','academias'],desc:'Mirar el cielo de cerca: ideas +50%. De noche ves más lejos.'},
+ {id:'mecanica',name:'Mecánica de precisión',cost:{plata:60,monedas:45,ideas:320},req:['mineria','academias'],desc:'Engranajes finos: todos los edificios producen +50%.'},
+ {id:'pascalina',name:'Pascalina',cost:{piedra:110,plata:90,monedas:100,ideas:650},req:['telescopio','mecanica'],desc:'La primera calculadora: engranajes que suman solos. Cierra el Renacimiento.'}];
 const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
@@ -198,16 +198,16 @@ const BUILDS=[
  {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche. Comer cerca rinde el doble.',prod:{ideas:0.12}},
  {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
  {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
- {id:'herreria',name:'Herrería',req:'forja',base:{madera:25,piedra:20,hierro:10},grow:1.6,done:'Herrería lista',desc:'Herramientas de hierro: vos y los aldeanos juntan +30% por cada herrería.'},
- {id:'cantera',name:'Cantera',req:'forja',base:{madera:20,hierro:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
- {id:'monasterio',name:'Monasterio',req:'monasterios',base:{piedra:40,hierro:10},grow:1.5,done:'Monasterio construido',desc:'Los monjes copian libros: genera muchas ideas.',prod:{ideas:0.35}},
- {id:'feria',name:'Feria',req:'gremios',base:{madera:30,piedra:15,hierro:5},grow:1.4,done:'Feria abierta',desc:'Cambia comida por monedas. Si no hay comida, se frena.',prod:{monedas:0.12},use:{comida:0.2}},
- {id:'molino',name:'Molino',req:'molinos',base:{madera:35,piedra:30},grow:1.6,done:'Molino girando',desc:'Cada molino hace producir +50% a todas las granjas.'},
- {id:'puerto',name:'Puerto',req:'rutas',base:{madera:40,hierro:20},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. El comercio trae monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:true},
- {id:'universidad',name:'Universidad',req:'universidades',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Universidad abierta',desc:'Ideas +30% por cada universidad.'}];
+ {id:'herreria',name:'Herrería',req:'mineria',base:{madera:25,piedra:20,plata:10},grow:1.6,done:'Herrería lista',desc:'Herramientas mejores: vos y los aldeanos juntan +30% por cada herrería.'},
+ {id:'cantera',name:'Cantera',req:'mineria',base:{madera:20,plata:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
+ {id:'taller',name:'Taller de artistas',req:'perspectiva',base:{piedra:40,plata:10},grow:1.5,done:'Taller abierto',desc:'Pintores e inventores trabajan juntos: genera muchas ideas.',prod:{ideas:0.35}},
+ {id:'banco',name:'Banco',req:'banca',base:{madera:30,piedra:15,plata:5},grow:1.4,done:'Banco abierto',desc:'Cambia plata por monedas. Si no hay plata, se frena.',prod:{monedas:0.2},use:{plata:0.1}},
+ {id:'jardin',name:'Jardín botánico',req:'botanica',base:{madera:35,piedra:30},grow:1.6,done:'Jardín plantado',desc:'Papa y maíz de América: cada jardín hace producir +50% a todas las granjas.'},
+ {id:'puerto',name:'Puerto',req:'carabelas',base:{madera:40,plata:20},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. Las carabelas traen monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:true},
+ {id:'academia',name:'Academia',req:'academias',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Academia abierta',desc:'Ideas +30% por cada academia.'}];
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
 const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI'];
-const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],['hierro','Hierro'],['comida','Comida']];
+const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],['plata','Plata'],['comida','Comida']];
 
 /* ---------- mundo ---------- */
 const GRASS=0,WATER=1,SAND=2,DGRASS=3,HILL=4;
@@ -216,7 +216,7 @@ const ground=new Uint8Array(MW*MH);
 let obj=new Array(MW*MH).fill(null);
 function makeNoise(seed,cell){const r=mulberry32(seed);const gw=Math.ceil(MW/cell)+2,gh=Math.ceil(MH/cell)+2;const g=[];for(let i=0;i<gw*gh;i++)g.push(r());const sm=t=>t*t*(3-2*t);
   return(x,y)=>{const fx=x/cell,fy=y/cell,ix=Math.floor(fx),iy=Math.floor(fy),u=sm(fx-ix),v=sm(fy-iy);const a=g[iy*gw+ix],b=g[iy*gw+ix+1],c=g[(iy+1)*gw+ix],d=g[(iy+1)*gw+ix+1];return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;};}
-const nLake=makeNoise(311,9),nForest=makeNoise(321,7),nHill=makeNoise(331,10),nCoast=makeNoise(341,6);
+const nLake=makeNoise(411,9),nForest=makeNoise(421,7),nHill=makeNoise(431,10),nCoast=makeNoise(441,6);
 function genGround(){
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
     const i=y*MW+x,edge=Math.min(x,y,MW-1-x,MH-1-y),ds=Math.hypot(x-SPAWN[0],y-SPAWN[1]);
@@ -276,19 +276,19 @@ const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,re
 const vil=[];
 let floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
-  const e2=antiguedad();const out={has:!!e2,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]};
+  const e2=edadMedia();const out={has:!!e2,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e2){
     out.aldeanos=clamp(e2.aldeanos|0,2,8);out.ideas=clamp(e2.ideas|0,0,200);out.monedas=clamp(e2.monedas|0,0,80);
     const t=new Set(e2.techs||[]);
     out.perks.push(out.aldeanos+' aldeanos de tu ciudad se mudan con vos');
-    if(out.ideas)out.perks.push(out.ideas+' ideas guardadas de la Antigüedad');
+    if(out.ideas)out.perks.push(out.ideas+' ideas guardadas de la Edad Media');
     if(out.monedas)out.perks.push(out.monedas+' monedas para arrancar');
-    if(t.has('anticitera')){out.ideaMult=1.25;out.perks.push('Mecanismo de Anticitera: ideas +25% durante toda la era');}
-    if(t.has('irrigacion')){out.agri=1.25;out.perks.push('Irrigación: granjas +25%');}
+    if(t.has('imprenta')){out.ideaMult=1.25;out.perks.push('Imprenta: ideas +25% durante toda la era');}
+    if(t.has('molinos')){out.agri=1.25;out.perks.push('Molinos de viento: granjas +25%');}
   }
   return out;
 }
-function freshState(){return{res:{madera:20,piedra:10,comida:15,hierro:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',legacy:readLegacy()};}
+function freshState(){return{res:{madera:20,piedra:10,comida:15,plata:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',legacy:readLegacy()};}
 function recount(){counts={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined)counts[o.t]++;}
 function newGame(){
   obj=genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;vil.length=0;floats=[];
@@ -325,11 +325,11 @@ const afford=c=>Object.entries(c).every(([k,v])=>st.res[k]>=v);
 const pay=c=>{for(const k in c)st.res[k]-=c[k];};
 const buildCost=b=>{const n=counts[b.id]||0,c={};for(const k in b.base)c[k]=Math.ceil(b.base[k]*Math.pow(b.grow,n));return c;};
 const gatherMult=()=>1+0.3*(counts.herreria||0);
-function ideaMult(){let m=(1+0.05*vil.length)*(st.legacy.ideaMult||1)*(1+0.3*(counts.universidad||0));if(st.techs.monasterios)m*=1.5;if(st.techs.universidades)m*=1.5;if(st.techs.anteojos)m*=1.5;return m;}
+function ideaMult(){let m=(1+0.05*vil.length)*(st.legacy.ideaMult||1)*(1+0.3*(counts.academia||0));if(st.techs.perspectiva)m*=1.5;if(st.techs.academias)m*=1.5;if(st.techs.telescopio)m*=1.5;return m;}
 function prodOf(b){ // producción por segundo de un tipo de edificio (todas sus copias)
   const n=counts[b.id]||0,out={};if(!n||!b.prod)return out;
-  const eng=st.techs.reloj?1.5:1;
-  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*(counts.molino||0))*(st.legacy.agri||1);if(k==='ideas')v*=ideaMult();out[k]=v;}
+  const eng=st.techs.mecanica?1.5:1;
+  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*(counts.jardin||0))*(st.legacy.agri||1);if(k==='ideas')v*=ideaMult();out[k]=v;}
   return out;
 }
 function economy(){ // producción y consumo por segundo
@@ -414,9 +414,9 @@ function pickTarget(v){
   let tgt=null;
   const find=ty=>bfs(sx,sy,(x,y)=>{for(const[dx,dy]of DIRS8){const nx=x+dx,ny=y+dy;if(!inb(nx,ny))continue;const o=obj[ny*MW+nx];if(o&&o.t===ty&&o.hp>0&&!taken.has(nx+','+ny)){tgt=[nx,ny];return true;}}return false;});
   let order;
-  if(st.prio!=='auto'){order=[st.prio].concat(['madera','piedra','hierro','comida'].filter(k=>k!==st.prio));}
+  if(st.prio!=='auto'){order=[st.prio].concat(['madera','piedra','plata','comida'].filter(k=>k!==st.prio));}
   else{
-    order=['madera','piedra','hierro','comida'].filter(k=>st.res[k]<cap(k)).sort((a,b)=>st.res[a]-st.res[b]);
+    order=['madera','piedra','plata','comida'].filter(k=>st.res[k]<cap(k)).sort((a,b)=>st.res[a]-st.res[b]);
     if(st.res.comida<vil.length*4&&order.includes('comida')){order.splice(order.indexOf('comida'),1);order.unshift('comida');}
     else if(Math.random()<0.3)order.push(order.shift());
   }
@@ -596,46 +596,84 @@ function forgeArt(){return mkA(64,64,a=>{rect(a,6,26,52,34,P4('#6d6458')[0]);for
   rect(a,44,52,14,4,hx('#3e3848'));rect(a,47,56,8,4,hx('#3e3848'));rect(a,44,52,14,1,hx('#8a8f9c'));outlineAll(a,OUTL);});}
 function quarryArt(){return mkA(64,64,a=>{const B=(x,y,w,h)=>{rect(a,x,y,w,h,ROCK[2]);rect(a,x,y,w,3,ROCK[3]);rect(a,x+w-3,y,3,h,ROCK[1]);rect(a,x,y+h-1,w,1,ROCK[0]);};
   B(4,44,18,14);B(23,44,18,14);B(42,44,18,14);B(13,30,18,14);B(32,30,18,14);B(22,16,18,14);line(a,48,20,58,10,WOOD[2],2);poly(a,[[54,8],[62,12],[60,14],[53,11]],ROCK[1]);outlineAll(a,OUTL);});}
-function harborArt(){return mkA(64,64,a=>{rect(a,0,44,64,10,WOOD[2]);for(let x=0;x<64;x+=6)rect(a,x,44,1,10,WOOD[1]);rect(a,0,44,64,2,WOOD[3]);for(const x of[4,30,56])rect(a,x,54,4,10,WOOD[1]);
-  poly(a,[[6,38],[52,38],[46,44],[12,44]],WOOD[2]);rect(a,8,38,44,2,WOOD[3]);rect(a,28,4,2,34,WOOD[1]);poly(a,[[31,6],[31,34],[54,34]],(x,y)=>x<36?hx('#f6f1e4'):hx('#e3ddcc'));poly(a,[[27,10],[27,32],[12,32]],hx('#d8d0bc'));
-  rect(a,30,2,8,3,hx('#c8413b'));outlineAll(a,OUTL);});}
 const SLATE=P4('#2e3442','#3e4656','#566078','#7a86a0'),BEAM=hx('#3a2418'),STONE2=P4('#6d6458','#8a8070','#a39b88','#bdb5a2'),RUST=P4('#5a2a16','#8a3a1e','#b5523b');
 // Pared de piedra en hiladas.
 function stoneWall(a,x,y,w,h){for(let j=0;j<h;j++)for(let i=0;i<w;i++){const row=(j/5)|0,brick=((i+(row&1)*4)/8)|0;const edge=j%5===4||(i+(row&1)*4)%8===7;a.set(x+i,y+j,edge?STONE2[0]:((row+brick)%3?STONE2[2]:STONE2[1]));}}
-function ironOreArt(){return mkA(64,52,a=>{blob(a,[[32,32,17],[20,38,12],[45,38,13],[30,22,11]],ROCK,null);
-  const r=mulberry32(19);for(let k=0;k<12;k++){const x=12+Math.floor(r()*40),y=16+Math.floor(r()*26);if(!a.get(x,y)||!a.get(x+3,y+2))continue;ell(a,x+1.5,y+1,2.4,1.5,r()<0.6?RUST[1]:RUST[2]);a.set(x+1,y,hx('#3e4250'));}
-  for(let x=8;x<58;x++)for(let y=44;y<52;y++)if(a.get(x,y))a.set(x,y,mulc(a.get(x,y),0.8));outlineAll(a,OUTL);});}
-function halfTimberArt(){return mkA(64,64,a=>{rect(a,8,30,48,30,PLAST[2]);rect(a,44,30,12,30,PLAST[1]);
-  for(const x of[8,24,40,54])rect(a,x,30,2,30,BEAM);rect(a,8,30,48,2,BEAM);rect(a,8,44,48,2,BEAM);line(a,10,32,23,43,BEAM,2);line(a,41,43,53,32,BEAM,2);
-  rect(a,28,46,9,14,hx('#4a2e1c'));rect(a,28,46,9,1,WOOD[3]);rect(a,13,48,7,6,hx('#2a1a12'));rect(a,12,48,1,6,WOOD[2]);rect(a,20,48,1,6,WOOD[2]);
-  gable(a,2,62,2,30,SLATE);rect(a,4,29,56,2,SLATE[0]);rect(a,44,4,6,12,STONE2[1]);rect(a,43,3,8,2,STONE2[0]);outlineAll(a,OUTL);});}
 function barnArt(){return mkA(64,64,a=>{const RED=P4('#5a2018','#7a2e22','#9a3e2e','#b5523b');rect(a,6,28,52,32,RED[2]);for(let x=6;x<58;x+=5)rect(a,x,28,1,32,RED[1]);rect(a,44,28,14,32,RED[1]);
   rect(a,22,38,20,22,WOOD[2]);line(a,22,38,41,59,WOOD[3],2);line(a,41,38,22,59,WOOD[3],2);rect(a,22,38,20,2,WOOD[3]);rect(a,31,38,2,22,WOOD[1]);
   gable(a,2,62,4,28,P4('#3a2a20','#4f3a2a','#6b4f38','#86664a'));rect(a,4,27,56,2,WOOD[0]);rect(a,26,14,12,8,hx('#2a1a12'));for(let x=27;x<37;x+=2)rect(a,x,16,1,6,STRAW[2]);
   outlineAll(a,OUTL);});}
-function abbeyArt(){return mkA(64,64,a=>{stoneWall(a,4,30,40,30);rect(a,4,58,40,2,STONE2[0]);gable(a,2,46,14,30,SLATE);rect(a,2,29,44,2,SLATE[0]);
-  for(const x of[10,30]){rect(a,x,38,6,10,hx('#2a2a3a'));ell(a,x+3,38,3,3,(i,j)=>j<=0?hx('#2a2a3a'):null);rect(a,x+1,40,1,6,hx('#5b9cc9'));}
-  rect(a,19,44,10,16,hx('#3a2418'));ell(a,24,44,5,4,(i,j)=>j<=0?hx('#3a2418'):null);
-  stoneWall(a,44,10,16,50);for(let y=6;y<10;y++)rect(a,44+(y-6),y,16-2*(y-6),1,SLATE[2]);poly(a,[[52,0],[61,10],[43,10]],(x,y)=>x<52?SLATE[2]:SLATE[1]);
-  rect(a,48,16,8,8,hx('#1b1a24'));ell(a,52,20,2.5,2.5,hx('#e8c05a'));rect(a,48,58,16,2,STONE2[0]);outlineAll(a,OUTL);});}
-function fairArt(){return mkA(64,64,a=>{const tent=(x0,c1,c2)=>{poly(a,[[x0+12,10],[x0+26,30],[x0-2,30]],(x,y)=>((x>>2)&1)?c1:c2);rect(a,x0,30,24,26,c2);for(let x=x0;x<x0+24;x+=6)rect(a,x,30,3,26,c1);rect(a,x0+8,40,8,16,hx('#2a1a12'));rect(a,x0+11,4,2,8,WOOD[1]);poly(a,[[x0+13,4],[x0+20,6],[x0+13,8]],c1);};
-  tent(2,hx('#c8413b'),hx('#f6f1e4'));tent(36,hx('#4a78b8'),hx('#ecd67e'));
-  for(let x=0;x<64;x+=1){const y=26+Math.round(Math.sin(x/64*Math.PI)*4);if(x%7<5)a.set(x,y,WOOD[0]);}for(let k=0;k<8;k++){const x=4+k*8,y=27+Math.round(Math.sin((x)/64*Math.PI)*4);poly(a,[[x,y],[x+5,y],[x+2.5,y+5]],[hx('#e8c05a'),hx('#c8413b'),hx('#5fe3d0'),hx('#93d36c')][k%4]);}
-  rect(a,26,50,12,8,WOOD[2]);rect(a,26,50,12,2,WOOD[3]);outlineAll(a,OUTL);});}
-function millArt(){return mkA(64,64,a=>{poly(a,[[22,20],[42,20],[48,60],[16,60]],(x,y)=>x>38?STONE2[1]:((((y/5)|0)+((x/7)|0))%3?STONE2[2]:STONE2[3]));for(let y=24;y<60;y+=5)for(let x=16;x<49;x++)if(a.get(x,y))a.set(x,y,STONE2[0]);
-  poly(a,[[32,6],[46,22],[18,22]],(x,y)=>x<32?WOOD[3]:WOOD[2]);rect(a,18,21,28,2,WOOD[0]);rect(a,27,46,10,14,hx('#3a2418'));ell(a,32,46,5,4,(i,j)=>j<=0?hx('#3a2418'):null);rect(a,29,30,6,6,hx('#2a1a12'));
+const OCH=P4('#a8743a','#c9944f','#ddb06a','#ecc98a'),GRN=hx('#3f6b4a'),DKW=hx('#2a2a3a'),RED=hx('#c8413b'),GOLD=hx('#e8c05a'),SILV=P4('#8a93a3','#c9d1dc','#eef2f7','#ffffff');
+function silverOreArt(){return mkA(64,52,a=>{blob(a,[[32,32,17],[20,38,12],[45,38,13],[30,22,11]],P4('#3e4250','#4f5462','#6d7280','#8a8f9c'),null);
+  const on=(x,y,c)=>{if(a.get(x,y))a.set(x,y,c);};
+  for(const[x0,y0,x1,y1]of[[13,37,25,29],[25,29,34,31],[34,31,47,23],[21,45,35,39],[35,39,51,41],[28,17,33,24]]){const n=Math.ceil(Math.hypot(x1-x0,y1-y0))*2;for(let k=0;k<=n;k++){const x=x0+(x1-x0)*k/n,y=y0+(y1-y0)*k/n;on(x,y,SILV[1]);on(x,y+1,SILV[0]);}}
+  for(const[x,y]of[[25,29],[40,27],[18,34],[35,39],[46,41],[31,21]]){if(!a.get(x,y))continue;on(x,y,SILV[3]);on(x-1,y,SILV[2]);on(x+1,y,SILV[2]);on(x,y-1,SILV[2]);on(x,y+1,SILV[2]);}
+  for(let x=8;x<58;x++)for(let y=44;y<52;y++)if(a.get(x,y))a.set(x,y,mulc(a.get(x,y),0.8));outlineAll(a,OUTL);});}
+// Casa con revoque ocre, tejado bajo de tejas y postigos verdes.
+function palazzoArt(){return mkA(64,64,a=>{rect(a,8,26,48,34,OCH[2]);rect(a,46,26,10,34,OCH[1]);
+  rect(a,44,6,5,10,TERRA[1]);rect(a,43,5,7,2,TERRA[0]);
+  poly(a,[[12,14],[52,14],[60,26],[4,26]],(x,y)=>(x&3)===0?TERRA[1]:((y>>1)&1)?TERRA[2]:TERRA[3]);rect(a,4,25,56,2,TERRA[0]);
+  rect(a,6,27,52,2,PLAST[3]);rect(a,6,29,50,1,OCH[0]);
+  for(const x of[13,28,43]){rect(a,x,33,7,10,DKW);ell(a,x+3,33,3.5,3,(i,j)=>j<=0?DKW:null);rect(a,x-2,32,2,11,GRN);rect(a,x+7,32,2,11,GRN);rect(a,x-1,43,9,1,PLAST[3]);}
+  rect(a,8,46,48,2,PLAST[2]);
+  rect(a,27,51,10,9,WOOD[1]);ell(a,32,51,5,4,(i,j)=>j<=0?WOOD[1]:null);rect(a,32,48,1,12,WOOD[0]);
+  for(const x of[13,44]){rect(a,x,51,7,6,DKW);rect(a,x,51,7,1,PLAST[3]);}
   outlineAll(a,OUTL);});}
-// Aspas del molino: se dibujan aparte y giran.
-function sailsArt(){return mkA(64,64,a=>{for(let k=0;k<4;k++){const an=k*Math.PI/2,c=Math.cos(an),s2=Math.sin(an);
-  for(let t=4;t<31;t++){const x=32+c*t,y=32+s2*t;a.set(x,y,WOOD[1]);a.set(x+s2,y-c,WOOD[1]);for(let w=2;w<9;w++){const X=x-s2*w,Y=y+c*w;a.set(X,Y,(t%5===0||w===8)?WOOD[1]:hx('#ece6d6'));}}}
-  ell(a,32,32,3.5,3.5,WOOD[0]);ell(a,32,32,1.5,1.5,WOOD[3]);outlineAll(a,OUTL);});}
-function univArt(){return mkA(64,64,a=>{stoneWall(a,12,26,40,34);for(const x of[2,50]){stoneWall(a,x,16,12,44);poly(a,[[x+6,0],[x+14,16],[x-2,16]],(X,Y)=>X<x+6?BLUER[2]:BLUER[1]);rect(a,x+4,26,4,7,hx('#2a2a3a'));}
-  gable(a,10,54,14,26,BLUER);rect(a,10,25,44,2,BLUER[0]);for(const x of[18,40]){rect(a,x,32,6,10,hx('#2a2a3a'));ell(a,x+3,32,3,3,(i,j)=>j<=0?hx('#2a2a3a'):null);rect(a,x+2,34,2,6,hx('#ffd35a'));}
-  rect(a,27,44,10,16,hx('#3a2418'));ell(a,32,44,5,4,(i,j)=>j<=0?hx('#3a2418'):null);rect(a,30,30,4,8,hx('#c8413b'));rect(a,2,58,60,2,STONE2[0]);outlineAll(a,OUTL);});}
-const VILPAL2=[{c:'#8c3a2a',C:'#5f2419',j:'#d4ae62',y:'#6b4526'},{c:'#4f6d8c',C:'#35506a',j:'#7a5434',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#8a7a5a',C:'#655a40',j:'#4f3522',y:'#c9a45a'}];
-const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:ironOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:halfTimberArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),monasterio:abbeyArt(),feria:fairArt(),molino:millArt(),aspas:sailsArt(),puerto:harborArt(),universidad:univArt(),
-  hero:[personArt({c:'#5d7a3a',C:'#435a28',j:'#7a5434'},0),personArt({c:'#5d7a3a',C:'#435a28',j:'#7a5434'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
+// Taller de artistas: arco abierto con un caballete y un cartel con la paleta.
+function workshopArt(){return mkA(64,64,a=>{const DK=hx('#3a2a22');rect(a,6,28,52,32,PLAST[1]);rect(a,46,28,12,32,PLAST[0]);gable(a,2,62,10,28,TERRA);
+  ell(a,32,21,3.5,3.5,DKW);ell(a,32,21,1.5,1.5,hx('#ffd35a'));
+  rect(a,8,40,32,20,PLAST[3]);ell(a,24,40,16,11,(i,j)=>j<=0?PLAST[3]:null);rect(a,10,40,28,20,DK);ell(a,24,40,14,9,(i,j)=>j<=0?DK:null);
+  line(a,19,58,23,38,WOOD[3],2);line(a,29,58,25,38,WOOD[3],2);line(a,24,46,24,58,WOOD[2],1);
+  rect(a,17,35,14,11,WOOD[0]);rect(a,18,36,12,9,hx('#7ea6dc'));rect(a,18,41,12,4,hx('#58963f'));ell(a,26,38,1.5,1.5,hx('#ffd35a'));rect(a,20,40,3,2,hx('#3c6b2e'));rect(a,16,46,16,2,WOOD[2]);
+  rect(a,42,33,13,2,WOOD[1]);rect(a,45,35,1,3,WOOD[0]);rect(a,52,35,1,3,WOOD[0]);
+  ell(a,48.5,42,7,4.5,hx('#d4ae62'));ell(a,52,43,1.4,1.2,DK);rect(a,44,40,2,2,RED);rect(a,47,39,2,2,hx('#4a78b8'));rect(a,50,39,2,2,hx('#3c6b2e'));rect(a,45,43,2,2,hx('#f6f1e4'));
+  rect(a,44,50,8,8,DKW);rect(a,44,50,8,1,PLAST[3]);outlineAll(a,OUTL);});}
+// Banco: palacio de piedra almohadillada, cornisa pesada, columnas y una moneda en el frontón.
+function bankArt(){return mkA(64,64,a=>{const RS=P4('#7a6a52','#958468','#ad9c7e','#c4b496');
+  for(let y=20;y<60;y++)for(let x=4;x<60;x++){const row=((y-20)/7)|0,bx=(x-4+(row&1)*6)%12,by=(y-20)%7;a.set(x,y,(bx===0||by===6)?RS[0]:(bx===1||by===0)?RS[3]:x>48?RS[1]:RS[2]);}
+  rect(a,2,12,60,2,TERRA[1]);rect(a,2,14,60,4,MARBLE[3]);rect(a,2,18,60,2,MARBLE[1]);for(let x=4;x<60;x+=4)rect(a,x,18,2,2,MARBLE[2]);
+  for(const x of[9,47]){rect(a,x,26,8,12,DKW);ell(a,x+3.5,26,4,4,(i,j)=>j<=0?DKW:null);rect(a,x+3,23,2,15,RS[2]);rect(a,x-1,38,10,2,MARBLE[2]);}
+  columns(a,[20,38],40,60,MARBLE);rect(a,18,36,28,4,MARBLE[2]);poly(a,[[32,26],[47,36],[17,36]],(x,y)=>x<32?MARBLE[3]:MARBLE[2]);
+  ell(a,32,32,3.5,3.5,GOLD);ell(a,32,32,2,2,hx('#ffd35a'));rect(a,32,30,1,4,hx('#b8862a'));
+  rect(a,26,42,12,18,WOOD[0]);ell(a,32,42,6,5,(i,j)=>j<=0?WOOD[0]:null);rect(a,27,44,4,16,WOOD[1]);rect(a,33,44,4,16,WOOD[1]);
+  rect(a,4,52,14,2,WOOD[3]);rect(a,5,54,2,6,WOOD[1]);rect(a,15,54,2,6,WOOD[1]);
+  for(let k=0;k<3;k++){rect(a,6,50-k*2,4,2,k%2?hx('#ffd35a'):GOLD);rect(a,12,50-k*2+2,4,2,k%2?SILV[2]:SILV[1]);}
+  outlineAll(a,OUTL);});}
+// Jardín botánico: setos, canteros con flores, papa y maíz, y una fuente en el medio.
+function gardenArt(){return mkA(64,64,a=>{const GRAV=P4('#a89466','#c2ad7c','#d9c48f','#e6d5a6'),HED=P4('#1f4a24','#2a6030','#3a7a3c','#55963f');
+  for(let y=8;y<60;y++)for(let x=2;x<62;x++)a.set(x,y,hash(x,y,7)<0.18?GRAV[1]:GRAV[2]);
+  rect(a,2,8,60,4,HED[2]);rect(a,2,8,60,1,HED[3]);rect(a,2,56,60,4,HED[1]);rect(a,2,59,60,1,HED[0]);rect(a,2,8,4,52,HED[2]);rect(a,58,8,4,52,HED[1]);rect(a,28,56,8,4,GRAV[2]);
+  const bed=(x0,y0,kind)=>{rect(a,x0-1,y0-1,22,18,STONE2[2]);rect(a,x0,y0,20,16,SOIL[1]);
+    for(let y=y0+3;y<y0+16;y+=5)for(let x=x0+2;x<x0+19;x+=4){
+      if(kind===0){rect(a,x,y,1,2,BLADE[1]);ell(a,x,y-1,1.4,1.2,[RED,hx('#ffd35a'),hx('#f08a7c')][(x+y)%3]);}
+      else if(kind===1){rect(a,x,y-4,1,6,BLADE[1]);a.set(x-1,y-2,BLADE[2]);a.set(x+1,y-1,BLADE[2]);rect(a,x+1,y-4,1,2,hx('#ecd67e'));}
+      else if(kind===2){ell(a,x,y,1.8,1.4,LEAF[2]);a.set(x,y-1,hx('#f6f1e4'));}
+      else{rect(a,x,y,1,2,BLADE[1]);ell(a,x,y-1,1.4,1.2,[hx('#8a5ac8'),hx('#f6f1e4')][(x>>2)&1]);}}};
+  bed(7,14,0);bed(37,14,1);bed(7,38,2);bed(37,38,3);
+  ell(a,32,34,7,5,MARBLE[2]);ell(a,32,34,5.5,3.8,SHL[1]);ell(a,31,33,2,1,SHL[2]);rect(a,31,27,2,7,MARBLE[3]);ell(a,32,27,2,1,MARBLE[3]);a.set(30,29,FOAM);a.set(34,30,FOAM);a.set(29,31,FOAM);a.set(35,32,FOAM);
+  });}
+// Puerto con una carabela: velas cuadradas con cruz roja y vela latina atrás.
+function caravelArt(){return mkA(64,64,a=>{rect(a,0,48,64,8,WOOD[2]);for(let x=0;x<64;x+=6)rect(a,x,48,1,8,WOOD[1]);rect(a,0,48,64,2,WOOD[3]);for(const x of[4,30,56])rect(a,x,56,4,8,WOOD[1]);
+  rect(a,22,4,2,30,WOOD[0]);rect(a,40,8,2,26,WOOD[0]);rect(a,54,12,1,20,WOOD[0]);
+  poly(a,[[2,32],[62,30],[54,46],[10,46]],(x,y)=>y<36?WOOD[3]:y<41?WOOD[2]:WOOD[1]);rect(a,46,26,14,5,WOOD[2]);rect(a,46,26,14,1,WOOD[3]);rect(a,4,29,10,3,WOOD[2]);
+  rect(a,8,36,48,1,hx('#d4ae62'));for(let x=14;x<50;x+=7)rect(a,x,39,2,2,WOOD[0]);
+  const sail=(x0,y0,w,h)=>{for(let j=0;j<h;j++){const b=Math.round(Math.sin(j/(h-1)*Math.PI)*2);for(let i=-b;i<w+b;i++)a.set(x0+i,y0+j,i>w*0.6?PLAST[2]:PLAST[3]);}
+    const cx=x0+(w>>1);rect(a,cx-1,y0+2,3,h-4,RED);rect(a,x0+2,y0+(h>>1)-1,w-4,3,RED);};
+  sail(13,8,20,18);sail(33,12,16,14);poly(a,[[55,12],[55,28],[62,26]],PLAST[3]);poly(a,[[24,3],[30,5],[24,7]],RED);
+  outlineAll(a,OUTL);});}
+// Academia: cúpula de tejas con nervios blancos y linterna, fachada de mármol con franjas verdes.
+function domeArt(){return mkA(64,64,a=>{rect(a,6,38,52,22,MARBLE[2]);rect(a,46,38,12,22,MARBLE[1]);for(const x of[6,18,44,56])rect(a,x,38,2,22,GRN);rect(a,6,38,52,2,GRN);rect(a,4,36,56,2,MARBLE[3]);
+  rect(a,16,28,32,8,MARBLE[2]);rect(a,40,28,8,8,MARBLE[1]);for(const x of[22,32,42])ell(a,x,32,2,2,DKW);rect(a,14,26,36,2,MARBLE[3]);
+  ell(a,32,26,15,16,(i,j)=>{if(j>0)return null;const lat=Math.sqrt(Math.max(0,1-(j/16)**2));if(Math.abs(i)<=0.5||Math.abs(Math.abs(i)-11.5*lat)<=0.6)return MARBLE[3];
+    const l=-i/15*0.6-j/16*0.3+dith(i+32,j+26)*0.25;return TERRA[l>0.35?3:l>0?2:l>-0.3?1:0];});
+  rect(a,29,6,6,5,MARBLE[3]);rect(a,33,6,2,5,MARBLE[1]);poly(a,[[32,1],[36,6],[28,6]],TERRA[1]);ell(a,32,1,1.5,1.5,GOLD);
+  rect(a,27,46,10,14,WOOD[0]);ell(a,32,46,5,4,(i,j)=>j<=0?WOOD[0]:null);rect(a,32,44,1,16,WOOD[1]);
+  for(const x of[10,48]){rect(a,x,44,6,8,DKW);ell(a,x+3,44,3,3,(i,j)=>j<=0?DKW:null);}
+  outlineAll(a,OUTL);});}
+const VILPAL2=[{c:'#7a2a3a',C:'#541c28',j:'#d4ae62',y:'#3a2418'},{c:'#2f5a4a',C:'#1f4034',j:'#e3ddcc',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#b5823b',C:'#8a5f28',j:'#4a2e6a',y:'#8a5a2a'}];
+const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:silverOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
+  casa:palazzoArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),taller:workshopArt(),banco:bankArt(),jardin:gardenArt(),puerto:caravelArt(),academia:domeArt(),
+  hero:[personArt({c:'#a8322e',C:'#7a2220',j:'#e8c05a'},0),personArt({c:'#a8322e',C:'#7a2220',j:'#e8c05a'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
 // Dibuja un sprite en alta con el tamaño que tenía el de 16 px.
 const hd=(c,x,y)=>ctx.drawImage(c,x,y,c.width/ART,c.height/ART);
 
@@ -653,7 +691,6 @@ function drawObj(o,x,y){
     case'ore':hd(o.hp>0?HS.ore:HS.rubble,px,py);top=py+2;break;
     case'bush':hd(o.hp>0?HS.bush:HS.bushE,px,py);top=py+2;break;
     case'fogata':hd(HS.fogata[Math.abs(Math.floor(st.time*6))%2],px,py);break;
-    case'molino':shadow(px+8,py+15,8,2);hd(HS.molino,px,py);ctx.save();ctx.translate(px+8,py+5);ctx.rotate(st.time*1.2);ctx.drawImage(HS.aspas,-8,-8,16,16);ctx.restore();break;
     case'herreria':shadow(px+8,py+15,8,2);hd(HS.herreria,px,py);
       for(let k=0;k<3;k++){const ph=(st.time*0.7+k/3)%1;ctx.fillStyle='rgba(200,200,210,'+(0.7*(1-ph))+')';ctx.fillRect(px+4+Math.round(Math.sin(ph*6+k)*1.5),py-1-Math.round(ph*10),2,2);}break;
     default:if(HS[o.t]){shadow(px+8,py+15,8,2);hd(HS[o.t],px,py);}
@@ -703,9 +740,9 @@ function render(){
     const hole=(wx,wy,R,a)=>{const sx=(wx-cam.x)*s,sy=(wy-cam.y)*s,g=lx.createRadialGradient(sx,sy,0,sx,sy,R);g.addColorStop(0,'rgba(0,0,0,'+a+')');g.addColorStop(0.55,'rgba(0,0,0,'+a*0.75+')');g.addColorStop(1,'rgba(0,0,0,0)');lx.fillStyle=g;lx.beginPath();lx.arc(sx,sy,R,0,Math.PI*2);lx.fill();};
     const lights=[];
     for(let y=Math.max(0,y0-5);y<=Math.min(MH-1,y1+5);y++)for(let x=Math.max(0,x0-5);x<=Math.min(MW-1,x1+5);x++){const o=obj[y*MW+x];if(!o)continue;
-      if(o.t==='fogata')lights.push([x*T+8,y*T+9,5,1]);else if(o.t==='herreria'||o.t==='monasterio'||o.t==='puerto'||o.t==='universidad')lights.push([x*T+8,y*T+10,3,0.8]);else if(o.t==='casa')lights.push([x*T+8,y*T+10,1.8,0.6]);}
+      if(o.t==='fogata')lights.push([x*T+8,y*T+9,5,1]);else if(o.t==='herreria'||o.t==='taller'||o.t==='puerto'||o.t==='academia')lights.push([x*T+8,y*T+10,3,0.8]);else if(o.t==='casa')lights.push([x*T+8,y*T+10,1.8,0.6]);}
     for(const[fx,fy,r,a]of lights)hole(fx,fy,T*s*(r+0.15*Math.sin(st.time*9+fx)),a);
-    hole(P.x*T+8,P.y*T+8,T*s*(st.techs.anteojos?4:2.2),0.75);
+    hole(P.x*T+8,P.y*T+8,T*s*(st.techs.telescopio?4:2.2),0.75);
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(lc,0,0);
     ctx.globalCompositeOperation='lighter';
     for(const[fx,fy,r]of lights){if(r<3)continue;const sx=(fx-cam.x)*s,sy=(fy-cam.y)*s,R=T*s*r*0.65,g=ctx.createRadialGradient(sx,sy,0,sx,sy,R);g.addColorStop(0,'rgba(255,150,50,'+(0.26*d/0.62)+')');g.addColorStop(1,'rgba(255,150,50,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(sx,sy,R,0,Math.PI*2);ctx.fill();}
@@ -724,19 +761,19 @@ const chipEl={};
   const bar=$('agiBar');for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=(i*10)+'%';bar.appendChild(t);}
 })();
 function flashChip(k){const c=chipEl[k];if(!c)return;c.classList.add('flash');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('flash'),350);}
-const agiPct=()=>20+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10;
+const agiPct=()=>30+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10;
 function goalText(){
   if(st.energy<25)return['Comé algo:','tu energía está baja.'];
   const hungry=vil.filter(v=>v.hungry).length;
   if(hungry)return['Hambre:',hungry+(hungry===1?' aldeano no comió.':' aldeanos no comieron.')+' Construí granjas.'];
-  if(st.gathers===0&&!counts.granja)return['Empezá:','construí una granja y juntá hierro en las colinas.'];
-  const full=['madera','piedra','hierro','comida','monedas'].find(k=>st.res[k]>=cap(k));
+  if(st.gathers===0&&!counts.granja)return['Empezá:','construí una granja y juntá plata en las colinas.'];
+  const full=['madera','piedra','plata','comida','monedas'].find(k=>st.res[k]>=cap(k));
   if(full)return['Granero lleno:','no entra más '+RN[full].toLowerCase()+'.'];
-  if(st.techs.monasterios&&!counts.monasterio)return['Construí','un monasterio: genera muchas ideas.'];
-  if(st.techs.gremios&&!counts.feria)return['Construí','una feria para conseguir monedas.'];
-  if(st.techs.rutas&&!counts.puerto)return['Construí','un puerto pegado al agua.'];
+  if(st.techs.perspectiva&&!counts.taller)return['Construí','un taller de artistas: genera muchas ideas.'];
+  if(st.techs.banca&&!counts.banco)return['Construí','un banco para conseguir monedas.'];
+  if(st.techs.carabelas&&!counts.puerto)return['Construí','un puerto pegado al agua.'];
   const next=TECHS.find(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r]));
-  if(!next)return['Edad Media completa.','Seguí creciendo tu ciudad.'];
+  if(!next)return['Renacimiento completo.','Seguí creciendo tu ciudad.'];
   const miss=Object.entries(next.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>Math.ceil(v-st.res[k])+' '+RN[k].toLowerCase());
   return miss.length?['Próximo: '+next.name+'.','Faltan '+miss.join(', ')+'.']:['Próximo: '+next.name+'.','Listo, abrí Inventos.'];
 }
@@ -769,7 +806,7 @@ function prodLine(b){const p=prodOf(b);const parts=Object.entries(p).map(([k,v])
 function renderSheet(){
   const body=$('sheetBody');
   if(sheetMode==='tech'){
-    $('sheetTitle').textContent='Inventos';$('sheetSub').textContent=TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length+' inventos de la Edad Media';
+    $('sheetTitle').textContent='Inventos';$('sheetSub').textContent=TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length+' inventos del Renacimiento';
     body.innerHTML=TECHS.map(t=>{const done=st.techs[t.id],open=t.req.every(r=>st.techs[r]),can=open&&!done&&afford(t.cost);
       const right=done?'<span class="tag ok">Investigado</span>':open?'<button class="btn" data-tech="'+t.id+'"'+(can?'':' disabled')+'>Investigar</button>':'<span class="tag">Bloqueado</span>';
       const foot=done?'':open?costHTML(t.cost):'<p>Requiere: '+t.req.map(r=>TECH[r].name).join(' + ')+'</p>';
@@ -806,7 +843,7 @@ $('sheetBody').addEventListener('click',e=>{
 function research(id){
   const t=TECH[id];if(st.techs[id]||!t.req.every(r=>st.techs[r])||!afford(t.cost))return;
   pay(t.cost);st.techs[id]=true;toast('Investigaste: '+t.name);renderSheet();hud();
-  if(id==='imprenta'&&!st.won){st.won=true;save();if(sheetMode){sheetMode=null;$('sheet').hidden=true;skipPush=true;}showWin();}
+  if(id==='pascalina'&&!st.won){st.won=true;save();if(sheetMode){sheetMode=null;$('sheet').hidden=true;skipPush=true;}showWin();}
   save();
 }
 function startPlace(id){if(sheetMode){sheetMode=null;$('sheet').hidden=true;}else navPush();placing=id;$('place').hidden=false;$('placeTxt').textContent='Tocá un lugar libre para: '+BUILD[id].name.toLowerCase()+(BUILD[id].water?' (junto al agua)':'');}
@@ -843,18 +880,15 @@ function hideModal(fromBack){if($('modal').hidden)return;if(!fromBack)navPop();$
 const erasHTML=done=>'<div class="eras">'+ERAS.map((e,i)=>'<span class="'+(i<done?'on':'')+'">'+e+'</span>').join('')+'</div>';
 function showIntro(){
   const L=st.legacy;
-  const leg=L.has?'<div class="kicker">Lo que trae tu ciudad de la Antigüedad</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">No hay una Antigüedad terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.</p>';
-  showModalI('<div class="kicker">Mundo abierto · 476 d.C.</div><h1>La Edad Media</h1><p>Tu pueblo ya es una ciudad. Hay hierro en las colinas, monasterios donde se copian libros y ferias donde se comercia. La meta: construir la imprenta, para que el conocimiento se copie por miles.</p>'+erasHTML(2)+leg+'<p class="muted">Novedades: hierro, monasterios, ferias, molinos de viento y universidades.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
+  const leg=L.has?'<div class="kicker">Lo que trae tu ciudad de la Edad Media</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">No hay una Edad Media terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.</p>';
+  showModalI('<div class="kicker">Mundo abierto · 1450 d.C.</div><h1>El Renacimiento</h1><p>Tu ciudad despierta. Hay plata en las colinas, artistas que dibujan en perspectiva, bancos que prestan y carabelas que cruzan el océano. La meta: construir la pascalina, la primera máquina que suma sola.</p>'+erasHTML(3)+leg+'<p class="muted">Novedades: plata, talleres de artistas, bancos, jardines botánicos y academias.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
 }
-function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?'<button class="btn ghost" data-m="next">Pasar al Renacimiento</button>':'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
-function showWin(){showModal('<div class="kicker">Mundo abierto · Edad Media</div><h1>Edad Media superada</h1><p>Terminaste la imprenta en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Los libros ya se copian por miles.</p>'+erasHTML(3)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan al Renacimiento.</p><div class="row"><button class="btn" data-m="next">Pasar al Renacimiento</button><button class="btn ghost" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
-// El Renacimiento del mundo abierto se carga sobre esta página, como las eras desde el hub.
-function goPage(f){save();window.__rtagiActive='switching';fetch(f).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();}).catch(()=>{window.__rtagiActive=ERA_ID;requestAnimationFrame(frame);toast('No se pudo cargar. Volvé a abrir el juego.','bad');});}
+function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button><button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
+function showWin(){showModal('<div class="kicker">Mundo abierto · Renacimiento</div><h1>Renacimiento superado</h1><p>Terminaste la pascalina en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las máquinas ya saben sumar.</p>'+erasHTML(4)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. La Industria todavía no está.</p><div class="row"><button class="btn" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
 $('modalCard').addEventListener('click',e=>{
   const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
   if(m==='start'){st.seen=true;save();hideModal();}
   else if(m==='close')hideModal();
-  else if(m==='next'){goPage('mundo4.html');return;}
   else if(m==='hub'){save();window.__rtagiActive='switching';location.reload();}
   else if(m==='reset'){if(!resetArmed){resetArmed=true;b.textContent='Tocá de nuevo para borrar la era';b.classList.add('warn');return;}
     try{localStorage.removeItem(KEY);}catch(err){}newGame();closeSheet();stopPlace();showIntro();}
@@ -862,7 +896,7 @@ $('modalCard').addEventListener('click',e=>{
 $('bEat').onclick=eat;$('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tech');$('bTribe').onclick=()=>openSheet('tribe');$('bMenu').onclick=showMenu;
 
 /* ---------- entrada ---------- */
-const INFO={casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',monasterio:'Monasterio: genera ideas.',feria:'Feria: cambia comida por monedas.',molino:'Molino: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',universidad:'Universidad: más ideas.'};
+const INFO={casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',taller:'Taller de artistas: genera ideas.',banco:'Banco: cambia plata por monedas.',jardin:'Jardín botánico: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',academia:'Academia: más ideas.'};
 function onTap(tx,ty){
   if(placing){tryPlace(tx,ty);return;}
   if(!inb(tx,ty))return;
@@ -919,7 +953,7 @@ if(!ok)newGame();
 resize();hud();
 if(!st.seen)showIntro();
 requestAnimationFrame(frame);
-if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap};
+if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS};
 })();
 </script>
 </body></html>
