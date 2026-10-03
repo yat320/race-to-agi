@@ -102,7 +102,7 @@ return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
       legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety};}};
 })();`;
 
-const NAMES = { 2: 'Antigüedad', 3: 'Edad Media', 4: 'Renacimiento', 5: 'Industria', 6: 'Electricidad', 7: 'Computación', 8: 'Internet', 9: 'IA', 10: 'AGI', 11: 'Post-AGI' };
+const NAMES = { 2: 'Antigüedad', 3: 'Edad Media', 4: 'Renacimiento', 5: 'Industria', 6: 'Electricidad', 7: 'Computación', 8: 'Internet', 9: 'IA', 10: 'AGI', 11: 'Era estelar' };
 mkdirSync('out', { recursive: true });
 const srv = await serve(), b = await launch(), all = [], errs = [];
 try {

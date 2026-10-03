@@ -109,7 +109,7 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
 .modal-card .muted{color:var(--muted);font-size:12.5px}
 .perks{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:13.5px}
 .perks li::before{content:"+ ";color:var(--signal);font-family:var(--f-display)}
-.eras{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;font:400 10px var(--f-display);color:var(--muted)}
+.eras{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;font:400 10px var(--f-display);color:var(--muted)}
 .eras span{border-top:3px solid var(--line);padding-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eras span.on{border-color:var(--ochre);color:var(--bone)}
 .row{display:flex;gap:8px;flex-wrap:wrap}
@@ -199,7 +199,7 @@ const TECHS=ERA.techs,FINAL=TECHS[TECHS.length-1].id;
 const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=ERA.builds;
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
-const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI'];
+const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI','Estelar'];
 const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],[ORE,ERA.ore.name],['comida','Comida']];
 
 /* ---------- mundo ---------- */
@@ -1188,12 +1188,14 @@ function showWin(){const E=ERA.text;showModal('<div class="kicker">Mundo abierto
 function showLose(){const E=ERA.text;showModal('<div class="kicker">Mundo abierto · '+ERA.name+'</div><h1>'+E.lose+'</h1><p>'+E.loseText+'</p><div class="row"><button class="btn" data-m="reset">Intentar de nuevo</button><button class="btn ghost" data-m="close">Seguir mirando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
 // La era siguiente se carga sobre esta página, como las eras desde el hub.
 function goPage(f){save();window.__rtagiActive='switching';fetch(f).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();}).catch(()=>{window.__rtagiActive=ERA_ID;requestAnimationFrame(frame);toast('No se pudo cargar. Volvé a abrir el juego.','bad');});}
+// Volver al inicio: si la era se cargó sobre el inicio (lo normal), recargar lo muestra; si se abrió directo por su link, se va a él.
+function toHub(){if(/mundo\d*\.html$/.test(location.pathname))location.href='./';else location.reload();}
 $('modalCard').addEventListener('click',e=>{
   const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
   if(m==='start'){st.seen=true;save();hideModal();}
   else if(m==='close')hideModal();
   else if(m==='next'){goPage(ERA.next.file);return;}
-  else if(m==='hub'){save();window.__rtagiActive='switching';location.reload();}
+  else if(m==='hub'){save();window.__rtagiActive='switching';toHub();}
   else if(m==='reset'){if(!resetArmed){resetArmed=true;b.textContent='Tocá de nuevo para borrar la era';b.classList.add('warn');return;}
     try{localStorage.removeItem(KEY);}catch(err){}newGame();closeSheet();stopPlace();showIntro();}
 });

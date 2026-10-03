@@ -48,7 +48,7 @@ const ERA={
     noLegacy:'No hay una era de Internet terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Las fábricas de robots arman robots que juntan solos y no comen, pero a veces se desalinean y convierten tus recursos en clips: tocalos para corregirlos antes de que convenzan a otros. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Era de la IA superada',winText:()=>'Terminaste el asistente universal en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y robots y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ya hay una IA que ayuda en cualquier tarea.',
-    winNote:'Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan a la carrera final: la AGI.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la carrera final: la AGI.'}
 };
 
 /* ---------- arte de la era ---------- */

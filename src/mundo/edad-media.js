@@ -50,7 +50,7 @@ const ERA={
     noLegacy:'No hay una Antigüedad terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. A veces brota la peste: lo que se enferma rinde la mitad (en una casa enferma, los aldeanos andan y trabajan a la mitad) y contagia lo que tiene cerca. Tocalo para curarlo; los hospitales cuidan lo que tienen alrededor. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Edad Media superada',winText:()=>'Terminaste la imprenta en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Los libros ya se copian por miles.',
-    winNote:'Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan al Renacimiento.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan al Renacimiento.'}
 };
 
 /* ---------- arte de la era ---------- */

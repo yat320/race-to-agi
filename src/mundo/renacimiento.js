@@ -46,7 +46,7 @@ const ERA={
     noLegacy:'No hay una Edad Media terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Renacimiento superado',winText:()=>'Terminaste la pascalina en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las máquinas ya saben sumar.',
-    winNote:'Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan a la Industria.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Industria.'}
 };
 
 /* ---------- arte de la era ---------- */
