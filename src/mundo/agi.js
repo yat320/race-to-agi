@@ -1,12 +1,15 @@
-// AGI del mundo abierto: grafeno, la seguridad y la carrera contra el rival; la AGI. Datos y arte de la era; las reglas están en motor.html.
+// AGI del mundo abierto: grafeno, la seguridad, la carrera contra el rival y sus espías, puestos de guardia; la AGI. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
   n:10,name:'AGI',de:'de la AGI',next:{file:'mundo11.html',to:'a la era estelar'},
   ore:{id:'grafeno',name:'Grafeno',col:'#c8ccd2',empty:'Veta de grafeno agotada',gather:'grafeno',icon:[['........','..kkkk..','.kqvvqk.','kqkqqkqk','kqkqqkqk','.kqkkqk.','..kkkk..','........'],{q:'#4a4e5a',Q:'#2a2e38',v:'#c8ccd2'}]},
   storage:{id:'granero',name:'Granero'},ideaBuild:'instituto',ideaTechs:['computo','ciencia'],boostTech:'escalado',farmBuild:'agro',nightTech:'escalado',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
-  lights:['herreria','supercomp','labseg','empresa','agro','embajada','instituto'],
+  lights:['herreria','supercomp','labseg','empresa','agro','embajada','instituto','guardia'],
   landmarks:[[18,-16,'rival']],
   grid:'data',rival:true,
+  // Los espías del rival van a uno de estos edificios (con su nombre para los avisos); el puesto de guardia atrapa a los que
+  // pasan a 4 casilleros (reglas en motor.html).
+  spies:{supercomp:'una supercomputadora',empresa:'una empresa de IA',instituto:'un instituto'},defense:{id:'guardia',r:4,label:'Guardias',of:['supercomp','empresa','instituto']},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo9-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la era de la IA',perks:[
     ['asistente','ideaMult',1.25,'Asistente universal: ideas +25% durante toda la era'],
@@ -14,7 +17,7 @@ const ERA={
     ['interpretabilidad','safety',20,'Interpretabilidad: arrancás con 20% de seguridad']
   ]},
   techs:[
- {id:'computo',name:'Cómputo a escala',cost:{grafeno:15,ideas:30},req:[],desc:'Desbloquea la supercomputadora, el taller y la cantera. Ideas +50%. El rival se apura 10%.'},
+ {id:'computo',name:'Cómputo a escala',cost:{grafeno:15,ideas:30},req:[],desc:'Desbloquea la supercomputadora, el puesto de guardia, el taller y la cantera. Ideas +50%. El rival se apura 10%.'},
  {id:'seguridad',name:'Investigación de seguridad',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea el laboratorio de seguridad. Seguridad +10%.',safety:10},
  {id:'productos',name:'Productos de IA',cost:{grafeno:20,ideas:50},req:['computo'],desc:'Desbloquea la empresa de IA, que da monedas.'},
  {id:'automatizacion',name:'Automatización',cost:{madera:40,piedra:20,ideas:65},req:['computo'],desc:'Desbloquea la granja automática, que potencia las granjas.'},
@@ -32,23 +35,24 @@ const ERA={
  {id:'herreria',name:'Taller',req:'computo',base:{madera:25,piedra:20,grafeno:10},grow:1.6,done:'Taller listo',desc:'Herramientas inteligentes: vos y los aldeanos juntan +30% por cada taller.'},
  {id:'cantera',name:'Cantera',req:'computo',base:{madera:20,grafeno:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
  {id:'supercomp',name:'Supercomputadora',req:'computo',base:{piedra:40,grafeno:10},grow:1.5,done:'Supercomputadora encendida',desc:'Genera muchísimas ideas.',prod:{ideas:0.6}},
+ {id:'guardia',name:'Puesto de guardia',req:'computo',base:{madera:20,piedra:20,grafeno:8},grow:1.4,done:'Puesto de guardia vigilando',desc:'Guardias que vigilan: atrapan a los espías del rival que pasan a 4 casilleros.'},
  {id:'labseg',name:'Laboratorio de seguridad',req:'seguridad',base:{madera:25,piedra:25},grow:1.4,done:'Laboratorio de seguridad abierto',desc:'Sube la seguridad 3% por minuto. La AGI necesita 100%.'},
  {id:'empresa',name:'Empresa de IA',req:'productos',base:{madera:30,piedra:25,grafeno:5},grow:1.4,done:'Empresa abierta',desc:'Vende asistentes: da muchas monedas.',prod:{monedas:0.45}},
  {id:'agro',name:'Granja automática',req:'automatizacion',base:{madera:35,piedra:30},grow:1.6,done:'Granja automática lista',desc:'Cada granja automática hace rendir +50% a todas las granjas.'},
  {id:'embajada',name:'Embajada',req:'diplomacia',base:{madera:30,piedra:30,monedas:20},grow:1.6,done:'Embajada abierta',desc:'Convence al rival de ir con cuidado: cada embajada lo frena 12%.'},
  {id:'instituto',name:'Instituto de investigación',req:'ciencia',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Instituto abierto',desc:'Ideas +30% por cada instituto.'}],
-  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',supercomp:'Supercomputadora: genera ideas.',labseg:'Laboratorio de seguridad: sube la seguridad.',empresa:'Empresa de IA: da monedas.',agro:'Granja automática: potencia las granjas.',embajada:'Embajada: frena al rival.',instituto:'Instituto: más ideas.',rival:'Laboratorio rival: si llega primero a la AGI, perdés la carrera.'},
+  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',supercomp:'Supercomputadora: genera ideas.',labseg:'Laboratorio de seguridad: sube la seguridad.',empresa:'Empresa de IA: da monedas.',agro:'Granja automática: potencia las granjas.',embajada:'Embajada: frena al rival.',instituto:'Instituto: más ideas.',guardia:'Puesto de guardia: atrapa a los espías del rival cercanos.',rival:'Laboratorio rival: si llega primero a la AGI, perdés la carrera.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
-  tips1:[['seguridad','labseg','un laboratorio de seguridad: la AGI necesita 100%.'],['diplomacia','embajada','una embajada: frena al rival.'],()=>st.techs.tratado&&st.techs.escalado&&st.safety<100?['Falta seguridad:','la AGI necesita 100%. Construí más laboratorios de seguridad.']:null],
+  tips1:[['seguridad','labseg','un laboratorio de seguridad: la AGI necesita 100%.'],['diplomacia','embajada','una embajada: frena al rival.'],()=>st.techs.tratado&&st.techs.escalado&&st.safety<100?['Falta seguridad:','la AGI necesita 100%. Construí más laboratorios de seguridad.']:null,['computo','guardia','un puesto de guardia cerca de tus supercomputadoras: atrapa a los espías del rival.']],
   tips2:[['computo','supercomp','una supercomputadora: genera muchísimas ideas.'],['productos','empresa','una empresa de IA para conseguir monedas.'],['automatizacion','agro','una granja automática: potencia las granjas.']],
   smogTip:'Más parques, o represas en vez de usinas.',done:'Carrera ganada.',
   text:{
     when:'2030 d.C.',title:'La AGI',
-    intro:'La última carrera. Un laboratorio rival también quiere llegar a la AGI, y va cada vez más rápido. Para ganar tenés que terminarla antes que ellos y con seguridad 100%: una AGI apurada y sin cuidado es peligrosa. Frenalo con embajadas y tratados, y subí la seguridad con laboratorios.',
-    news:'Novedades: grafeno, el laboratorio rival con su barra, la seguridad y las embajadas. Si el rival llega primero, perdés la carrera y podés reintentarla.',
+    intro:'La última carrera. Un laboratorio rival también quiere llegar a la AGI, y va cada vez más rápido. Para ganar tenés que terminarla antes que ellos y con seguridad 100%: una AGI apurada y sin cuidado es peligrosa. Frenalo con embajadas y tratados, subí la seguridad con laboratorios y cuidate de sus espías.',
+    news:'Novedades: grafeno, el laboratorio rival con su barra y sus espías, la seguridad, las embajadas y los puestos de guardia. Si el rival llega primero, perdés la carrera y podés reintentarla.',
     legacy:'Lo que trae tu ciudad de la era de la IA',
     noLegacy:'No hay una era de la IA terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Un laboratorio rival corre hacia la AGI: si llega primero, perdés la carrera. La AGI necesita seguridad 100%: subila con laboratorios de seguridad, y frená al rival con embajadas y el tratado. En la compu: flechas o WASD, E para juntar, F para comer.',
+    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Un laboratorio rival corre hacia la AGI: si llega primero, perdés la carrera. La AGI necesita seguridad 100%: subila con laboratorios de seguridad, y frená al rival con embajadas y el tratado. El rival manda espías a copiar los planos de tus supercomputadoras, empresas e institutos: si copian, avanza 2%. Tocalos para atraparlos (si vuelven con los planos, los recuperás) o poné puestos de guardia, que atrapan a los que pasan a 4 casilleros. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'¡Ganaste la carrera a la AGI!',winText:()=>'Terminaste una AGI segura en el día '+(Math.floor(st.time/DAY)+1)+', cuando el rival iba '+Math.floor(st.rival)+'%. De la Prehistoria a la AGI, y la historia sigue: la era estelar te espera.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era estelar.',
     lose:'El rival llegó primero',loseText:'El laboratorio rival terminó una AGI sin la seguridad suficiente. Esta vez la carrera se perdió. Lo que hiciste en las eras anteriores no se toca.'}
@@ -98,6 +102,18 @@ function rivalArt(){return mkA(64,64,a=>{const DR=P4('#1e1418','#2e1e24','#442a3
   ell(a,32,22,5,5,hx('#e8654d'));ell(a,32,22,3,3,hx('#ffb0a0'));rect(a,8,52,48,8,DR[2]);rect(a,8,52,48,1,DR[3]);
   outlineAll(a,OUTL);});}
 const VILPAL2=[{c:'#e6ecf2',C:'#b8c0c8',j:'#5fe3d0',y:'#3a2418'},{c:'#2f6b6b',C:'#1f4a4a',j:'#e6ecf2',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#6a5a9a',C:'#4a3e72',j:'#e6ecf2',y:'#8a5a2a'}];
+// Espía del rival: piloto beige, sombrero y anteojos negros.
+function spyArt(f){const c=personArt({c:'#b89a6a',C:'#8a7048',j:'#5a4630',y:'#1b1a24'},f),g=c.getContext('2d');
+  g.fillStyle='#2a2a33';g.fillRect(21,2,22,9);g.fillRect(15,10,34,3);g.fillStyle='#6a4a3a';g.fillRect(21,8,22,2);
+  g.fillStyle='#14141a';g.fillRect(24,19,7,4);g.fillRect(33,19,7,4);g.fillRect(31,20,2,1);return c;}
+// Puesto de guardia: garita con una baliza en el techo, un guardia con gorra en la ventana y una barrera a rayas.
+function guardArt(){return mkA(64,64,a=>{const WB=P4('#5a6270','#7a8494','#9aa4b4','#c0c8d4'),RD=hx('#e8654d'),W2=hx('#f6f1e4'),NV=hx('#24406e');
+  rect(a,24,5,6,6,hx('#ffd35a'));rect(a,25,6,2,2,W2);rect(a,22,11,10,2,IRON[1]);
+  rect(a,8,13,38,4,WB[3]);rect(a,10,17,34,43,WB[2]);rect(a,36,17,8,43,WB[1]);
+  rect(a,14,22,20,14,hx('#1e2430'));rect(a,14,22,20,1,GLASS[2]);ell(a,24,30,3,3,hx('#e3ab7d'));rect(a,20,26,9,3,NV);rect(a,19,28,11,1,NV);rect(a,18,33,13,3,NV);
+  rect(a,16,42,10,18,hx('#2a3240'));rect(a,17,44,8,6,GLASS[1]);
+  rect(a,46,38,4,22,IRON[1]);for(let x=50;x<62;x++)for(let y=38;y<41;y++)a.set(x,y,((x>>2)&1)?RD:W2);
+  outlineAll(a,OUTL);});}
 const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:grapheneOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:futureHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),supercomp:superCompArt(),labseg:safetyLabArt(),empresa:aiCompanyArt(),agro:autoFarmArt(),embajada:embassyArt(),instituto:researchInstArt(),rival:rivalArt(),robot:[robotArt(0,0),robotArt(1,0)],robotBad:[robotArt(0,1),robotArt(1,1)],
+  casa:futureHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),supercomp:superCompArt(),labseg:safetyLabArt(),empresa:aiCompanyArt(),agro:autoFarmArt(),embajada:embassyArt(),instituto:researchInstArt(),guardia:guardArt(),rival:rivalArt(),spy:[spyArt(0),spyArt(1)],robot:[robotArt(0,0),robotArt(1,0)],robotBad:[robotArt(0,1),robotArt(1,1)],
   hero:[personArt({c:'#e8c05a',C:'#b8902e',j:'#2a2a3a'},0),personArt({c:'#e8c05a',C:'#b8902e',j:'#2a2a3a'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};

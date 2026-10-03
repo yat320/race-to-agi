@@ -42,7 +42,7 @@ function place(id,opt){opt=opt||{};if(!afford(D.buildCost(id)))return null;close
     D.onTap(x,y);if(cnt(id)>n0){closeAll();S.builds[id]=(S.builds[id]||0)+1;return[x,y];}}
   closeAll();return null;}
 const nodes=()=>[...D.grid().on.values()].filter(n=>n.t!=='ciudad');
-// Las amenazas: bichos, virus y robots desalineados. Se tocan cuando aparecen (cada 3 s de juego, como alguien atento).
+// Las amenazas: bichos, virus, robots desalineados, espías y las de cada era. Se tocan cuando aparecen (cada 3 s de juego, como alguien atento).
 function threats(){const o=D.obj();let n=0;
   for(const v of D.viruses()){D.onTap(Math.round(v.x),Math.round(v.y));n++;}
   for(const m of D.meteors().slice()){D.onTap(m.x,m.y);n++;}
@@ -51,6 +51,7 @@ function threats(){const o=D.obj();let n=0;
   for(const l of D.ludds().slice())if(l.state!=='home'&&!(l.wait>0)){D.onTap(Math.round(l.x),Math.round(l.y));n++;}
   for(const w of D.storms().slice()){D.onTap(Math.round(w.x),Math.round(w.y-0.6));n++;}
   for(const m of D.moths().slice())if(m.trap==null){D.onTap(Math.round(m.x),Math.round(m.y-0.4));n++;}
+  if(D.spies)for(const sp of D.spies().slice())if(!(sp.wait>0)){D.onTap(Math.round(sp.x),Math.round(sp.y));n++;}
   for(const v of D.vil)if(v.bad){D.onTap(Math.round(v.x),Math.round(v.y));n++;}
   for(let i=0;i<o.length;i++)if(o[i]&&o[i].bug){D.onTap(i%MW,(i/MW)|0);n++;}
   S.taps+=n;}

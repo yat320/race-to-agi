@@ -54,6 +54,7 @@ const HELP = `window.__H={t:2000,step(n){for(let k=0;k<(n||2);k++){this.t+=200;_
     if(D.ludds){const l=D.ludds().find(l=>l.state!=='home'&&!(l.wait>0));if(l){D.onTap(Math.round(l.x),Math.round(l.y));n++;}}
     if(D.storms){const w=D.storms()[0];if(w){D.onTap(Math.round(w.x),Math.round(w.y-0.6));n++;}}
     if(D.moths){const m=D.moths().find(m=>m.trap==null);if(m){D.onTap(Math.round(m.x),Math.round(m.y-0.4));n++;}}
+    if(D.spies){const sp=D.spies().find(sp=>!(sp.wait>0));if(sp){D.onTap(Math.round(sp.x),Math.round(sp.y));n++;}}
     const b=D.vil.find(v=>v.bad);if(b){D.onTap(Math.round(b.x),Math.round(b.y));n++;}return n;},
   gather(k){const D=this.D,o=D.obj();if(D.P.task||D.P.act)return;const ty=['tree','rock','ore','bush'][k%4],px=Math.round(D.P.x),py=Math.round(D.P.y);let best=-1,bd=1e9;
     o.forEach((q,i)=>{if(q&&q.t===ty&&q.hp>0){const d=Math.abs(i%64-px)+Math.abs(((i/64)|0)-py);if(d<bd){bd=d;best=i;}}});if(best>=0)D.onTap(best%64,(best/64)|0);},
@@ -105,7 +106,7 @@ async function era(b, srv, n, dir, legacy) {
   out.save = await p.evaluate(k => localStorage.getItem(k), 'rtagi-mundo' + n + '-v1');
   out.hud = await p.evaluate(() => document.getElementById('hud').innerText);
   for (const m of ['build', 'tech', 'tribe']) out['sheet_' + m] = await p.evaluate(m => __H.sheet(m), m);
-  // Amenazas a propósito, sin tocarlas durante un minuto: bicho y polillas, virus, robot desalineado, meteoritos, piratas, peste, langostas, ludditas o tormentas.
+  // Amenazas a propósito, sin tocarlas durante un minuto: bicho y polillas, virus, robot desalineado, espías, meteoritos, piratas, peste, langostas, ludditas o tormentas.
   out.threat = await p.evaluate(n => {
     const D = __H.D, o = D.obj();
     if (n === 7) { const q = o.find(q => q && q.t === 'computadora'); if (q) { q.bug = true; q.bugAge = 0; } for (let k = 0; k < 2; k++) D.spawnMoth(); }
@@ -117,6 +118,7 @@ async function era(b, srv, n, dir, legacy) {
     if (n === 5) for (let k = 0; k < 2; k++) D.spawnLuddites();
     if (n === 6) D.spawnStorm();
     if (n === 3) o.filter(q => q && q.t === 'casa').slice(0, 3).forEach(q => { q.bug = true; q.bugAge = 0; });
+    if (n === 10 && D.spawnSpies) for (let k = 0; k < 2; k++) D.spawnSpies();
     for (let k = 0; k < 600; k++) D.update(0.1);
     D.st.energy = 100; for (const v of D.vil) v.hungry = false; __H.step(2); __H.clean();
     return { fp: __H.fp(), hud: document.getElementById('hud').innerText };
