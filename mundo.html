@@ -260,7 +260,7 @@ const TECHS=[
 const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=[
  {id:'fogata',name:'Fogata',req:'fuego',lv:[{c:{madera:6,piedra:4},w:6},{c:{madera:15,piedra:12},w:10},{c:{madera:30,piedra:25,pieles:4},w:16}],grow:1.5,
-   fx:lv=>['Ideas +'+fmt([3,6,11][lv-1])+'/min','Investigación +'+fmt([9,18,30][lv-1])+'/min','Luz, calor de noche y comida cocinada'],desc:'El centro de la tribu.'},
+   fx:lv=>['Ideas +'+fmt(FX.fogata.ideas[lv-1]*60)+'/min','Investigación +'+fmt(FX.fogata.rs[lv-1]*60)+'/min','Luz, calor de noche y comida cocinada'],desc:'El centro de la tribu.'},
  {id:'choza',name:'Choza',req:'refugio',lv:[{c:{madera:14,piedra:6},w:12},{c:{madera:20,piedra:12,pieles:3},w:14},{c:{madera:30,piedra:20,pieles:6},w:18}],grow:1.45,
    fx:lv=>['Lugar para '+lv+(lv===1?' aldeano':' aldeanos')],desc:'Los aldeanos llegan si hay lugar y comida.'},
  {id:'taller',name:'Taller',req:'pedernal',lv:[{c:{madera:20,piedra:15},w:12},{c:{madera:35,piedra:25,pedernal:8},w:18},{c:{madera:50,pedernal:15,pieles:6},w:24}],grow:3,unique:true,
@@ -272,15 +272,15 @@ const BUILDS=[
  {id:'campamento',name:'Campamento de caza',req:'caza',lv:[{c:{madera:20,piedra:10},w:12},{c:{madera:30,piedra:15,pieles:4},w:14},{c:{madera:50,piedra:30,pieles:8},w:18}],grow:1.5,
    fx:lv=>['Comida +'+fmt([3.6,7.2,12][lv-1])+'/min','Pieles +'+fmt([0.9,1.8,3][lv-1])+'/min','Rinde la mitad en invierno'],desc:'Cazadores que traen carne y pieles.'},
  {id:'cueva',name:'Cueva pintada',req:'pinturas',lv:[{c:{piedra:30,madera:10},w:16},{c:{piedra:45,pieles:6},w:18},{c:{piedra:70,pieles:10,pedernal:5},w:24}],grow:1.6,
-   fx:lv=>['Ideas +'+fmt([7.2,15,24][lv-1])+'/min'],desc:'El conocimiento queda pintado en la pared.'},
+   fx:lv=>['Ideas +'+fmt(FX.cueva.ideas[lv-1]*60)+'/min'],desc:'El conocimiento queda pintado en la pared.'},
  {id:'cultivo',name:'Cultivo',req:'agricultura',lv:[{c:{madera:3,comida:3},w:3}],grow:1.08,
    fx:()=>['Cosecha de '+(st&&st.techs.ceramica?8:5)+' comida cada '+CROP_T*3+' s','No crece en invierno'],desc:'Los aldeanos cosechan solos.'},
  {id:'monumento',name:'Ábaco',req:'abaco',lv:[{c:{madera:30,piedra:30,pedernal:10},w:60}],grow:9,unique:true,
    fx:()=>['Cierra la Prehistoria'],desc:'La primera máquina de calcular. Obra grande: ponete a trabajar con toda la tribu.'}];
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
 // Aldeanos pensando junto a una fogata (prioridad Ideas): cada uno suma ideas y velocidad de investigación.
-const THINK={ideas:0.05,rs:0.12,seats:4};
-const FX={fogata:{ideas:[0.05,0.1,0.18],rs:[0.15,0.3,0.5],light:[4.5,5.5,6.5]},campamento:{comida:[0.06,0.12,0.2],pieles:[0.015,0.03,0.05]},cueva:{ideas:[0.12,0.25,0.4]},almacen:{cap:[80,180,320]}};
+const THINK={ideas:0.1,rs:0.45,seats:4};
+const FX={fogata:{ideas:[0.12,0.22,0.38],rs:[0.6,1.2,2],light:[4.5,5.5,6.5]},campamento:{comida:[0.06,0.12,0.2],pieles:[0.015,0.03,0.05]},cueva:{ideas:[0.25,0.5,0.8]},almacen:{cap:[80,180,320]}};
 const UPG=[
  {id:'hacha',name:'Hacha',desc:'Nivel 1 tala árboles, nivel 2 robles. Cada nivel junta más madera por golpe.',levels:[{n:'Manos'},{n:'Hacha de piedra',req:'tallada',c:{madera:5,piedra:5}},{n:'Hacha de pedernal',req:'pedernal',taller:1,c:{madera:10,pedernal:6}},{n:'Hacha pulida',req:'pulida',taller:2,c:{madera:15,pedernal:10,pieles:3}}]},
  {id:'pico',name:'Pico',desc:'Nivel 1 rompe rocas y saca barro, nivel 2 saca pedernal. Cada nivel junta más.',levels:[{n:'Manos'},{n:'Percutor de piedra',req:'tallada',c:{madera:3,piedra:8}},{n:'Pico de asta',req:'pedernal',taller:1,c:{madera:10,piedra:15,pieles:3}},{n:'Pico pulido',req:'pulida',taller:2,c:{madera:12,pedernal:10}}]},
@@ -411,6 +411,7 @@ function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serial
 const seasonIdx=()=>Math.floor(st.time/SEASON)%4;
 const isWinter=()=>seasonIdx()===3;
 const isBridge=o=>o&&o.t==='puente'&&o.lv>0;
+const nearBridge=i=>{const x=i%MW,y=(i/MW)|0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy||!inb(x+dx,y+dy))continue;const q=obj[(y+dy)*MW+x+dx];if(q&&q.t==='puente')return true;}return false;};
 // Los recursos agotados (tocón, escombros, barro, arbusto sin bayas) se pueden pisar.
 const spent=o=>!!(o&&RES[o.t]&&o.hp<=0);
 const passable=(x,y)=>{if(!inb(x,y))return false;const o=obj[y*MW+x];if(isBridge(o))return true;return ground[y*MW+x]!==WATER&&(!o||spent(o));};
@@ -432,7 +433,7 @@ const buildWork=o=>BUILD[o.t].lv[o.lv]?BUILD[o.t].lv[o.lv].w:1;
 const workPow=()=>1+Math.max(st.upg.hacha,st.upg.pico)*0.5;
 const thinkers=()=>vil.filter(v=>v.state==='think').length;
 const ideaRate=()=>(agg.ideas+thinkers()*THINK.ideas)*(st.techs.lenguaje?1.3:1)*(1+0.05*vil.length);
-const rsSpeed=()=>(0.3+agg.rs+thinkers()*THINK.rs)*(st.techs.contar?1.5:1);
+const rsSpeed=()=>(1.2+agg.rs+thinkers()*THINK.rs)*(st.techs.contar?1.5:1);
 const winterPenalty=()=>isWinter()&&!st.techs.vestimenta;
 function darkness(){const ph=(st.time%DAY)/DAY;if(ph<0.62)return 0;if(ph<0.72)return(ph-0.62)/0.1*0.62;if(ph<0.92)return 0.62;return(1-ph)/0.08*0.62;}
 function nearFire(x,y,r){const x0=Math.max(0,Math.floor(x-r)),x1=Math.min(MW-1,Math.ceil(x+r)),y0=Math.max(0,Math.floor(y-r)),y1=Math.min(MH-1,Math.ceil(y+r));
@@ -485,7 +486,8 @@ function updatePlayer(dt){
   if(!P.path.length&&!P.act&&!P.task&&!P.hunt)keyStep();
   if(P.hunt){
     const d=P.hunt;if(!anim.includes(d))P.hunt=null;
-    else if(Math.hypot(d.x-P.x,d.y-P.y)<=1.3){killAnim(d);P.hunt=null;P.path=[];}
+    // 1,5 alcanza también en diagonal: con 1,3 un animal quieto en la diagonal dejaba la cacería trabada.
+    else if(Math.hypot(d.x-P.x,d.y-P.y)<=1.5){killAnim(d);P.hunt=null;P.path=[];}
     else{P.huntT=(P.huntT||0)-dt;if(P.huntT<=0||!P.path.length){P.huntT=0.35;const[px,py]=tileOf(P),[dx,dy]=tileOf(d),p=bfs(px,py,(x,y)=>Math.max(Math.abs(x-dx),Math.abs(y-dy))<=1);if(p)P.path=p.slice(0,6);else P.hunt=null;}}
   }
   stepEnt(P,dt,speedP());P.blocked=false;
@@ -503,7 +505,7 @@ function updatePlayer(dt){
       else{const r=doGather(o,'p');
         if(r){if(st.res[r.kind]>=cap(r.kind))toast('No entra más '+RN[r.kind].toLowerCase()+'. Hace falta un almacén.','bad');
           add(r.kind,r.n);st.energy=Math.max(0,st.energy-0.5);st.gathers++;float(P.act.x,P.act.y,'+'+r.n,RCOL[r.kind]);flashChip(r.kind);burst(P.act.x,P.act.y,RCOL[r.kind],3);(SFX[r.kind]||SFX.click)();
-          if(st.gathers%6===0){st.res.ideas+=1;float(P.x,P.y-0.6,'+1 idea',RCOL.ideas);}}}
+          if(st.gathers%3===0){st.res.ideas+=1;float(P.x,P.y-0.6,'+1 idea',RCOL.ideas);}}}
       P.act.t=actInt();const o2=obj[P.act.y*MW+P.act.x];if(!canGather(o2,'p')&&!canWork(o2))P.act=null;
     }
   }
@@ -594,7 +596,7 @@ function pickTarget(v){
   v.target=tgt;v.job=job;v.path=path;v.state='go';return true;
 }
 function goHome(v){v.target=null;if(!v.carry){v.state='idle';v.t=0.5;return;}const[x,y]=tileOf(v),p=pathAdj(x,y,v.home[0],v.home[1]);if(p){v.path=p;v.state='return';}else deposit(v);}
-function deposit(v){if(v.carry&&v.kind){add(v.kind,v.carry);float(v.x,v.y-0.5,'+'+v.carry,RCOL[v.kind]);flashChip(v.kind);st.vg++;if(st.vg>=14){st.vg=0;st.res.ideas+=1;}}v.carry=0;v.state='idle';v.t=1.2;}
+function deposit(v){if(v.carry&&v.kind){add(v.kind,v.carry);float(v.x,v.y-0.5,'+'+v.carry,RCOL[v.kind]);flashChip(v.kind);st.vg++;if(st.vg>=8){st.vg=0;st.res.ideas+=1;}}v.carry=0;v.state='idle';v.t=1.2;}
 function vSay(v){
   let k='idle';
   if(v.hungry)k='hambre';else if(isWinter()&&!st.techs.vestimenta)k='frio';else if(st.party>0)k='fiesta';else if(darkness()>0.3)k='noche';
@@ -688,7 +690,8 @@ function update(dt){
   if(st.party>0)st.party-=dt;
   if(homeWithRoom()){if(st.arrive<=0)st.arrive=40;st.arrive-=dt;if(st.arrive<=0){if(st.res.comida>=8){arriveVillager();st.arrive=40;}else st.arrive=10;}}
   for(let i=0;i<obj.length;i++){const o=obj[i];if(!o)continue;
-    if(RES[o.t]&&o.hp<=0){if(!(o.t==='bush'&&winter)){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
+    // Lo agotado pegado a un puente se despeja en vez de volver a crecer: si no, un árbol que rebrota tapa la entrada del puente.
+    if(RES[o.t]&&o.hp<=0){if(!(o.t==='bush'&&winter)){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else if(nearBridge(i))obj[i]=null;else o.hp=RES[o.t].hp;}}}
     else if(o.t==='cultivo'&&o.lv>0&&o.stage<3&&!winter){o.grow+=dt;if(o.grow>=CROP_T){o.stage++;o.grow=0;}}
     if(o.pop>0)o.pop-=dt;}
   updatePlayer(dt);
@@ -1253,7 +1256,12 @@ if(!ok)newGame();
 resize();hud();
 if(!st.seen)showIntro();
 requestAnimationFrame(frame);
-if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,get anim(){return anim;},obj:()=>obj,recount,update:dt=>update(dt),P,riverX,bfs,passable};
+if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,get anim(){return anim;},obj:()=>obj,recount,update:dt=>update(dt),P,riverX,bfs,passable,
+  // Para el bot de la Prehistoria (tools/bot-prehistoria.mjs): las mismas acciones que los botones, sin abrir hojas.
+  get agg(){return agg;},ground,T,TECHS,BUILDS,UPG,RES,ANIM,onTap,startResearch,eat,canPlace,buildCost,afford,canGather,canWork,rsSpeed,ideaRate,cap,
+  place:(id,x,y)=>{startPlace(id);tryPlace(x,y);if(placing)stopPlace();},
+  tool:id=>{const u=UPG.find(x=>x.id===id),nx=upgNext(u);if(!upgOpen(nx)||!afford(nx.c))return false;pay(nx.c);st.upg[id]++;return true;},
+  levelUp:i=>{const o=obj[i],nx=o&&BUILD[o.t]&&BUILD[o.t].lv[o.lv];if(!nx||!afford(nx.c)||o.need)return false;pay(nx.c);o.need=nx.w;o.work=0;recount();return true;}};
 })();
 </script>
 </body></html>
