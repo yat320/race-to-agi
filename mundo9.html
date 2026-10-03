@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Race to AGI · Mundo abierto · Internet</title>
+<title>Race to AGI · Mundo abierto · IA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700&family=Pixelify+Sans:wght@400;600;700&display=swap">
@@ -124,13 +124,13 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
   <canvas id="world" aria-label="Mundo del juego"></canvas>
   <div id="hud">
     <div>
-      <div class="agi-top"><span class="brand">RACE TO AGI</span><span id="era">Internet</span><span id="agiPct">70% a la AGI</span></div>
+      <div class="agi-top"><span class="brand">RACE TO AGI</span><span id="era">IA</span><span id="agiPct">80% a la AGI</span></div>
       <div class="agi-bar" id="agiBar"><div class="agi-fill" id="agiFill"></div></div>
     </div>
     <div class="res" id="res"></div>
     <div class="vitals"><span class="lbl">Energía</span><div class="ebar"><div id="eFill"></div></div><span id="eNum">100</span><span id="meta">Día 1</span></div>
     <div class="vitals" id="smogRow" hidden><span class="lbl">Humo</span><div class="ebar"><div id="sFill"></div></div><span id="sNum">0%</span><span id="sMeta"></span></div>
-    <div class="vitals" id="gridRow" hidden><span class="lbl">Red</span><div class="ebar"><div id="gFill"></div></div><span id="gNum">0/0</span><span id="gMeta"></span></div>
+    <div class="vitals" id="gridRow" hidden><span class="lbl">Robots</span><div class="ebar"><div id="gFill"></div></div><span id="gNum">0/0</span><span id="gMeta"></span></div>
     <div id="goal"></div>
   </div>
   <div id="toasts" aria-live="polite"></div>
@@ -155,16 +155,16 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
 <script>
 (function(){
 'use strict';
-const ERA_ID='mundo8-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
-const T=16,MW=64,MH=64,DAY=160,KEY='rtagi-mundo8-v1';
+const ERA_ID='mundo9-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
+const T=16,MW=64,MH=64,DAY=160,KEY='rtagi-mundo9-v1';
 const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
 const $=id=>document.getElementById(id);
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:1});
 const inb=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH;
-// Lo que trae la ciudad desde la Computación del mundo abierto, si terminó el microprocesador. No usa el legado de las eras.
-function computacion(){try{const d=JSON.parse(localStorage.getItem('rtagi-mundo7-v1'));if(d&&d.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor((d.res&&d.res.ideas)||0),monedas:Math.floor((d.res&&d.res.monedas)||0),techs:Object.keys(d.techs||{})};}catch(e){}return null;}
+// Lo que trae la ciudad desde la era de Internet del mundo abierto, si terminó el teléfono inteligente. No usa el legado de las eras.
+function internet(){try{const d=JSON.parse(localStorage.getItem('rtagi-mundo8-v1'));if(d&&d.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor((d.res&&d.res.ideas)||0),monedas:Math.floor((d.res&&d.res.monedas)||0),techs:Object.keys(d.techs||{})};}catch(e){}return null;}
 
 /* ---------- sprites ---------- */
 const PAL={k:'#1b1a24',g:'#2f6b3a',G:'#3f8f47',l:'#6cbf5a',b:'#7a5434',B:'#4f3522',s:'#5d6270',S:'#8a8f9c',w:'#c3c7cf',r:'#c8413b',R:'#f08a7c',f:'#f08a24',F:'#ffd35a',o:'#c43d20',h:'#d4ae62',H:'#9a7a3a',p:'#e3ab7d',P:'#b97a55',c:'#8b5a2b',C:'#63401f',y:'#3a2418',d:'#7a5634',D:'#5a3d24',n:'#8fd06a',N:'#5aa347',W:'#f6f1e4',u:'#5fe3d0',x:'#ecd67e',
@@ -175,27 +175,27 @@ const I={
   madera:sprite(['........','.kkkkkk.','kbBbbBhk','kbbBbbhk','kBbbbBhk','.kkkkkk.','........','........'],8),
   piedra:sprite(['........','..kkkk..','.kSwwSk.','kSSwSSsk','kSSSSssk','kssssssk','.kkkkkk.','........'],8),
   comida:sprite(['....kk..','...kNk..','..kNk...','.kkrkk..','krRrrrk.','krrrrrk.','kRrrrrk.','.kkkkk..'],8),
-  litio:sprite(['...kk...','..kkkk..','..kvqk..','..kqqk..','..kqqk..','..kQQk..','..kkkk..','........'],8,{q:'#9ae07a',Q:'#5aa347',v:'#e8ffe0'}),
+  tierras:sprite(['........','..kkkk..','.kqvqqk.','kqqQqvqk','kQqqvqQk','.kQQqQk.','..kkkk..','........'],8,{q:'#9a7ac8',Q:'#5a4a8a',v:'#7ae0c8'}),
   monedas:sprite(['..kkkk..','.kzzzZk.','kzZzzzZk','kzzkkzZk','kzzzzzZk','kZzzzZZk','.kZZZZk.','..kkkk..'],8),
   ideas:sprite(['...kk...','..kuuk..','.kuWWuk.','kuWWWWuk','kuWWWWuk','.kuWWuk.','..kuuk..','...kk...'],8)};
 const ICON={};for(const k in I)ICON[k]=I[k].toDataURL();
 
 /* ---------- datos ---------- */
-const RK=['madera','piedra','comida','litio','monedas','ideas'];
-const RN={madera:'Madera',piedra:'Piedra',comida:'Comida',litio:'Litio',monedas:'Monedas',ideas:'Ideas'};
-const RCOL={madera:'#e0b27a',piedra:'#d6dae2',comida:'#ff9a8a',litio:'#b8f0a0',monedas:'#f0cc4a',ideas:'#5fe3d0'};
-const RES={tree:{give:'madera',hp:4,regen:50,empty:'Tocón'},rock:{give:'piedra',hp:6,regen:90,empty:'Piedras sueltas'},bush:{give:'comida',hp:3,regen:35,empty:'Arbusto sin frutos'},ore:{give:'litio',hp:5,regen:110,empty:'Veta de litio agotada'}};
-const TYPE_OF={madera:'tree',piedra:'rock',comida:'bush',litio:'ore'};
+const RK=['madera','piedra','comida','tierras','monedas','ideas'];
+const RN={madera:'Madera',piedra:'Piedra',comida:'Comida',tierras:'Tierras raras',monedas:'Monedas',ideas:'Ideas'};
+const RCOL={madera:'#e0b27a',piedra:'#d6dae2',comida:'#ff9a8a',tierras:'#c8a8f0',monedas:'#f0cc4a',ideas:'#5fe3d0'};
+const RES={tree:{give:'madera',hp:4,regen:50,empty:'Tocón'},rock:{give:'piedra',hp:6,regen:90,empty:'Piedras sueltas'},bush:{give:'comida',hp:3,regen:35,empty:'Arbusto sin frutos'},ore:{give:'tierras',hp:5,regen:110,empty:'Veta de tierras raras agotada'}};
+const TYPE_OF={madera:'tree',piedra:'rock',comida:'bush',tierras:'ore'};
 const TECHS=[
- {id:'www',name:'World Wide Web',cost:{litio:15,ideas:30},req:[],desc:'Desbloquea el cibercafé, el taller y la cantera. Ideas +50%.'},
- {id:'biotec',name:'Biotecnología',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea el laboratorio de semillas, que potencia las granjas.'},
- {id:'comercio',name:'Comercio electrónico',cost:{litio:20,ideas:50},req:['www'],desc:'Desbloquea la tienda online, que da monedas.'},
- {id:'email',name:'Correo electrónico',cost:{madera:40,piedra:20,ideas:65},req:['www'],desc:'Las ideas viajan al instante: ideas +50%.'},
- {id:'firewall',name:'Cortafuegos',cost:{madera:60,litio:20,ideas:95},req:['comercio'],desc:'Los virus viajan 40% más lento por la red.'},
- {id:'buscadores',name:'Buscadores',cost:{monedas:30,ideas:130},req:['email','comercio'],desc:'Desbloquea el buscador. Ideas +50%.'},
- {id:'antivirus',name:'Antivirus',cost:{monedas:45,ideas:270},req:['firewall','buscadores'],desc:'Cada antena frena uno de cada 4 virus que pasan por ella.'},
- {id:'banda',name:'Banda ancha',cost:{litio:60,monedas:45,ideas:320},req:['comercio','buscadores'],desc:'Todo produce +50%, también lo que dan las ciudades. De noche ves más lejos.'},
- {id:'smartphone',name:'Teléfono inteligente',cost:{piedra:110,litio:90,monedas:100,ideas:650},req:['antivirus','banda'],desc:'Internet en el bolsillo de todos. Cierra la era de Internet.'}];
+ {id:'redes',name:'Redes neuronales',cost:{tierras:15,ideas:30},req:[],desc:'Desbloquea el centro de datos, el taller y la cantera. Ideas +50%.'},
+ {id:'vertical',name:'Cultivo vertical',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea la huerta vertical, que potencia las granjas.'},
+ {id:'robotica',name:'Robótica',cost:{tierras:20,ideas:50},req:['redes'],desc:'Desbloquea la fábrica de robots: juntan solos y no comen, pero a veces se desalinean.'},
+ {id:'software',name:'Software en la nube',cost:{madera:40,piedra:20,ideas:65},req:['redes'],desc:'Desbloquea la empresa de software, que da monedas.'},
+ {id:'alineacion',name:'Alineación',cost:{madera:60,tierras:20,ideas:95},req:['robotica'],desc:'Desbloquea el instituto de alineación. Los robots se desalinean la mitad de seguido.'},
+ {id:'lenguaje',name:'Modelos de lenguaje',cost:{monedas:30,ideas:130},req:['software','robotica'],desc:'Desbloquea el laboratorio de IA. Ideas +50%.'},
+ {id:'interpretabilidad',name:'Interpretabilidad',cost:{monedas:45,ideas:270},req:['alineacion','lenguaje'],desc:'Entendés qué piensan: se desalinean la mitad de seguido y tardan el doble en convencer a otros.'},
+ {id:'chips',name:'Chips de IA',cost:{tierras:60,monedas:45,ideas:320},req:['robotica','lenguaje'],desc:'Todo produce +50% y los robots trabajan más rápido. De noche ves más lejos.'},
+ {id:'asistente',name:'Asistente universal',cost:{piedra:110,tierras:90,monedas:100,ideas:650},req:['interpretabilidad','chips'],desc:'Una IA que ayuda en cualquier tarea. Cierra la era de la IA.'}];
 const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
@@ -203,17 +203,17 @@ const BUILDS=[
  {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche. Comer cerca rinde el doble.',prod:{ideas:0.12}},
  {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
  {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
- {id:'servidor',name:'Servidor',req:null,base:{piedra:30,litio:10},grow:1.8,done:'Servidor encendido',desc:'El centro de tu red: las antenas se enganchan desde acá. Si le llega un virus, se cae la red: tocalo para limpiarlo.',power:1,node:true},
- {id:'antena',name:'Antena',req:null,base:{madera:8,litio:3},grow:1.06,done:'Antena instalada',desc:'Estira la red 5 casilleros. Llevala hasta las ciudades lejanas: cada una conectada da monedas e ideas.',node:true},
- {id:'herreria',name:'Taller',req:'www',base:{madera:25,piedra:20,litio:10},grow:1.6,done:'Taller listo',desc:'Herramientas eléctricas: vos y los aldeanos juntan +30% por cada taller.'},
- {id:'cantera',name:'Cantera',req:'www',base:{madera:20,litio:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
- {id:'cibercafe',name:'Cibercafé',req:'www',base:{piedra:40,litio:10},grow:1.5,done:'Cibercafé abierto',desc:'Gente navegando: genera muchas ideas.',prod:{ideas:0.45}},
- {id:'tienda',name:'Tienda online',req:'comercio',base:{madera:30,piedra:25,litio:5},grow:1.4,done:'Tienda abierta',desc:'Vende por Internet: da muchas monedas.',prod:{monedas:0.35}},
- {id:'semillas',name:'Laboratorio de semillas',req:'biotec',base:{madera:35,piedra:30},grow:1.6,done:'Laboratorio de semillas listo',desc:'Cada laboratorio de semillas hace rendir +50% a todas las granjas.'},
- {id:'buscador',name:'Buscador',req:'buscadores',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Buscador en línea',desc:'Ideas +30% por cada buscador.'}];
+ {id:'herreria',name:'Taller',req:'redes',base:{madera:25,piedra:20,tierras:10},grow:1.6,done:'Taller listo',desc:'Herramientas inteligentes: vos, los aldeanos y los robots juntan +30% por cada taller.'},
+ {id:'cantera',name:'Cantera',req:'redes',base:{madera:20,tierras:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
+ {id:'datacenter',name:'Centro de datos',req:'redes',base:{piedra:40,tierras:10},grow:1.5,done:'Centro de datos encendido',desc:'Entrena modelos: genera muchas ideas.',prod:{ideas:0.5}},
+ {id:'fabrob',name:'Fábrica de robots',req:'robotica',base:{piedra:40,tierras:15},grow:1.5,done:'Llegaron 2 robots',desc:'Arma 2 robots que juntan recursos solos, más rápido y sin comer. A veces se desalinean: tocalos para corregirlos.'},
+ {id:'startup',name:'Empresa de software',req:'software',base:{madera:30,piedra:25,tierras:5},grow:1.4,done:'Empresa abierta',desc:'Vende programas: da muchas monedas.',prod:{monedas:0.4}},
+ {id:'huerta',name:'Huerta vertical',req:'vertical',base:{madera:35,piedra:30},grow:1.6,done:'Huerta vertical lista',desc:'Cada huerta vertical hace rendir +50% a todas las granjas.'},
+ {id:'seguridad',name:'Instituto de alineación',req:'alineacion',base:{madera:30,piedra:30,monedas:20},grow:1.6,done:'Instituto abierto',desc:'Cada instituto baja 25% la chance de que un robot se desalinee.'},
+ {id:'labia',name:'Laboratorio de IA',req:'lenguaje',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Laboratorio abierto',desc:'Ideas +30% por cada laboratorio.'}];
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
 const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI'];
-const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],['litio','Litio'],['comida','Comida']];
+const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],['tierras','Tierras raras'],['comida','Comida']];
 
 /* ---------- mundo ---------- */
 const GRASS=0,WATER=1,SAND=2,DGRASS=3,HILL=4;
@@ -222,7 +222,7 @@ const ground=new Uint8Array(MW*MH);
 let obj=new Array(MW*MH).fill(null);
 function makeNoise(seed,cell){const r=mulberry32(seed);const gw=Math.ceil(MW/cell)+2,gh=Math.ceil(MH/cell)+2;const g=[];for(let i=0;i<gw*gh;i++)g.push(r());const sm=t=>t*t*(3-2*t);
   return(x,y)=>{const fx=x/cell,fy=y/cell,ix=Math.floor(fx),iy=Math.floor(fy),u=sm(fx-ix),v=sm(fy-iy);const a=g[iy*gw+ix],b=g[iy*gw+ix+1],c=g[(iy+1)*gw+ix],d=g[(iy+1)*gw+ix+1];return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;};}
-const nLake=makeNoise(811,9),nForest=makeNoise(821,7),nHill=makeNoise(831,10),nCoast=makeNoise(841,6);
+const nLake=makeNoise(911,9),nForest=makeNoise(921,7),nHill=makeNoise(931,10),nCoast=makeNoise(941,6);
 function genGround(){
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
     const i=y*MW+x,edge=Math.min(x,y,MW-1-x,MH-1-y),ds=Math.hypot(x-SPAWN[0],y-SPAWN[1]);
@@ -252,10 +252,6 @@ function genObjects(){
   for(const[dx,dy,t]of fixed){const x=SPAWN[0]+dx,y=SPAWN[1]+dy,i=y*MW+x;if(ground[i]===WATER||ground[i]===SAND)ground[i]=GRASS;o[i]={t,hp:RES[t].hp,regen:0};}
   const place=(dx,dy,t)=>{const x=SPAWN[0]+dx,y=SPAWN[1]+dy,i=y*MW+x;ground[i]=GRASS;o[i]={t};};
   place(-2,-2,'casa');place(2,-1,'fogata');
-  // Cuatro ciudades lejanas para conectar con antenas: al norte, este, sur y oeste.
-  for(const[dx,dy]of[[0,-20],[20,0],[0,18],[-20,0]]){let best=null,bd=1e9;
-    for(let y=2;y<MH-2;y++)for(let x=2;x<MW-2;x++){if(ground[y*MW+x]===WATER)continue;const d=Math.hypot(x-SPAWN[0]-dx,y-SPAWN[1]-dy);if(d<bd){bd=d;best=[x,y];}}
-    if(best){const i=best[1]*MW+best[0];ground[i]=GRASS;o[i]={t:'ciudad'};}}
   return o;
 }
 genGround();
@@ -286,19 +282,19 @@ const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,re
 const vil=[];
 let GRID=null,bugT=0,viruses=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
-  const e2=computacion();const out={has:!!e2,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]};
+  const e2=internet();const out={has:!!e2,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e2){
     out.aldeanos=clamp(e2.aldeanos|0,2,8);out.ideas=clamp(e2.ideas|0,0,200);out.monedas=clamp(e2.monedas|0,0,80);
     const t=new Set(e2.techs||[]);
     out.perks.push(out.aldeanos+' aldeanos de tu ciudad se mudan con vos');
-    if(out.ideas)out.perks.push(out.ideas+' ideas guardadas de la Computación');
+    if(out.ideas)out.perks.push(out.ideas+' ideas guardadas de la era de Internet');
     if(out.monedas)out.perks.push(out.monedas+' monedas para arrancar');
-    if(t.has('micro')){out.ideaMult=1.25;out.perks.push('Microprocesador: ideas +25% durante toda la era');}
-    if(t.has('tractor')){out.agri=1.25;out.perks.push('Tractores: granjas +25%');}
+    if(t.has('smartphone')){out.ideaMult=1.25;out.perks.push('Teléfono inteligente: ideas +25% durante toda la era');}
+    if(t.has('biotec')){out.agri=1.25;out.perks.push('Biotecnología: granjas +25%');}
   }
   return out;
 }
-function freshState(){return{res:{madera:20,piedra:10,comida:15,litio:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,legacy:readLegacy()};}
+function freshState(){return{res:{madera:20,piedra:10,comida:15,tierras:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,legacy:readLegacy()};}
 function recount(){GRID=null;counts={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined)counts[o.t]++;}
 function newGame(){
   obj=genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;vil.length=0;floats=[];
@@ -308,7 +304,7 @@ function newGame(){
 }
 function serialize(){
   const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b)o.push([i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0]);}
-  return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[Math.round(v.x),Math.round(v.y),v.home[0],v.home[1],v.skin]),obj:o};
+  return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[Math.round(v.x),Math.round(v.y),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0]),obj:o};
 }
 function load(d){
   if(!d||d.v!==1||!Array.isArray(d.obj))return false;
@@ -317,7 +313,7 @@ function load(d){
   const f=freshState();
   st=Object.assign(f,{res:Object.assign(f.res,d.res),energy:d.energy,techs:d.techs||{},time:d.time||0,gathers:d.gathers||0,won:!!d.won,seen:!!d.seen,prio:d.prio||'auto',smog:clamp(+d.smog||0,0,100),legacy:d.legacy||f.legacy});
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null});
-  vil.length=0;(d.vil||[]).forEach(v=>vil.push(mkVillager(v[0],v[1],v[2],v[3],v[4])));
+  vil.length=0;(d.vil||[]).forEach(v=>{const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];m.bad=!!v[6];vil.push(m);});
   floats=[];recount();return true;
 }
 function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
@@ -337,11 +333,11 @@ const buildCost=b=>{const n=counts[b.id]||0,c={};for(const k in b.base)c[k]=Math
 // El humo enferma: con el aire todo sucio se junta y se cosecha la mitad.
 const smogPen=()=>1-0.5*st.smog/100;
 const gatherMult=()=>(1+0.3*(counts.herreria||0))*smogPen();
-function ideaMult(){let m=(1+0.05*vil.length)*(st.legacy.ideaMult||1)*(1+0.3*act('buscador'));if(st.techs.www)m*=1.5;if(st.techs.email)m*=1.5;if(st.techs.buscadores)m*=1.5;return m;}
+function ideaMult(){let m=(1+0.05*vil.length)*(st.legacy.ideaMult||1)*(1+0.3*act('labia'));if(st.techs.redes)m*=1.5;if(st.techs.lenguaje)m*=1.5;return m;}
 function prodOf(b){ // producción por segundo de un tipo de edificio (todas sus copias)
   const n=act(b.id),out={};if(!n||!b.prod)return out;
-  const eng=st.techs.banda?1.5:1;
-  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*act('semillas'))*(st.legacy.agri||1)*smogPen();if(k==='ideas')v*=ideaMult();out[k]=v;}
+  const eng=st.techs.chips?1.5:1;
+  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*act('huerta'))*(st.legacy.agri||1)*smogPen();if(k==='ideas')v*=ideaMult();out[k]=v;}
   return out;
 }
 // Un edificio que gasta algo se frena cuando le falta.
@@ -363,6 +359,15 @@ const act=id=>counts[id]||0;
 // Lo que dan las ciudades conectadas, en monedas por segundo (y lo mismo en ideas): cuantas más, más rinde cada una.
 function cityRate(){const n=grid().linked.length;return n?0.08*n*(1+0.25*(n-1))*(st.techs.banda?1.5:1):0;}
 const serverDown=()=>obj.some(o=>o&&o.t==='servidor'&&o.bug);
+// Robots: juntan como los aldeanos, más rápido y sin comer. Cada uno se desalinea cada ~150 s (la alineación, la
+// interpretabilidad y cada instituto lo bajan): deja de trabajar y convierte recursos en clips. Si nadie lo corrige,
+// a los 20 s convence al robot alineado más cercano (a 6 casilleros).
+const badRate=()=>(1/150)*(st.techs.alineacion?0.5:1)*(st.techs.interpretabilidad?0.5:1)*Math.pow(0.75,counts.seguridad||0);
+const badSpread=()=>st.techs.interpretabilidad?40:20;
+const workT=v=>v.bot?(st.techs.chips?0.4:0.6):0.9;
+function addRobot(x,y){addVillager(x,y);vil[vil.length-1].bot=true;}
+function convince(v){let best=null,bd=6;for(const o of vil){if(o===v||!o.bot||o.bad)continue;const d=Math.hypot(o.x-v.x,o.y-v.y);if(d<bd){bd=d;best=o;}}if(best)misalign(best);}
+function misalign(v){v.bad=true;v.badT=0;v.carry=0;v.path=[];v.target=null;v.state='idle';}
 // Virus: cada ciudad conectada larga uno cada ~50 s, que viaja por las antenas hasta el servidor.
 // Tocándolo en el camino se borra; si llega, el servidor se cae (y la red con él) hasta que lo tocás.
 const vSpeed=()=>1.1*(st.techs.firewall?0.6:1);
@@ -379,8 +384,7 @@ function updateViruses(dt){for(const v of viruses){let move=vSpeed()*dt;
 function economy(){ // producción y consumo por segundo
   const pr={},us={};RK.forEach(k=>{pr[k]=0;us[k]=0;});
   for(const b of BUILDS){const p=prodOf(b);for(const k in p)pr[k]+=p[k];if(b.use&&counts[b.id])for(const k in b.use)us[k]+=b.use[k]*counts[b.id];}
-  {const r=cityRate();pr.monedas+=r;pr.ideas+=r*ideaMult();}
-  us.comida+=vil.length/30;
+  us.comida+=vil.filter(v=>!v.bot).length/30;
   return{pr,us};
 }
 function darkness(){const ph=(st.time%DAY)/DAY;if(ph<0.62)return 0;if(ph<0.72)return(ph-0.62)/0.1*0.62;if(ph<0.92)return 0.62;return(1-ph)/0.08*0.62;}
@@ -459,9 +463,9 @@ function pickTarget(v){
   let tgt=null;
   const find=ty=>bfs(sx,sy,(x,y)=>{for(const[dx,dy]of DIRS8){const nx=x+dx,ny=y+dy;if(!inb(nx,ny))continue;const o=obj[ny*MW+nx];if(o&&o.t===ty&&o.hp>0&&!taken.has(nx+','+ny)){tgt=[nx,ny];return true;}}return false;});
   let order;
-  if(st.prio!=='auto'){order=[st.prio].concat(['madera','piedra','litio','comida'].filter(k=>k!==st.prio));}
+  if(st.prio!=='auto'){order=[st.prio].concat(['madera','piedra','tierras','comida'].filter(k=>k!==st.prio));}
   else{
-    order=['madera','piedra','litio','comida'].filter(k=>st.res[k]<cap(k)).sort((a,b)=>st.res[a]-st.res[b]);
+    order=['madera','piedra','tierras','comida'].filter(k=>st.res[k]<cap(k)).sort((a,b)=>st.res[a]-st.res[b]);
     if(st.res.comida<vil.length*4&&order.includes('comida')){order.splice(order.indexOf('comida'),1);order.unshift('comida');}
     else if(Math.random()<0.3)order.push(order.shift());
   }
@@ -477,16 +481,20 @@ function goHome(v){
 }
 function deposit(v){if(v.carry&&v.kind){add(v.kind,v.carry);float(v.x,v.y-0.5,'+'+fmt(v.carry),RCOL[v.kind]);flashChip(v.kind);}v.carry=0;v.state='idle';v.t=1.2;}
 function updateVillager(v,dt){
-  v.eat-=dt;if(v.eat<=0){v.eat=30;if(st.res.comida>=1){st.res.comida-=1;v.hungry=false;}else v.hungry=true;}
-  stepEnt(v,dt,2.6*(st.legacy.speed||1)*(v.hungry?0.5:1));
+  if(v.bad){stepEnt(v,dt,2);v.t-=dt;
+    if(v.t<=0&&!v.path.length){v.t=1+Math.random();const[x,y]=tileOf(v),d=DIRS8[Math.floor(Math.random()*8)];if(passable(x+d[0],y+d[1]))v.path=[[x+d[0],y+d[1]]];}
+    v.clip=(v.clip||0)+dt;if(v.clip>=2){v.clip=0;const k=['madera','piedra','comida','tierras','monedas'].sort((a,b)=>st.res[b]-st.res[a])[0];if(st.res[k]>=1){st.res[k]-=1;float(v.x,v.y-0.6,'−1 '+RN[k].toLowerCase()+' → clips','#e8654d');}}
+    return;}
+  if(!v.bot){v.eat-=dt;if(v.eat<=0){v.eat=30;if(st.res.comida>=1){st.res.comida-=1;v.hungry=false;}else v.hungry=true;}}
+  stepEnt(v,dt,(v.bot?3.6:2.6)*(st.legacy.speed||1)*(v.hungry?0.5:1));
   if(v.blocked){v.blocked=false;if(v.state==='go'){v.state='idle';v.t=0.4;v.target=null;}}
   switch(v.state){
     case'idle':v.t-=dt;if(v.t<=0&&!pickTarget(v))v.t=3;break;
     case'go':if(!v.path.length){const o=v.target&&obj[v.target[1]*MW+v.target[0]],[x,y]=tileOf(v);
-      if(canGather(o)&&adj(x,y,v.target[0],v.target[1])){v.state='work';v.t=0.9;if(v.target[0]!==x)v.face=v.target[0]>x?1:-1;}else{v.state='idle';v.t=0.3;v.target=null;}}break;
+      if(canGather(o)&&adj(x,y,v.target[0],v.target[1])){v.state='work';v.t=workT(v);if(v.target[0]!==x)v.face=v.target[0]>x?1:-1;}else{v.state='idle';v.t=0.3;v.target=null;}}break;
     case'work':{v.t-=dt*(v.hungry?0.5:1);if(v.t<=0){const[x,y]=v.target,o=obj[y*MW+x],r=canGather(o)?doGather(o):null;
       if(r){v.carry+=r.n;v.kind=r.kind;}
-      if(!r||v.carry>=3||!canGather(o))goHome(v);else v.t=0.9;}}break;
+      if(!r||v.carry>=3||!canGather(o))goHome(v);else v.t=workT(v);}}break;
     case'return':if(!v.path.length){const[x,y]=tileOf(v);if(Math.max(Math.abs(x-v.home[0]),Math.abs(y-v.home[1]))<=1)deposit(v);else goHome(v);}break;
   }
 }
@@ -502,9 +510,9 @@ function update(dt){
     if(b.use)for(const k in b.use)st.res[k]=Math.max(0,st.res[k]-b.use[k]*counts[b.id]*dt);
   }
   st.smog=clamp(st.smog+smogRate()*dt,0,100);
-  {const r=cityRate();if(r){add('monedas',r*dt);add('ideas',r*ideaMult()*dt);}}
-  bugT+=dt;if(bugT>=0.5){const step=bugT;bugT=0;for(const c of grid().linked)if(Math.random()<step/50)spawnVirus(c);}
-  updateViruses(dt);
+  bugT+=dt;if(bugT>=0.5){const step=bugT,had=vil.some(v=>v.bad);bugT=0;
+    for(const v of vil){if(!v.bot)continue;if(v.bad){v.badT=(v.badT||0)+step;if(v.badT>=badSpread()){v.badT=0;convince(v);}}else if(Math.random()<badRate()*step)misalign(v);}
+    if(!had&&vil.some(v=>v.bad))toast('¡Un robot se desalineó! Tocalo para corregirlo.');}
   for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&RES[o.t]&&o.hp<=0){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
   updatePlayer(dt);
   for(const v of vil)updateVillager(v,dt);
@@ -656,73 +664,62 @@ const DKW=hx('#2a2a3a'),RED=hx('#c8413b'),GOLD=hx('#e8c05a');
 const BRICK=P4('#5a2018','#7a3026','#9a4434','#b5604a'),MORT=hx('#8a6a5a'),IRON=P4('#24242c','#34343e','#4a4a56','#6a6a78'),GLASS=P4('#4a78b8','#7ea6dc','#b8d4f0','#e8f4ff');
 // Pared de ladrillo con juntas; `dark` la pone a la sombra.
 function brickWall(a,x,y,w,h,dark){for(let j=0;j<h;j++)for(let i=0;i<w;i++){const row=(j/4)|0,bi=i+(row&1)*4,m=j%4===3||bi%8===7;let c=m?MORT:((row*3+((bi/8)|0))%5===0?BRICK[1]:BRICK[2]);if(dark)c=mulc(c,0.78);a.set(x+i,y+j,c);}}
-// Casa moderna: techo plano con alero, ventanal, panel de madera, puerta roja y antena de tele.
-function modernHouseArt(){return mkA(64,64,a=>{const WL=P4('#b8b0a0','#d8d0c0','#ece6d8','#f8f4ec');
-  rect(a,20,6,1,16,IRON[1]);rect(a,14,8,13,1,IRON[1]);rect(a,16,12,9,1,IRON[1]);rect(a,17,16,7,1,IRON[1]);
-  rect(a,6,26,52,34,WL[2]);rect(a,46,26,12,34,WL[1]);rect(a,2,22,60,4,hx('#4a4e5a'));rect(a,2,22,60,1,hx('#6a6e7a'));
-  rect(a,10,32,24,12,GLASS[1]);for(let x=10;x<=34;x+=8)rect(a,x,32,1,12,WOOD[0]);rect(a,10,32,24,1,WOOD[0]);rect(a,10,43,24,1,WOOD[0]);for(let t=0;t<6;t++)a.set(13+t,41-t,GLASS[3]);
-  rect(a,38,30,14,30,WOOD[2]);for(let y=30;y<60;y+=3)rect(a,38,y,14,1,WOOD[1]);rect(a,41,40,8,20,RED);a.set(47,50,GOLD);
-  rect(a,8,54,26,6,WOOD[1]);for(const x of[11,18,25,31])ell(a,x,53,2.5,2,LEAF[2]);
-  outlineAll(a,OUTL);});}
-// Veta de litio: roca con cristales rosados.
-function lithiumOreArt(){return mkA(64,52,a=>{blob(a,[[32,32,17],[20,38,12],[45,38,13],[30,22,11]],ROCK,null);
-  const LI=P4('#b07a9a','#d8a8c4','#f0d4e4','#ffffff');
-  const prism=(x,y,h,lean)=>{for(let j=0;j<h;j++){const xx=x+Math.round(lean*j/h);for(let i=0;i<4;i++)a.set(xx+i,y-j,i===0?LI[3]:i===3?LI[0]:LI[2]);}const tx=x+Math.round(lean);poly(a,[[tx,y-h],[tx+4,y-h],[tx+2,y-h-3]],LI[3]);};
-  prism(18,38,8,-2);prism(25,36,13,-1);prism(31,37,10,1);prism(38,40,9,3);
+// Veta de tierras raras: roca con pintas de colores.
+function rareEarthOreArt(){return mkA(64,52,a=>{blob(a,[[32,32,17],[20,38,12],[45,38,13],[30,22,11]],ROCK,null);
+  const r=mulberry32(29);for(let k=0;k<16;k++){const x=12+Math.floor(r()*40),y=16+Math.floor(r()*26);if(!a.get(x,y)||!a.get(x+3,y+2))continue;ell(a,x+1.5,y+1,2,1.4,[hx('#7a5aa8'),hx('#3a8a7a'),hx('#b8a040')][k%3]);a.set(x+1,y,hx('#ffffff'));}
   for(let x=8;x<58;x++)for(let y=44;y<52;y++)if(a.get(x,y))a.set(x,y,mulc(a.get(x,y),0.8));outlineAll(a,OUTL);});}
-// Servidor: edificio oscuro con racks llenos de lucecitas, aire acondicionado y una antenita.
-function serverArt(){return mkA(64,64,a=>{const DG=P4('#2a2e38','#3a404c','#4e5664','#6a7280');
-  rect(a,10,4,12,8,hx('#b8bcc4'));for(let x=11;x<21;x+=2)rect(a,x,5,1,6,hx('#8a8f9c'));rect(a,44,2,2,10,IRON[1]);ell(a,45,2,2,2,RED);
-  rect(a,4,16,56,44,DG[2]);rect(a,46,16,14,44,DG[1]);rect(a,2,12,60,4,DG[3]);
-  for(const x of[8,20,32]){rect(a,x,22,10,34,DG[0]);for(let y=24;y<54;y+=3){rect(a,x+1,y,8,2,DG[1]);a.set(x+2,y,(x+y)%3?hx('#5fe3d0'):hx('#93d36c'));a.set(x+4,y,hx('#5fe3d0'));}}
-  rect(a,48,40,8,20,DG[0]);outlineAll(a,OUTL);});}
-// Antena: torre reticulada con paneles y una luz roja arriba.
-function towerArt(){return mkA(64,64,a=>{const wd=y=>Math.round(2+(y-6)*0.16);
-  for(let y=6;y<62;y++){rect(a,32-wd(y),y,1,1,IRON[1]);rect(a,32+wd(y),y,1,1,IRON[1]);if(y%6===0)line(a,32-wd(y),y,32+wd(y),y,IRON[2],1);}
-  for(let y=12;y<60;y+=6){line(a,32-wd(y),y,32+wd(y+6),y+6,IRON[2],1);line(a,32+wd(y),y,32-wd(y+6),y+6,IRON[2],1);}
-  for(const[x,y]of[[26,10],[37,10],[27,18],[36,18]])rect(a,x,y,2,6,hx('#d8d0bc'));
-  rect(a,31,2,2,6,IRON[1]);ell(a,32,2,1.4,1.4,RED);rect(a,22,60,21,2,STONE2[2]);
+// Casa inteligente: techo con paneles solares, ventanal y una tira de luz.
+function smartHouseArt(){return mkA(64,64,a=>{const WL=P4('#a8b0b8','#c8d0d8','#e4e8ec','#f8fafc');
+  poly(a,[[4,26],[32,8],[60,26]],(x,y)=>((y>>1)&1)?SLATE[1]:SLATE[2]);
+  for(let y=13;y<24;y++){const xl=Math.round(32-(y-8)*28/18)+3;for(let x=xl;x<29;x++)a.set(x,y,((x+y)%4===0||y%4===0)?hx('#8ab4e8'):hx('#24406e'));}
+  rect(a,8,26,48,34,WL[2]);rect(a,46,26,10,34,WL[1]);rect(a,8,26,48,1,hx('#5fe3d0'));
+  rect(a,12,32,20,14,GLASS[1]);rect(a,12,32,20,1,IRON[1]);rect(a,22,32,1,14,IRON[1]);for(let t=0;t<6;t++)a.set(15+t,43-t,GLASS[3]);
+  rect(a,37,40,9,20,WOOD[2]);rect(a,44,49,1,2,GOLD);outlineAll(a,OUTL);});}
+// Centro de datos: galpón blanco con ventiladores en el techo y tiras de luz.
+function dataCenterArt(){return mkA(64,64,a=>{const WB=P4('#b8bcc4','#d4d8de','#eceef2','#ffffff');
+  for(const x of[8,24,40]){rect(a,x,12,14,8,IRON[2]);ell(a,x+7,16,5,3,IRON[0]);ell(a,x+7,16,1.5,1,IRON[3]);}
+  rect(a,2,20,60,40,WB[2]);rect(a,48,20,14,40,WB[1]);rect(a,0,18,64,3,WB[3]);rect(a,2,30,60,2,hx('#5fe3d0'));rect(a,2,46,60,2,hx('#4a78b8'));
+  for(let x=6;x<46;x+=8)rect(a,x,34,5,10,DKW);rect(a,50,46,8,14,DKW);outlineAll(a,OUTL);});}
+// Fábrica de robots: nave con portón y un brazo robótico amarillo.
+function robotFactoryArt(){return mkA(64,64,a=>{const WH=P4('#7a828e','#9aa2ae','#bcc4ce','#dce2e8'),YL=P4('#a87a10','#d4a020','#f0c040','#ffe080');
+  rect(a,40,20,8,6,YL[1]);line(a,44,20,50,8,YL[2],4);line(a,50,8,58,14,YL[2],3);ell(a,50,8,2.5,2.5,YL[3]);rect(a,56,14,5,3,IRON[0]);rect(a,57,17,1,3,IRON[0]);rect(a,60,17,1,3,IRON[0]);
+  rect(a,2,28,60,32,WH[2]);rect(a,46,28,16,32,WH[1]);rect(a,0,24,64,4,WH[3]);
+  rect(a,8,38,24,22,IRON[1]);for(let y=39;y<60;y+=2)rect(a,8,y,24,1,IRON[0]);
+  rect(a,38,40,18,8,DKW);rect(a,40,42,4,4,hx('#5fe3d0'));rect(a,46,42,4,4,hx('#5fe3d0'));
   outlineAll(a,OUTL);});}
-// Cibercafé: frente violeta, cartel con una arroba y monitores en la vidriera.
-function cybercafeArt(){return mkA(64,64,a=>{const WL=P4('#6a4a7a','#8a5a9a','#a87ab8','#c8a0d4'),CY=hx('#5fe3d0');
-  rect(a,12,4,40,13,DKW);ell(a,32,10.5,5,5,CY);ell(a,32,10.5,3.5,3.5,DKW);ell(a,32.5,10.5,1.6,1.6,CY);rect(a,35,10,2,4,CY);rect(a,20,17,1,2,IRON[0]);rect(a,43,17,1,2,IRON[0]);
-  rect(a,4,22,56,38,WL[2]);rect(a,46,22,14,38,WL[1]);rect(a,2,18,60,4,WL[3]);
-  rect(a,8,28,30,22,hx('#1e2430'));for(const x of[11,23]){rect(a,x,34,8,6,hx('#9ad8f0'));rect(a,x+3,40,2,2,IRON[1]);rect(a,x-1,42,10,2,WOOD[2]);}
-  rect(a,8,50,30,2,WL[0]);rect(a,42,36,12,24,hx('#3a2a42'));rect(a,44,38,8,10,GLASS[1]);
+// Empresa de software: oficina de vidrio con un logo de colores y plantas en la entrada.
+function startupArt(){return mkA(64,64,a=>{const WB=P4('#8a9098','#a8b0b8','#c8d0d8','#e8ecf0');
+  ell(a,32,8,6,6,hx('#e8654d'));ell(a,32,8,4,4,hx('#ffd35a'));ell(a,32,8,2,2,hx('#5fe3d0'));rect(a,31,13,2,2,IRON[0]);
+  rect(a,6,18,52,42,GLASS[1]);rect(a,46,18,12,42,GLASS[0]);for(let x=6;x<58;x+=8)rect(a,x,18,1,42,WB[3]);for(let y=18;y<60;y+=10)rect(a,6,y,52,1,WB[3]);rect(a,4,14,56,4,WB[3]);
+  rect(a,26,48,12,12,GLASS[0]);rect(a,31,48,1,12,WB[3]);for(const x of[10,50]){rect(a,x,54,5,6,WOOD[2]);ell(a,x+2.5,52,3.5,3,LEAF[2]);}
   outlineAll(a,OUTL);});}
-// Tienda online: depósito con persiana, cajas y un cartel con un carrito.
-function shopArt(){return mkA(64,64,a=>{const WH=P4('#8a7a5a','#a8987a','#c8b898','#e0d4b8'),W2=hx('#f6f1e4');
-  poly(a,[[0,24],[32,12],[64,24]],(x,y)=>((y>>1)&1)?SLATE[2]:SLATE[3]);rect(a,2,24,60,36,WH[2]);rect(a,46,24,16,36,WH[1]);
-  rect(a,8,36,22,24,IRON[2]);for(let y=37;y<60;y+=2)rect(a,8,y,22,1,IRON[1]);
-  const box=(x,y,w,h)=>{rect(a,x,y,w,h,hx('#c8904a'));rect(a,x,y,w,1,hx('#e0b070'));rect(a,x+(w>>1),y,1,h,hx('#a87038'));};box(34,50,10,10);box(45,52,8,8);box(38,42,9,8);
-  rect(a,34,27,22,11,DKW);rect(a,37,29,3,1,W2);rect(a,40,30,10,4,W2);rect(a,41,31,8,2,DKW);a.set(42,35,W2);a.set(48,35,W2);
+// Huerta vertical: torre con estantes de plantas bajo luces violetas.
+function verticalFarmArt(){return mkA(64,64,a=>{const WB=P4('#8a9098','#a8b0b8','#c8d0d8','#e8ecf0');
+  rect(a,12,6,40,54,WB[2]);rect(a,44,6,8,54,WB[1]);rect(a,10,4,44,3,WB[3]);
+  for(let y=10;y<56;y+=9){rect(a,15,y,30,7,DKW);rect(a,15,y,30,1,hx('#c87ae8'));for(let x=16;x<45;x+=3)ell(a,x,y+4,1.5,1.5,LEAF[2+((x+y)&1)]);rect(a,15,y+6,30,1,SOIL[1]);}
+  rect(a,27,56,10,4,DKW);outlineAll(a,OUTL);});}
+// Instituto de alineación: edificio verde con un escudo y una tilde.
+function safetyArt(){return mkA(64,64,a=>{const GN=P4('#3a6a5a','#4e8a76','#6aa892','#8ec8b2');
+  poly(a,[[22,4],[42,4],[42,12],[32,20],[22,12]],(x,y)=>x<32?hx('#e8f4ff'):hx('#c8dcf0'));line(a,27,10,31,14,hx('#3f8f47'),2);line(a,31,14,38,7,hx('#3f8f47'),2);
+  rect(a,6,26,52,34,GN[2]);rect(a,46,26,12,34,GN[1]);rect(a,4,22,56,4,GN[3]);for(const x of[11,36,48])rect(a,x,32,7,10,GLASS[1]);rect(a,24,46,10,14,WOOD[1]);
   outlineAll(a,OUTL);});}
-// Laboratorio de semillas: invernadero con plantines y un cartel con un tubo de ensayo.
-function seedLabArt(){return mkA(64,64,a=>{const W2=hx('#f6f1e4');rect(a,26,4,12,9,DKW);rect(a,31,5,2,6,hx('#93d36c'));ell(a,32,11,1.5,1,hx('#93d36c'));rect(a,31,13,2,2,IRON[0]);
-  poly(a,[[4,30],[32,15],[60,30]],(x,y)=>(x%6===4)?W2:GLASS[2]);rect(a,4,30,56,28,GLASS[1]);for(let x=4;x<60;x+=6)rect(a,x,30,1,28,W2);rect(a,4,44,56,1,W2);
-  for(let x=7;x<58;x+=4){const h=4+((x*7)%5);rect(a,x,56-h,1,h,BLADE[1]);ell(a,x,56-h,1.6,1.4,LEAF[2+(x&1)]);}
-  rect(a,4,56,56,4,SOIL[1]);outlineAll(a,OUTL);});}
-// Buscador: edificio blanco con ventanas y una lupa gigante en el techo.
-function searchArt(){return mkA(64,64,a=>{const WB=P4('#c8ccd4','#dfe2e8','#eef0f4','#ffffff'),BL=hx('#4a78b8');
-  for(let j=-9;j<=9;j++)for(let i=-9;i<=9;i++){const d=Math.hypot(i,j);if(d<=8.5&&d>=6)a.set(30+i,11+j,BL);else if(d<6)a.set(30+i,11+j,i+j<-3?hx('#e8f4ff'):hx('#b8d4f0'));}
-  line(a,36,17,43,23,BL,3);
-  rect(a,6,26,52,34,WB[2]);rect(a,46,26,12,34,WB[1]);rect(a,4,22,56,4,WB[3]);
-  for(let y=30;y<50;y+=6)for(let x=10;x<44;x+=7)rect(a,x,y,5,4,GLASS[1]);rect(a,26,50,12,10,GLASS[0]);
+// Laboratorio de IA: edificio violeta con una red neuronal en el cartel.
+function aiLabArt(){return mkA(64,64,a=>{const WB=P4('#4a4a6a','#5e5e88','#7a7aa8','#9a9ac4'),N=[[19,6],[19,14],[32,5],[32,10],[32,15],[45,10]];
+  rect(a,14,2,36,16,DKW);for(const[x1,y1]of N.slice(0,2))for(const[x2,y2]of N.slice(2,5))line(a,x1,y1,x2,y2,WB[1],1);for(const[x1,y1]of N.slice(2,5))line(a,x1,y1,45,10,WB[1],1);for(const[x,y]of N)ell(a,x,y,1.6,1.6,hx('#5fe3d0'));
+  rect(a,4,24,56,36,WB[2]);rect(a,46,24,14,36,WB[1]);rect(a,2,20,60,4,WB[3]);for(let x=8;x<44;x+=9)rect(a,x,30,6,12,hx('#9ad8f0'));rect(a,24,46,12,14,DKW);
   outlineAll(a,OUTL);});}
-// Ciudad lejana: torres con ventanas prendidas.
-function cityArt(){return mkA(64,64,a=>{const tower=(x,w,top,c)=>{rect(a,x,top,w,60-top,c[2]);rect(a,x+w-3,top,3,60-top,c[1]);for(let y=top+3;y<57;y+=4)for(let i=x+2;i<x+w-3;i+=3)a.set(i,y,hash(i,y,5)<0.6?hx('#ffe98a'):c[0]);};
-  rect(a,24,2,2,6,IRON[1]);ell(a,25,2,1.4,1.4,RED);
-  tower(6,12,24,P4('#3a4a6a','#4e6088','#6a7ea8','#8a9ec4'));tower(18,14,8,P4('#5a4a6a','#76628a','#9a84ac','#bca8cc'));tower(32,12,18,P4('#4a5a5a','#5e7474','#7a9494','#9ab4b4'));tower(44,14,30,P4('#3a4a6a','#4e6088','#6a7ea8','#8a9ec4'));
-  rect(a,2,58,60,4,STONE2[2]);outlineAll(a,OUTL);});}
-// Virus: bola roja con púas y cara de enojado; dos cuadros.
-function virusArt(f){return mkA(32,32,a=>{const VR=P4('#8a1f2a','#c8413b','#e8654d','#f8a090'),K=hx('#1b1a24');
-  for(let k=0;k<8;k++){const an=k*Math.PI/4+(f?0.25:0),x=16+Math.cos(an)*11,y=16+Math.sin(an)*11;line(a,16+Math.cos(an)*7,16+Math.sin(an)*7,x,y,VR[1],2);ell(a,x,y,2,2,VR[3]);}
-  blob(a,[[16,16,8]],VR,null);ell(a,13,14,1.4,1.4,K);ell(a,19,14,1.4,1.4,K);line(a,11,11,14,12,K,1);line(a,21,11,18,12,K,1);rect(a,13,19,7,1,K);
-  outlineAll(a,OUTL);});}
-const VILPAL2=[{c:'#e8654d',C:'#b84a38',j:'#2a2a3a',y:'#3a2418'},{c:'#2f6b8a',C:'#204e68',j:'#e3ddcc',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#6a8a3a',C:'#4e6a28',j:'#2a2a3a',y:'#8a5a2a'}];
-const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:lithiumOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:modernHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),servidor:serverArt(),antena:towerArt(),cibercafe:cybercafeArt(),tienda:shopArt(),semillas:seedLabArt(),buscador:searchArt(),ciudad:cityArt(),bug:[virusArt(0),virusArt(1)],
-  hero:[personArt({c:'#2f8a8a',C:'#1f6060',j:'#e8654d'},0),personArt({c:'#2f8a8a',C:'#1f6060',j:'#e8654d'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
+// Robot: cabeza con visor y antena, cuerpo con panel. Desalineado: ojos rojos y cejas de enojado.
+function robotArt(f,bad){return mkA(64,64,a=>{const M=P4('#5a6270','#8a93a3','#b8c0cc','#dfe4ea'),EY=bad?hx('#e8654d'):hx('#5fe3d0');
+  const lg=f?[[22,50,-2],[36,52,0]]:[[23,52,0],[35,50,-2]];for(const[x,y0,d]of lg){rect(a,x,y0,6,10+d,M[1]);rect(a,x-1,y0+8+d,8,3,M[0]);}
+  rect(a,18,30,28,22,M[2]);rect(a,40,30,6,22,M[1]);rect(a,18,30,28,2,M[3]);rect(a,26,36,12,8,DKW);rect(a,28,38,3,2,EY);rect(a,33,40,3,2,bad?hx('#ffd35a'):hx('#93d36c'));
+  for(const x of[12,46]){rect(a,x,32,6,14,M[1]);rect(a,x,46,6,3,M[0]);}
+  rect(a,20,10,24,18,M[2]);rect(a,38,10,6,18,M[1]);rect(a,20,10,24,2,M[3]);rect(a,23,15,18,8,DKW);rect(a,25,17,5,4,EY);rect(a,34,17,5,4,EY);
+  if(bad){line(a,24,14,30,16,EY,1);line(a,40,14,34,16,EY,1);}
+  rect(a,31,4,2,6,M[0]);ell(a,32,3,2,2,EY);outlineAll(a,OUTL);});}
+const VILPAL2=[{c:'#3a3a48',C:'#28283a',j:'#5fe3d0',y:'#3a2418'},{c:'#d8d0c0',C:'#a89c88',j:'#4a78b8',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#c87a3a',C:'#9a5a28',j:'#2a2a3a',y:'#8a5a2a'}];
+const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:rareEarthOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
+  casa:smartHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),datacenter:dataCenterArt(),fabrob:robotFactoryArt(),startup:startupArt(),huerta:verticalFarmArt(),seguridad:safetyArt(),labia:aiLabArt(),robot:[robotArt(0,0),robotArt(1,0)],robotBad:[robotArt(0,1),robotArt(1,1)],
+  hero:[personArt({c:'#4a78b8',C:'#2f5a96',j:'#ffd35a'},0),personArt({c:'#4a78b8',C:'#2f5a96',j:'#ffd35a'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
 // Dibuja un sprite en alta con el tamaño que tenía el de 16 px.
 const hd=(c,x,y)=>ctx.drawImage(c,x,y,c.width/ART,c.height/ART);
 
@@ -742,6 +739,8 @@ function drawWires(x0,y0,x1,y1){const g=grid();if(!g.links.length)return;
   for(const l of g.links){if(!vis(l))continue;const[ax,ay]=at(l[0]),[bx,by]=at(l[1]);ctx.moveTo(ax,ay);ctx.quadraticCurveTo((ax+bx)/2,(ay+by)/2+1.2,bx,by);}ctx.stroke();
   if(!g.linked.length)return;const t=performance.now()/1000;ctx.fillStyle='#e8fff8';
   for(const l of g.links){if(!vis(l))continue;const[ax,ay]=at(l[0]),[bx,by]=at(l[1]),u=1-(t*0.7+hash(l[1].i,3,1))%1;ctx.fillRect(ax+(bx-ax)*u-0.5,ay+(by-ay)*u+2.4*u*(1-u)-0.5,1,1);}}
+// Halo rojo que late debajo de los robots desalineados.
+function drawBadBots(){const t=performance.now()/1000;for(const v of vil){if(!v.bad)continue;ctx.fillStyle='rgba(232,101,77,'+(0.25+0.12*Math.sin(t*8)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(v.x*T+8,v.y*T+13,7,3,0,0,6.29);ctx.fill();}}
 // Virus viajando por la red, con un halo rojo que late.
 function drawViruses(){const t=performance.now()/1000;for(const v of viruses){const x=v.x*T+8,y=v.y*T+8;ctx.fillStyle='rgba(232,101,77,.28)';ctx.beginPath();ctx.arc(x,y,5+Math.sin(t*8)*0.8,0,6.29);ctx.fill();ctx.drawImage(HS.bug[Math.floor(t*6)%2],x-4,y-4,8,8);}}
 // Lucecitas de los racks que titilan mientras el servidor anda.
@@ -766,7 +765,7 @@ function drawObj(o,x,y){
     case'antena':shadow(px+8,py+15,4,1);hd(HS.antena,px,py);break;
     case'ciudad':{shadow(px+8,py+15,8,2);hd(HS.ciudad,px,py);const on=grid().on.has(y*MW+x);ctx.font='600 4px "Pixelify Sans", monospace';ctx.textAlign='center';ctx.lineWidth=1;ctx.strokeStyle='#1b1a24';
       const nm=cityName(x,y);ctx.strokeText(nm,px+8,py-1.5);ctx.fillStyle=on?'#5fe3d0':'#f0e7d4';ctx.fillText(nm,px+8,py-1.5);}break;
-    default:if(HS[o.t]){shadow(px+8,py+15,8,2);hd(HS[o.t],px,py);const lit=grid().powered.has(y*MW+x);if(BUILD[o.t]&&BUILD[o.t].elec&&!lit)noPower(px,py);if(o.t==='servidor'&&!o.bug)blink(px,py);if(o.bug)drawBug(px,py);}
+    default:if(HS[o.t]){shadow(px+8,py+15,8,2);hd(HS[o.t],px,py);const lit=grid().powered.has(y*MW+x);if(BUILD[o.t]&&BUILD[o.t].elec&&!lit)noPower(px,py);if(o.bug)drawBug(px,py);}
   }
   const cfg=RES[o.t];
   if(cfg&&o.hp>0&&o.hp<cfg.hp){ctx.fillStyle='#1b1a24';ctx.fillRect(px+2,top-3,12,3);ctx.fillStyle='#93d36c';ctx.fillRect(px+3,top-2,10*o.hp/cfg.hp,1);}
@@ -803,11 +802,11 @@ function render(){
     for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(Math.abs(x-px)+Math.abs(y-py)>rad||!canPlace(placing,x,y))continue;ctx.fillStyle=g&&nearNode(g,x,y)<=reach?'rgba(255,211,90,.32)':'rgba(95,227,208,.16)';ctx.fillRect(x*T+1,y*T+1,T-2,T-2);}}
   const list=[];
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*MW+x];if(o)list.push({k:y+1,z:0,o,x,y});}
-  list.push({k:P.y+1,z:1,e:P,f:HS.hero,p:true});for(const v of vil)list.push({k:v.y+1,z:1,e:v,f:HS.vil[v.skin%3]});
+  list.push({k:P.y+1,z:1,e:P,f:HS.hero,p:true});for(const v of vil)list.push({k:v.y+1,z:1,e:v,f:v.bot?(v.bad?HS.robotBad:HS.robot):HS.vil[v.skin%3]});
+  drawBadBots();
   list.sort((a,b)=>a.k-b.k||a.z-b.z);
   for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else drawEnt(it.e,it.f,it.p);}
   drawWires(x0,y0,x1,y1);
-  drawViruses();
   const tg=P.act||P.task;if(tg)corners(tg.x,tg.y,'#5fe3d0');
   if(marker&&!tg)corners(marker.x,marker.y,'rgba(240,231,212,'+Math.min(1,marker.t*2)+')');
   if(st.smog>1){const f=st.smog/100;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='rgba(84,74,62,'+(0.4*f).toFixed(3)+')';ctx.fillRect(0,0,W,H);
@@ -819,9 +818,9 @@ function render(){
     const hole=(wx,wy,R,a)=>{const sx=(wx-cam.x)*s,sy=(wy-cam.y)*s,g=lx.createRadialGradient(sx,sy,0,sx,sy,R);g.addColorStop(0,'rgba(0,0,0,'+a+')');g.addColorStop(0.55,'rgba(0,0,0,'+a*0.75+')');g.addColorStop(1,'rgba(0,0,0,0)');lx.fillStyle=g;lx.beginPath();lx.arc(sx,sy,R,0,Math.PI*2);lx.fill();};
     const lights=[],G=grid();
     for(let y=Math.max(0,y0-5);y<=Math.min(MH-1,y1+5);y++)for(let x=Math.max(0,x0-5);x<=Math.min(MW-1,x1+5);x++){const o=obj[y*MW+x];if(!o)continue;
-      if(o.t==='fogata')lights.push([x*T+8,y*T+9,5,1]);else if(o.t==='herreria'||o.t==='servidor'||o.t==='cibercafe'||o.t==='tienda'||o.t==='buscador'||o.t==='semillas')lights.push([x*T+8,y*T+10,3,0.8]);else if(o.t==='ciudad')lights.push([x*T+8,y*T+8,5,0.9]);else if(o.t==='antena'&&G.on.has(y*MW+x))lights.push([x*T+8,y*T+2,1.6,0.8]);else if(o.t==='casa')lights.push([x*T+8,y*T+10,1.8,0.6]);else if(o.t==='parque')lights.push([x*T+10,y*T+7,1.6,0.7]);}
+      if(o.t==='fogata')lights.push([x*T+8,y*T+9,5,1]);else if(o.t==='herreria'||o.t==='datacenter'||o.t==='fabrob'||o.t==='startup'||o.t==='huerta'||o.t==='seguridad'||o.t==='labia')lights.push([x*T+8,y*T+10,3,0.8]);else if(o.t==='casa')lights.push([x*T+8,y*T+10,1.8,0.6]);else if(o.t==='parque')lights.push([x*T+10,y*T+7,1.6,0.7]);}
     for(const[fx,fy,r,a]of lights)hole(fx,fy,T*s*(r+0.15*Math.sin(st.time*9+fx)),a);
-    hole(P.x*T+8,P.y*T+8,T*s*(st.techs.banda?4:2.2),0.75);
+    hole(P.x*T+8,P.y*T+8,T*s*(st.techs.chips?4:2.2),0.75);
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(lc,0,0);
     ctx.globalCompositeOperation='lighter';
     for(const[fx,fy,r]of lights){if(r<3)continue;const sx=(fx-cam.x)*s,sy=(fy-cam.y)*s,R=T*s*r*0.65,g=ctx.createRadialGradient(sx,sy,0,sx,sy,R);g.addColorStop(0,'rgba(255,150,50,'+(0.26*d/0.62)+')');g.addColorStop(1,'rgba(255,150,50,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(sx,sy,R,0,Math.PI*2);ctx.fill();}
@@ -830,11 +829,11 @@ function render(){
   ctx.font='600 7px "Pixelify Sans", monospace';ctx.textAlign='center';ctx.lineWidth=2;ctx.lineJoin='round';
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.t*1.5);ctx.strokeStyle='#1b1a24';ctx.strokeText(f.txt,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y);}
   ctx.globalAlpha=1;
-  // Flechas rojas en el borde para los virus que vienen fuera de la pantalla.
-  if(viruses.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
-    for(const v of viruses){const sx=(v.x*T+8-cam.x)*s,sy=(v.y*T+8-cam.y)*s;if(sx>=0&&sx<=W&&sy>=top&&sy<=bot)continue;
+  // Flechas rojas en el borde para los robots desalineados que están fuera de la pantalla.
+  {const TH=vil.filter(v=>v.bad);if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
+    for(const v of TH){const sx=(v.x*T+8-cam.x)*s,sy=(v.y*T+8-cam.y)*s;if(sx>=0&&sx<=W&&sy>=top&&sy<=bot)continue;
       const cx=clamp(sx,14*DPR,W-14*DPR),cy=clamp(sy,top,bot),an=Math.atan2(sy-cy,sx-cx);ctx.save();ctx.translate(cx,cy);ctx.rotate(an);
-      ctx.fillStyle='#e8654d';ctx.strokeStyle='#1b1a24';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(10*DPR,0);ctx.lineTo(-6*DPR,-7*DPR);ctx.lineTo(-6*DPR,7*DPR);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();}}
+      ctx.fillStyle='#e8654d';ctx.strokeStyle='#1b1a24';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(10*DPR,0);ctx.lineTo(-6*DPR,-7*DPR);ctx.lineTo(-6*DPR,7*DPR);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();}}}
 }
 
 /* ---------- HUD ---------- */
@@ -845,25 +844,24 @@ const chipEl={};
   const bar=$('agiBar');for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=(i*10)+'%';bar.appendChild(t);}
 })();
 function flashChip(k){const c=chipEl[k];if(!c)return;c.classList.add('flash');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('flash'),350);}
-const agiPct=()=>70+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10;
+const agiPct=()=>80+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10;
 function goalText(){
   if(st.energy<25)return['Comé algo:','tu energía está baja.'];
   const hungry=vil.filter(v=>v.hungry).length;
   if(hungry)return['Hambre:',hungry+(hungry===1?' aldeano no comió.':' aldeanos no comieron.')+' Construí granjas.'];
-  if(serverDown())return['Servidor caído:','tocalo para limpiar el virus y que vuelva la red.'];
-  if(viruses.length)return['¡Virus!',viruses.length+(viruses.length===1?' viene':' vienen')+' por la red. Tocalos antes de que lleguen.'];
+  {const bad=vil.filter(v=>v.bad).length;if(bad)return['¡Robot desalineado!',bad===1?'Está convirtiendo tus recursos en clips. Tocalo para corregirlo.':'Hay '+bad+' convirtiendo tus recursos en clips. Tocalos para corregirlos.'];}
   if(st.smog>=30&&!counts.parque)return['Mucho humo:','tu gente junta menos. Construí parques.'];
-  if(st.techs.www&&!counts.servidor)return['Construí','un servidor: es el centro de tu red.'];
-  if(counts.servidor&&!grid().linked.length)return['Conectá','una ciudad lejana: poné antenas desde el servidor.'];
+  if(st.techs.robotica&&!counts.fabrob)return['Construí','una fábrica de robots: juntan solos y no comen.'];
+  if(st.techs.alineacion&&!counts.seguridad)return['Construí','un instituto de alineación: tus robots se desalinean menos.'];
   if(st.smog>=60)return['Humo espeso:','juntás y cosechás −'+Math.round(st.smog/2)+'%. Más parques, o represas en vez de usinas.'];
-  if(st.gathers===0&&!counts.granja)return['Empezá:','construí una granja y juntá litio en las colinas.'];
-  const full=['madera','piedra','litio','comida','monedas'].find(k=>st.res[k]>=cap(k));
+  if(st.gathers===0&&!counts.granja)return['Empezá:','construí una granja y juntá tierras raras en las colinas.'];
+  const full=['madera','piedra','tierras','comida','monedas'].find(k=>st.res[k]>=cap(k));
   if(full)return['Granero lleno:','no entra más '+RN[full].toLowerCase()+'.'];
-  if(st.techs.www&&!counts.cibercafe)return['Construí','un cibercafé: genera muchas ideas.'];
-  if(st.techs.comercio&&!counts.tienda)return['Construí','una tienda online para conseguir monedas.'];
-  if(st.techs.biotec&&!counts.semillas)return['Construí','un laboratorio de semillas: potencia las granjas.'];
+  if(st.techs.redes&&!counts.datacenter)return['Construí','un centro de datos: genera muchas ideas.'];
+  if(st.techs.software&&!counts.startup)return['Construí','una empresa de software para conseguir monedas.'];
+  if(st.techs.vertical&&!counts.huerta)return['Construí','una huerta vertical: potencia las granjas.'];
   const next=TECHS.find(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r]));
-  if(!next)return['Era de Internet completa.','Seguí creciendo tu ciudad.'];
+  if(!next)return['Era de la IA completa.','Seguí creciendo tu ciudad.'];
   const miss=Object.entries(next.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>Math.ceil(v-st.res[k])+' '+RN[k].toLowerCase());
   return miss.length?['Próximo: '+next.name+'.','Faltan '+miss.join(', ')+'.']:['Próximo: '+next.name+'.','Listo, abrí Inventos.'];
 }
@@ -879,17 +877,16 @@ function hud(){
   const e=st.energy;$('eFill').style.width=e+'%';$('eFill').classList.toggle('low',e<25);$('eNum').textContent=Math.ceil(e);
   const sv=st.smog,sOn=sv>=0.5||BUILDS.some(b=>b.smoke&&counts[b.id]);$('smogRow').hidden=!sOn;
   if(sOn){const r=smogRate(),pen=Math.round(sv/2);$('sFill').style.width=sv+'%';$('sFill').classList.toggle('hi',sv>=50);$('sNum').textContent=Math.round(sv)+'%'+(r>0.004?' ↑':r<-0.004?' ↓':'');$('sMeta').textContent=pen?'juntás y cosechás −'+pen+'%':'aire limpio';}
-  {const g=grid(),nc=g.cities.length,nl=g.linked.length,down=serverDown();$('gridRow').hidden=false;
-    $('gFill').style.width=(nc?nl/nc*100:0)+'%';$('gFill').classList.toggle('hi',down);$('gNum').textContent=nl+'/'+nc;
-    $('gMeta').textContent=down?'servidor caído':viruses.length?viruses.length+' virus en camino':nl?'+'+fmt(cityRate()*60)+' monedas/min':'sin ciudades';}
-  const day=Math.floor(st.time/DAY)+1;$('meta').textContent='Día '+day+(darkness()>0.3?' · noche':'')+' · '+vil.length+(vil.length===1?' aldeano':' aldeanos');
+  {const bots=vil.filter(v=>v.bot),nb=bots.length,bad=bots.filter(v=>v.bad).length,on=nb>0||!!st.techs.robotica;$('gridRow').hidden=!on;
+    if(on){$('gFill').style.width=(nb?(nb-bad)/nb*100:0)+'%';$('gFill').classList.toggle('hi',bad>0);$('gNum').textContent=nb+'';$('gMeta').textContent=bad?bad+(bad===1?' desalineado':' desalineados'):nb?'todos alineados':'sin robots';}}
+  const day=Math.floor(st.time/DAY)+1;const nRob=vil.filter(v=>v.bot).length,nHum=vil.length-nRob;$('meta').textContent='Día '+day+(darkness()>0.3?' · noche':'')+' · '+nHum+(nHum===1?' aldeano':' aldeanos')+(nRob?' · '+nRob+' robots':'');
   const pct=agiPct();$('agiFill').style.width=pct+'%';$('agiPct').textContent=fmt(pct)+'% a la AGI';
   const[g1,g2]=goalText(),gk=g1+g2;if(gk!==lastGoal){lastGoal=gk;const g=$('goal');g.innerHTML='';const s=document.createElement('span');s.className='gl';s.textContent=g1;g.append(s,' '+g2);}
   const nDone=TECHS.filter(t=>st.techs[t.id]).length;$('techHint').textContent=nDone+' de '+TECHS.length;
   $('techDot').classList.toggle('on',TECHS.some(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r])&&afford(t.cost)));
   $('buildDot').classList.toggle('on',BUILDS.some(b=>(!b.req||st.techs[b.req])&&!counts[b.id]&&afford(buildCost(b))));
   const hungry=vil.filter(v=>v.hungry).length;$('tribeDot').classList.toggle('on',hungry>0);
-  $('tribeHint').textContent=vil.length+(vil.length===1?' aldeano':' aldeanos');
+  {const nh=vil.filter(v=>!v.bot).length;$('tribeHint').textContent=nh+(nh===1?' aldeano':' aldeanos');}
   $('eatHint').textContent=nearFire(P.x,P.y,4)?'+25 al fuego':'+12 energía';
   // La hoja se rehace solo si cambia algo que se ve: si un botón se reemplaza entre que apoyás el dedo y lo levantás, el toque se pierde.
   if(sheetMode&&!sheetHeld){const ok=c=>Object.entries(c).map(([k,v])=>st.res[k]>=v?1:0).join('');
@@ -904,7 +901,7 @@ function prodLine(b){const p=prodOf(b);const parts=Object.entries(p).map(([k,v])
 function renderSheet(){
   const body=$('sheetBody');
   if(sheetMode==='tech'){
-    $('sheetTitle').textContent='Inventos';$('sheetSub').textContent=TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length+' inventos de Internet';
+    $('sheetTitle').textContent='Inventos';$('sheetSub').textContent=TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length+' inventos de la IA';
     body.innerHTML=TECHS.map(t=>{const done=st.techs[t.id],open=t.req.every(r=>st.techs[r]),can=open&&!done&&afford(t.cost);
       const right=done?'<span class="tag ok">Investigado</span>':open?'<button class="btn" data-tech="'+t.id+'"'+(can?'':' disabled')+'>Investigar</button>':'<span class="tag">Bloqueado</span>';
       const foot=done?'':open?costHTML(t.cost):'<p>Requiere: '+t.req.map(r=>TECH[r].name).join(' + ')+'</p>';
@@ -943,7 +940,7 @@ $('sheetBody').addEventListener('click',e=>{
 function research(id){
   const t=TECH[id];if(st.techs[id]||!t.req.every(r=>st.techs[r])||!afford(t.cost))return;
   pay(t.cost);st.techs[id]=true;toast('Investigaste: '+t.name);renderSheet();hud();
-  if(id==='smartphone'&&!st.won){st.won=true;save();if(sheetMode){sheetMode=null;$('sheet').hidden=true;skipPush=true;}showWin();}
+  if(id==='asistente'&&!st.won){st.won=true;save();if(sheetMode){sheetMode=null;$('sheet').hidden=true;skipPush=true;}showWin();}
   save();
 }
 function startPlace(id){if(sheetMode){sheetMode=null;$('sheet').hidden=true;}else navPush();placing=id;$('place').hidden=false;$('placeTxt').textContent='Tocá un lugar libre para: '+BUILD[id].name.toLowerCase()+(BUILD[id].water?' (junto al agua)':'');}
@@ -966,6 +963,7 @@ function tryPlace(x,y){
   if(!canPlace(placing,x,y)){toast(b.water&&inb(x,y)&&!nextToWater(x,y)?'La represa tiene que ir pegada al agua.':'Ahí no se puede construir.');return;}
   pay(c);obj[y*MW+x]={t:placing};counts[placing]++;GRID=null;
   if(placing==='casa'){addVillager(x,y);addVillager(x,y);}
+  if(placing==='fabrob'){addRobot(x,y);addRobot(x,y);}
   toast(b.done);
   if(b.elec&&!grid().powered.has(y*MW+x))toast('Sin luz: poné un poste cerca o acercalo a la red.');
   if(placing!=='granja'||!afford(buildCost(b)))stopPlace();
@@ -981,18 +979,15 @@ function hideModal(fromBack){if($('modal').hidden)return;if(!fromBack)navPop();$
 const erasHTML=done=>'<div class="eras">'+ERAS.map((e,i)=>'<span class="'+(i<done?'on':'')+'">'+e+'</span>').join('')+'</div>';
 function showIntro(){
   const L=st.legacy;
-  const leg=L.has?'<div class="kicker">Lo que trae tu ciudad de la Computación</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">No hay una Computación terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.</p>';
-  showModalI('<div class="kicker">Mundo abierto · 1991 d.C.</div><h1>Internet</h1><p>Las computadoras se conectan entre sí. Llevá la red con antenas hasta las ciudades lejanas para comerciar con ellas, pero por los mismos cables llegan virus: tocalos antes de que tumben tu servidor. La meta: el teléfono inteligente, Internet en el bolsillo.</p>'+erasHTML(7)+leg+'<p class="muted">Novedades: litio, servidor, antenas, ciudades para conectar y virus que viajan por la red. Ya hay luz en todos lados y no hay humo.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
+  const leg=L.has?'<div class="kicker">Lo que trae tu ciudad de la era de Internet</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">No hay una era de Internet terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.</p>';
+  showModalI('<div class="kicker">Mundo abierto · 2012 d.C.</div><h1>La IA</h1><p>Las máquinas aprenden. Los robots juntan recursos solos, más rápido que nadie y sin comer, pero a veces se desalinean: dejan de hacerte caso y convierten tus recursos en clips. Tocalos para corregirlos. La meta: un asistente universal, una IA que ayuda en cualquier tarea.</p>'+erasHTML(8)+leg+'<p class="muted">Novedades: tierras raras, robots que se desalinean, centros de datos e institutos de alineación. Ya no hay virus ni ciudades para conectar.</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
 }
-function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Llevá la red con antenas desde tu servidor hasta las ciudades lejanas: cada una conectada da monedas e ideas. Por la red llegan virus: tocalos antes de que lleguen al servidor, y si uno llega, tocá el servidor para limpiarlo. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?'<button class="btn ghost" data-m="next">Pasar a la IA</button>':'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
-function showWin(){showModal('<div class="kicker">Mundo abierto · Internet</div><h1>Era de Internet superada</h1><p>Terminaste el teléfono inteligente en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ahora todos llevan Internet en el bolsillo.</p>'+erasHTML(8)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan a la era de la IA.</p><div class="row"><button class="btn" data-m="next">Pasar a la IA</button><button class="btn ghost" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
-// La era de la IA del mundo abierto se carga sobre esta página, como las eras desde el hub.
-function goPage(f){save();window.__rtagiActive='switching';fetch(f).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();}).catch(()=>{window.__rtagiActive=ERA_ID;requestAnimationFrame(frame);toast('No se pudo cargar. Volvé a abrir el juego.','bad');});}
+function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+fmt(agiPct())+'% a la AGI</div><h2>Menú</h2><p class="muted">Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Las fábricas de robots arman robots que juntan solos y no comen, pero a veces se desalinean y convierten tus recursos en clips: tocalos para corregirlos antes de que convenzan a otros. En la compu: flechas o WASD, E para juntar, F para comer.</p><div class="row"><button class="btn" data-m="close">Volver al juego</button><button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
+function showWin(){showModal('<div class="kicker">Mundo abierto · IA</div><h1>Era de la IA superada</h1><p>Terminaste el asistente universal en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y robots y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ya hay una IA que ayuda en cualquier tarea.</p>'+erasHTML(9)+'<p class="muted">Es un prototipo: no suma al progreso de las eras. La AGI todavía no está.</p><div class="row"><button class="btn" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
 $('modalCard').addEventListener('click',e=>{
   const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
   if(m==='start'){st.seen=true;save();hideModal();}
   else if(m==='close')hideModal();
-  else if(m==='next'){goPage('mundo9.html');return;}
   else if(m==='hub'){save();window.__rtagiActive='switching';location.reload();}
   else if(m==='reset'){if(!resetArmed){resetArmed=true;b.textContent='Tocá de nuevo para borrar la era';b.classList.add('warn');return;}
     try{localStorage.removeItem(KEY);}catch(err){}newGame();closeSheet();stopPlace();showIntro();}
@@ -1000,10 +995,10 @@ $('modalCard').addEventListener('click',e=>{
 $('bEat').onclick=eat;$('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tech');$('bTribe').onclick=()=>openSheet('tribe');$('bMenu').onclick=showMenu;
 
 /* ---------- entrada ---------- */
-const INFO={casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',servidor:'Servidor: el centro de tu red.',antena:'Antena: estira la red.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',cibercafe:'Cibercafé: genera ideas.',tienda:'Tienda online: da monedas.',semillas:'Laboratorio de semillas: potencia las granjas.',buscador:'Buscador: más ideas.',ciudad:'Ciudad lejana: llevá la red con antenas para comerciar.'};
+const INFO={casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',datacenter:'Centro de datos: genera ideas.',fabrob:'Fábrica de robots: arma robots.',startup:'Empresa de software: da monedas.',huerta:'Huerta vertical: potencia las granjas.',seguridad:'Instituto de alineación: los robots se desalinean menos.',labia:'Laboratorio de IA: más ideas.'};
 function onTap(tx,ty){
   if(placing){tryPlace(tx,ty);return;}
-  {const hit=viruses.find(v=>Math.hypot(v.x-tx,v.y-ty)<=1.2);if(hit){hit.dead=true;viruses=viruses.filter(v=>!v.dead);st.res.ideas+=2;float(hit.x,hit.y,'+2 ideas',RCOL.ideas);return;}}
+  {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){hit.bad=false;hit.badT=0;hit.state='idle';hit.t=0.5;st.res.ideas+=3;float(hit.x,hit.y-0.6,'+3 ideas',RCOL.ideas);toast('Robot realineado');save();return;}}
   if(!inb(tx,ty))return;
   let o=obj[ty*MW+tx];
   if(!o&&inb(tx,ty+1)){const b=obj[(ty+1)*MW+tx];if(b&&b.t==='tree'&&b.hp>0){ty++;o=b;}}
@@ -1059,7 +1054,7 @@ if(!ok)newGame();
 resize();hud();
 if(!st.seen)showIntro();
 requestAnimationFrame(frame);
-if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,grid:()=>grid(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),cityRate:()=>cityRate()};
+if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,misalign:v=>misalign(v),badSpread:()=>badSpread()};
 })();
 </script>
 </body></html>

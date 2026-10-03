@@ -18,6 +18,7 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI e
 | `mundo6.html` | Mundo abierto, Electricidad: cobre, usinas, represas, postes y cables; los edificios con ⚡ andan solo si están conectados a la red; obra final: la tabuladora eléctrica; arranca con lo que trae la ciudad de la Industria | prototipo |
 | `mundo7.html` | Mundo abierto, Computación: silicio, computadoras, oficinas y bichos que traban las máquinas y hay que tocar antes de que se contagien; obra final: el microprocesador; arranca con lo que trae la ciudad de la Electricidad | prototipo |
 | `mundo8.html` | Mundo abierto, Internet: litio, servidor y antenas para conectar cuatro ciudades lejanas que dan monedas e ideas; por la red llegan virus que hay que tocar antes de que tumben el servidor; obra final: el teléfono inteligente; arranca con lo que trae la ciudad de la Computación | prototipo |
+| `mundo9.html` | Mundo abierto, IA: tierras raras, centros de datos y fábricas de robots que juntan solos; los robots a veces se desalinean y convierten tus recursos en clips hasta que los tocás; obra final: el asistente universal; arranca con lo que trae la ciudad de la era de Internet | prototipo |
 | `arbol.html` | Prototipo del árbol de progreso de las 10 eras (sin juego atrás) | prototipo |
 
 ## Correr
