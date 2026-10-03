@@ -1,10 +1,12 @@
-// Renacimiento del mundo abierto: plata, talleres, bancos, carabelas y la pascalina. Datos y arte de la era; las reglas están en motor.html.
+// Renacimiento del mundo abierto: plata, talleres, bancos, carabelas, langostas y palomares, y la pascalina. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
   n:4,name:'Renacimiento',de:'del Renacimiento',next:{file:'mundo5.html',to:'a la Industria'},
   ore:{id:'plata',name:'Plata',col:'#e3e8f0',empty:'Veta de plata agotada',gather:'plata',icon:[['........','........','..kkkkkk','.kvvvvQk','kqqqqqQk','kQQQQQkk','kkkkkkk.','........'],{q:'#c9d1dc',Q:'#8a93a3',v:'#ffffff'}]},
   storage:{id:'granero',name:'Granero'},ideaBuild:'academia',ideaTechs:['perspectiva','academias','telescopio'],boostTech:'mecanica',farmBuild:'jardin',nightTech:'telescopio',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','taller','puerto','academia'],
+  // Mangas de langostas que llegan volando a comerse las granjas; el palomar las espanta a 4 casilleros (reglas en motor.html).
+  locusts:true,defense:{id:'palomar',r:4,label:'Palomares',of:['granja']},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo3-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la Edad Media',perks:[
     ['imprenta','ideaMult',1.25,'Imprenta: ideas +25% durante toda la era'],
@@ -14,7 +16,7 @@ const ERA={
  {id:'perspectiva',name:'Perspectiva',cost:{piedra:15,ideas:35},req:[],desc:'Desbloquea el taller de artistas, que genera muchas ideas. Ideas +50%.'},
  {id:'mineria',name:'Minería de plata',cost:{plata:15,ideas:30},req:[],desc:'Desbloquea la herrería y la cantera.'},
  {id:'banca',name:'Banca',cost:{plata:20,ideas:50},req:['mineria'],desc:'Desbloquea el banco, que cambia plata por monedas.'},
- {id:'botanica',name:'Botánica',cost:{madera:40,piedra:20,ideas:65},req:['perspectiva'],desc:'Desbloquea el jardín botánico, que potencia las granjas.'},
+ {id:'botanica',name:'Botánica',cost:{madera:40,piedra:20,ideas:65},req:['perspectiva'],desc:'Desbloquea el jardín botánico, que potencia las granjas, y el palomar, que espanta las langostas.'},
  {id:'carabelas',name:'Carabelas',cost:{madera:60,plata:20,ideas:95},req:['banca'],desc:'Desbloquea el puerto: barcos que cruzan el océano.'},
  {id:'academias',name:'Academias',cost:{monedas:30,ideas:130},req:['perspectiva','banca'],desc:'Desbloquea la academia. Ideas +50%.'},
  {id:'telescopio',name:'Telescopio',cost:{monedas:45,ideas:270},req:['carabelas','academias'],desc:'Mirar el cielo de cerca: ideas +50%. De noche ves más lejos.'},
@@ -31,20 +33,24 @@ const ERA={
  {id:'taller',name:'Taller de artistas',req:'perspectiva',base:{piedra:40,plata:10},grow:1.5,done:'Taller abierto',desc:'Pintores e inventores trabajan juntos: genera muchas ideas.',prod:{ideas:0.35}},
  {id:'banco',name:'Banco',req:'banca',base:{madera:30,piedra:15,plata:5},grow:1.4,done:'Banco abierto',desc:'Cambia plata por monedas. Si no hay plata, se frena.',prod:{monedas:0.2},use:{plata:0.1}},
  {id:'jardin',name:'Jardín botánico',req:'botanica',base:{madera:35,piedra:30},grow:1.6,done:'Jardín plantado',desc:'Papa y maíz de América: cada jardín hace producir +50% a todas las granjas.'},
+ {id:'palomar',name:'Palomar',req:'botanica',base:{madera:20,piedra:25,plata:5},grow:1.4,done:'Palomar listo',desc:'Las palomas espantan las langostas que pasan a 4 casilleros.'},
  {id:'puerto',name:'Puerto',req:'carabelas',base:{madera:40,plata:20},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. Las carabelas traen monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.'},
  {id:'academia',name:'Academia',req:'academias',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Academia abierta',desc:'Ideas +30% por cada academia.'}],
-  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',taller:'Taller de artistas: genera ideas.',banco:'Banco: cambia plata por monedas.',jardin:'Jardín botánico: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',academia:'Academia: más ideas.'},
+  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',taller:'Taller de artistas: genera ideas.',banco:'Banco: cambia plata por monedas.',palomar:'Palomar: espanta las langostas a 4 casilleros.',jardin:'Jardín botánico: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',academia:'Academia: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
-  tips1:[],
+  tips1:[['botanica','palomar','un palomar cerca de las granjas: espanta las langostas.']],
   tips2:[['perspectiva','taller','un taller de artistas: genera muchas ideas.'],['banca','banco','un banco para conseguir monedas.'],['carabelas','puerto','un puerto pegado al agua.']],
   smogTip:'',done:'Renacimiento completo.',
+  // Dos palomas dan vueltas alrededor de cada palomar.
+  deco:(o,px,py)=>{if(o.t!=='palomar')return;ctx.fillStyle='#f6f1e4';for(let k=0;k<2;k++){const an=st.time*1.4+k*Math.PI+px*0.1,x=px+8+Math.cos(an)*7,y=py-1+Math.sin(an)*2.5,up=Math.floor(st.time*8+k)%2;
+    ctx.fillRect(x-1,y-0.4,2,0.8);ctx.fillRect(x-0.4,y-0.4-(up?0.9:-0.5),0.8,0.9);}},
   text:{
     when:'1450 d.C.',title:'El Renacimiento',
-    intro:'Tu ciudad despierta. Hay plata en las colinas, artistas que dibujan en perspectiva, bancos que prestan y carabelas que cruzan el océano. La meta: construir la pascalina, la primera máquina que suma sola.',
-    news:'Novedades: plata, talleres de artistas, bancos, jardines botánicos y academias.',
+    intro:'Tu ciudad despierta. Hay plata en las colinas, artistas que dibujan en perspectiva, bancos que prestan y carabelas que cruzan el océano. Pero en el campo hay plaga: mangas de langostas que llegan volando a comerse tus granjas y tapan todo lo que tienen alrededor. La meta: construir la pascalina, la primera máquina que suma sola.',
+    news:'Novedades: plata, talleres de artistas, bancos, jardines botánicos, academias y langostas: una manga posada en una granja no deja producir nada a 2 casilleros y se come tu comida. Tocalas para espantarlas; los palomares las espantan solos. Conviene poner las granjas lejos de los talleres y los bancos.',
     legacy:'Lo que trae tu ciudad de la Edad Media',
     noLegacy:'No hay una Edad Media terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. En la compu: flechas o WASD, E para juntar, F para comer.',
+    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Llegan mangas de langostas volando hacia las granjas: mientras comen, nada de lo que tapan produce y se comen la comida guardada. Tocalas para espantarlas; los palomares espantan las que pasan cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Renacimiento superado',winText:()=>'Terminaste la pascalina en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las máquinas ya saben sumar.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Industria.'}
 };
@@ -117,7 +123,17 @@ function domeArt(){return mkA(64,64,a=>{rect(a,6,38,52,22,MARBLE[2]);rect(a,46,3
   rect(a,27,46,10,14,WOOD[0]);ell(a,32,46,5,4,(i,j)=>j<=0?WOOD[0]:null);rect(a,32,44,1,16,WOOD[1]);
   for(const x of[10,48]){rect(a,x,44,6,8,DKW);ell(a,x+3,44,3,3,(i,j)=>j<=0?DKW:null);}
   outlineAll(a,OUTL);});}
+// Palomar: torre redonda encalada sobre zócalo de piedra, nidos en dos filas, techo cónico de tejas y palomas en la cornisa.
+function dovecoteArt(){return mkA(64,64,a=>{for(let y=22;y<60;y++)for(let x=16;x<48;x++){const u=(x-16)/31;a.set(x,y,u>0.78?PLAST[0]:u>0.55?PLAST[1]:u<0.12?PLAST[2]:PLAST[3]);}
+  stoneWall(a,16,52,32,8);rect(a,14,36,36,2,STONE2[2]);rect(a,14,38,36,1,STONE2[0]);
+  for(const y of[27,42])for(let x=19;x<46;x+=5){rect(a,x,y,3,3,DKW);ell(a,x+1,y,1.5,1,(i,j)=>j<=0?DKW:null);}
+  poly(a,[[32,4],[52,22],[12,22]],(x,y)=>x<30?TERRA[2]:((y>>1)&1)?TERRA[1]:TERRA[2]);rect(a,12,21,40,2,TERRA[0]);
+  rect(a,29,2,6,5,PLAST[3]);rect(a,30,3,1,3,DKW);rect(a,33,3,1,3,DKW);poly(a,[[32,0],[36,3],[28,3]],TERRA[1]);
+  rect(a,28,48,8,12,WOOD[1]);ell(a,32,48,4,3,(i,j)=>j<=0?WOOD[1]:null);rect(a,32,47,1,13,WOOD[0]);
+  const dove=(x,y)=>{ell(a,x,y,2.6,1.6,hx('#f6f1e4'));ell(a,x-2.2,y-1,1.3,1.2,hx('#f6f1e4'));a.set(x-3,y-1,hx('#e8a040'));a.set(x+1,y-1,hx('#c9c4b8'));};
+  dove(20,34);dove(43,34);dove(24,19);
+  outlineAll(a,OUTL);});}
 const VILPAL2=[{c:'#7a2a3a',C:'#541c28',j:'#d4ae62',y:'#3a2418'},{c:'#2f5a4a',C:'#1f4034',j:'#e3ddcc',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#b5823b',C:'#8a5f28',j:'#4a2e6a',y:'#8a5a2a'}];
 const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:silverOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:palazzoArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),taller:workshopArt(),banco:bankArt(),jardin:gardenArt(),puerto:caravelArt(),academia:domeArt(),
+  casa:palazzoArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),taller:workshopArt(),banco:bankArt(),jardin:gardenArt(),puerto:caravelArt(),academia:domeArt(),palomar:dovecoteArt(),
   hero:[personArt({c:'#a8322e',C:'#7a2220',j:'#e8c05a'},0),personArt({c:'#a8322e',C:'#7a2220',j:'#e8c05a'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
