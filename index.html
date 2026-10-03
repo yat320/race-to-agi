@@ -109,10 +109,11 @@ const ERAS=[
 const PROTOS=[
   {id:'carrera',name:'Carrera a la obra',what:'Por turnos: mapa con niebla, tecnologías y un rival que corre hacia la misma obra.',file:'carrera.html',save:'rtagi-carrera-v1',
     state:s=>s&&s.G&&s.G.tiles&&!s.G.over?'En curso · turno '+s.G.turn+' de 30':null},
-  {id:'mundo',name:'Mundo abierto',what:'Explorá, juntá recursos y sumá aldeanos, de la Prehistoria a la Computación. Cada era termina con una obra: del ábaco al microprocesador.',save:'rtagi-mundo-v1',
+  {id:'mundo',name:'Mundo abierto',what:'Explorá, juntá recursos y sumá aldeanos, de la Prehistoria a Internet. Cada era termina con una obra: del ábaco al teléfono inteligente.',save:'rtagi-mundo-v1',
     // El botón te lleva a la era más avanzada que empezaste.
-    file:()=>mundoSave('rtagi-mundo7-v1')?'mundo7.html':mundoSave('rtagi-mundo6-v1')?'mundo6.html':mundoSave('rtagi-mundo5-v1')?'mundo5.html':mundoSave('rtagi-mundo4-v1')?'mundo4.html':mundoSave('rtagi-mundo3-v1')?'mundo3.html':mundoSave('rtagi-mundo2-v1')?'mundo2.html':'mundo.html',
-    state:s=>{const c=mundoSave('rtagi-mundo7-v1');if(c)return(c.won?'Computación · microprocesador terminado':'Computación')+' · día '+(Math.floor((c.time||0)/160)+1);
+    file:()=>mundoSave('rtagi-mundo8-v1')?'mundo8.html':mundoSave('rtagi-mundo7-v1')?'mundo7.html':mundoSave('rtagi-mundo6-v1')?'mundo6.html':mundoSave('rtagi-mundo5-v1')?'mundo5.html':mundoSave('rtagi-mundo4-v1')?'mundo4.html':mundoSave('rtagi-mundo3-v1')?'mundo3.html':mundoSave('rtagi-mundo2-v1')?'mundo2.html':'mundo.html',
+    state:s=>{const w=mundoSave('rtagi-mundo8-v1');if(w)return(w.won?'Internet · teléfono inteligente terminado':'Internet')+' · día '+(Math.floor((w.time||0)/160)+1);
+      const c=mundoSave('rtagi-mundo7-v1');if(c)return(c.won?'Computación · microprocesador terminado':'Computación')+' · día '+(Math.floor((c.time||0)/160)+1);
       const e=mundoSave('rtagi-mundo6-v1');if(e)return(e.won?'Electricidad · tabuladora terminada':'Electricidad')+' · día '+(Math.floor((e.time||0)/160)+1);
       const i=mundoSave('rtagi-mundo5-v1');if(i)return(i.won?'Industria · máquina analítica terminada':'Industria')+' · día '+(Math.floor((i.time||0)/160)+1);
       const r=mundoSave('rtagi-mundo4-v1');if(r)return(r.won?'Renacimiento · pascalina terminada':'Renacimiento')+' · día '+(Math.floor((r.time||0)/160)+1);
