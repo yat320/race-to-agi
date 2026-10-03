@@ -272,7 +272,7 @@ function renderGround(){
 let st,counts={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
-let GRID=null,BROKEN=null,OCEAN=null,bugT=0,viruses=[],meteors=[],pirates=[],swarms=[],ludds=[],storms=[],bolts=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
+let GRID=null,BROKEN=null,OCEAN=null,bugT=0,viruses=[],meteors=[],pirates=[],swarms=[],ludds=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
   const L=ERA.legacy,e=prevEra(),out=L.monedas?{has:!!e,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]}:{has:!!e,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e){
@@ -500,6 +500,32 @@ function updateLocusts(dt){const D=ERA.defense,towers=[];if(D)obj.forEach((o,i)=
     const d=Math.hypot(gx-w.x,gy-w.y),v=LOCUST_SPD*dt;
     if(d<=v){w.x=gx;w.y=gy;if(leave)w.dead=true;else{w.state='eat';w.t=0;const e=Math.floor(st.res.comida*LOCUST_BITE);if(e>0){st.res.comida-=e;float(w.x,w.y-0.8,'−'+e+' comida','#e8654d');}}}else{w.x+=(gx-w.x)/d*v;w.y+=(gy-w.y)/d*v;}}
   swarms=swarms.filter(w=>!w.dead);}
+// Polillas (ERA.moths, con ERA.bugs): los bichos no salen solos sino que llegan volando, como la polilla que trabó la Mark II
+// en 1947. Desde el minuto, cada tanto entra una polilla desde lejos (el doble de noche) y vuela hacia una máquina con bichos
+// (bug) que ande; si llega, se mete y la traba (o.bug: no produce). Con polillas el bicho no se contagia: si nadie toca la
+// máquina, los programadores la depuran solos en bugFix() segundos (60, 30 con la depuración). Tocarla en el aire la atrapa
+// (+2 ideas). La defensa de la era (la trampa de luz) atrae a las que pasan a ERA.defense.r casilleros y las atrapa. Vienen más
+// seguido con cada invento (+10%) y el transistor y la depuración las hacen 40% más raras cada uno; desde 5 inventos vienen de
+// a dos. No se guardan.
+const MOTH_START=60,MOTH_SPD=1.3;
+const bugFix=()=>st.techs.depuracion?30:60;
+const mothEvery=()=>30/((1+0.1*Object.keys(st.techs).length)*(darkness()>0.3?2:1)*(st.techs.transistor?0.6:1)*(st.techs.depuracion?0.6:1));
+const mothTargets=()=>{const t=[];for(const i of grid().powered){const o=obj[i];if(BUILD[o.t].bug&&!o.bug)t.push(i);}return t;};
+const loose=m=>m.trap==null;
+function spawnMoth(){const ts=mothTargets();if(!ts.length)return;const n=Object.keys(st.techs).length>=5?2:1;
+  for(let k=0;k<n;k++){const ti=ts[Math.floor(Math.random()*ts.length)],an=Math.random()*6.283;
+    moths.push({x:clamp(ti%MW+Math.cos(an)*14,1,MW-2),y:clamp(((ti/MW)|0)+Math.sin(an)*14,1,MH-2),ti,ph:Math.random()*100});}
+  toast(n>1?'¡Polillas! Vienen dos hacia tus máquinas: tocalas antes de que entren.':'¡Una polilla! Viene hacia tus máquinas: tocala antes de que entre.');}
+function updateMoths(dt){const D=ERA.defense,traps=[];if(D)obj.forEach((o,i)=>{if(o&&o.t===D.id)traps.push(i);});
+  for(const m of moths){
+    if(loose(m)){const tr=traps.find(i=>Math.hypot(i%MW-m.x,((i/MW)|0)-m.y)<=D.r);if(tr!==undefined)m.trap=tr;}
+    if(loose(m)){const o=obj[m.ti];if(!o||o.bug||!BUILD[o.t]||!grid().powered.has(m.ti)){const ts=mothTargets();if(!ts.length){m.dead=true;continue;}
+      let bd=1e9;for(const i of ts){const d=Math.hypot(i%MW-m.x,((i/MW)|0)-m.y);if(d<bd){bd=d;m.ti=i;}}}}
+    const g=loose(m)?m.ti:m.trap,gx=g%MW,gy=(g/MW)|0,d=Math.hypot(gx-m.x,gy-m.y),v=MOTH_SPD*dt*(loose(m)?1:1.8);
+    if(d>v){m.x+=(gx-m.x)/d*v;m.y+=(gy-m.y)/d*v;continue;}
+    m.dead=true;if(!loose(m)){zaps.push({x:gx,y:gy,t:0.5});float(gx,gy,'¡a la trampa!','#ffd35a');continue;}
+    const o=obj[g];o.bug=true;o.bugAge=0;float(gx,gy,'¡bicho!','#e8654d');toast('Una polilla trabó '+(o.t==='oficina'?'una oficina':'una '+BUILD[o.t].name.toLowerCase())+': tocala para sacarla.');}
+  moths=moths.filter(m=>!m.dead);}
 // Tormentas (ERA.storms): desde los 2 minutos, cada tanto una nube cruza la ciudad con el viento. Cada STORM_ZAP segundos tira
 // un rayo a algo eléctrico (usina, represa, poste o edificio con ⚡) que tenga a STORM_R casilleros: lo quema (o.bug, se guarda).
 // Lo quemado no da luz, no la lleva ni produce hasta que lo tocás para arreglarlo o lo arreglan solos los electricistas a los
@@ -712,8 +738,9 @@ function update(dt){
   bugT+=dt;if(bugT>=0.5){const step=bugT;bugT=0;
     if(ERA.bugs){const had=bugCount();
       for(const i of grid().powered){const o=obj[i];if(!BUILD[o.t].bug)continue;
-        if(o.bug){o.bugAge=(o.bugAge||0)+step;if(o.bugAge>=bugSpread()){o.bugAge=0;spreadBug(i);}}
-        else if(Math.random()<bugRate()*step){o.bug=true;o.bugAge=0;}}
+        if(o.bug){o.bugAge=(o.bugAge||0)+step;if(ERA.moths){if(o.bugAge>=bugFix()){o.bug=false;o.bugAge=0;float(i%MW,(i/MW)|0,'¡depurada!','#93d36c');}}
+          else if(o.bugAge>=bugSpread()){o.bugAge=0;spreadBug(i);}}
+        else if(!ERA.moths&&Math.random()<bugRate()*step){o.bug=true;o.bugAge=0;}}
       if(!had&&bugCount())toast('¡Un bicho trabó una máquina! Tocala para aplastarlo.');}
     if(ERA.cities)for(const c of grid().linked)if(Math.random()<step/50)spawnVirus(c);
     if(ERA.robots){const had=vil.some(v=>v.bad);
@@ -724,13 +751,15 @@ function update(dt){
     if(ERA.plague&&st.time>=PLAGUE_START)plagueTick(step);
     if(ERA.locusts&&st.time>=LOCUST_START&&Math.random()<step/locustEvery())spawnLocusts();
     if(ERA.luddites&&st.time>=LUDD_START&&Math.random()<step/ludditeEvery())spawnLuddites();
-    if(ERA.storms&&st.time>=STORM_START&&Math.random()<step/stormEvery())spawnStorm();}
+    if(ERA.storms&&st.time>=STORM_START&&Math.random()<step/stormEvery())spawnStorm();
+    if(ERA.moths&&st.time>=MOTH_START&&Math.random()<step/mothEvery())spawnMoth();}
   if(ERA.cities)updateViruses(dt);
   if(ERA.meteors)updateMeteors(dt);
   if(ERA.pirates)updatePirates(dt);
   if(ERA.locusts)updateLocusts(dt);
   if(ERA.luddites)updateLuddites(dt);
   if(ERA.storms)updateStorms(dt);
+  if(ERA.moths)updateMoths(dt);
   for(const z of zaps)z.t-=dt;zaps=zaps.filter(z=>z.t>0);
   BROKEN=null;
   for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&RES[o.t]&&o.hp<=0){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
@@ -971,6 +1000,12 @@ function drawLocusts(){if(!swarms.length)return;const t=performance.now()/1000;
     const R=eat?(LOCUST_R+0.5)*T:7;ctx.fillStyle=eat?'rgba(52,60,20,.3)':'rgba(44,52,16,.5)';ctx.beginPath();ctx.ellipse(cx,cy,R,eat?R*0.75:4.5,0,0,6.29);ctx.fill();
     for(let k=0;k<(eat?90:40);k++){const sp=0.8+(k%5)*0.35,r=(eat?2+(k%9)*R/9:1.5+(k%5)*1.3),an=k*2.4+w.ph+t*sp*(k%2?1:-1)*(eat?0.4:1);
       const x=cx+Math.cos(an)*r,y=cy+Math.sin(an*1.3)*r*0.65;ctx.fillStyle=(Math.floor(t*12+k)%3)?'#323c10':'#d8c36a';ctx.fillRect(x-0.9,y-0.5,1.8,1);}}}
+// Polillas volando: aletean y se bambolean; las que van a una máquina llevan el halo rojo, las que van a la trampa no.
+function drawMoths(){if(!moths.length)return;const t=performance.now()/1000;
+  for(const m of moths){const x=m.x*T+8+Math.sin(t*3+m.ph)*2,y=m.y*T+2+Math.cos(t*4+m.ph)*1.5;
+    if(loose(m)){ctx.fillStyle='rgba(232,101,77,'+(0.3+0.12*Math.sin(t*8)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(m.x*T+8,m.y*T+13,6,2.5,0,0,6.29);ctx.fill();}
+    ctx.fillStyle='rgba(27,26,36,.25)';ctx.beginPath();ctx.ellipse(m.x*T+8,m.y*T+13,3,1,0,0,6.29);ctx.fill();
+    ctx.drawImage(HS.bug[Math.floor(t*10+m.ph)%2],x-5,y-5,10,10);}}
 // Tormentas: sombra en el suelo con el halo rojo de lo que hay que tocar, la nube con lluvia arriba y los rayos (zigzag blanco).
 function drawStorms(){if(!storms.length&&!bolts.length)return;const t=performance.now()/1000;
   for(const w of storms){const cx=w.x*T+8,gy=w.y*T+13,cy=w.y*T-10;
@@ -1085,6 +1120,7 @@ function render(){
   drawLocusts();
   drawSmash();
   drawStorms();
+  drawMoths();
   drawSick();
   const tg=P.act||P.task;if(tg)corners(tg.x,tg.y,'#5fe3d0');
   if(marker&&!tg)corners(marker.x,marker.y,'rgba(240,231,212,'+Math.min(1,marker.t*2)+')');
@@ -1112,7 +1148,7 @@ function render(){
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.t*1.5);ctx.strokeStyle='#1b1a24';ctx.strokeText(f.txt,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y);}
   ctx.globalAlpha=1;
   // Flechas rojas en el borde para los virus y los robots desalineados que están fuera de la pantalla.
-  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos),pirates,swarms,ludds.filter(angry),storms);if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
+  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos),pirates,swarms,ludds.filter(angry),storms,moths.filter(loose));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
     for(const v of TH){const sx=(v.x*T+8-cam.x)*s,sy=(v.y*T+8-cam.y)*s;if(sx>=0&&sx<=W&&sy>=top&&sy<=bot)continue;
       const cx=clamp(sx,14*DPR,W-14*DPR),cy=clamp(sy,top,bot),an=Math.atan2(sy-cy,sx-cx);ctx.save();ctx.translate(cx,cy);ctx.rotate(an);
       ctx.fillStyle='#e8654d';ctx.strokeStyle='#1b1a24';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(10*DPR,0);ctx.lineTo(-6*DPR,-7*DPR);ctx.lineTo(-6*DPR,7*DPR);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();}}}
@@ -1158,6 +1194,7 @@ function threat(){
   if(ERA.cities){if(serverDown())return['Servidor caído:','tocalo para limpiar el virus y que vuelva la red.'];
     if(viruses.length)return['¡Virus!',viruses.length+(viruses.length===1?' viene':' vienen')+' por la red. Tocalos antes de que lleguen.'];}
   if(ERA.robots){const bad=vil.filter(v=>v.bad).length;if(bad)return['¡Robot desalineado!',bad===1?'Está convirtiendo tus recursos en clips. Tocalo para corregirlo.':'Hay '+bad+' convirtiendo tus recursos en clips. Tocalos para corregirlos.'];}
+  if(ERA.moths){const n=moths.filter(loose).length;if(n)return['¡Polillas!',(n===1?'Viene una':'Vienen '+n)+' hacia las máquinas: tocalas antes de que entren.'];}
   if(ERA.bugs){const nb=bugCount();if(nb)return['¡Bichos!',nb+(nb===1?' máquina trabada.':' máquinas trabadas.')+' Tocalas para aplastarlos.'];}
   if(ERA.plague){const n=obj.filter(o=>sickable(o)&&o.bug).length;if(n)return['¡Peste!',n+(n===1?' edificio enfermo: tocalo para curarlo antes de que contagie.':' edificios enfermos: tocalos para curarlos antes de que contagien.')];}
   if(ERA.pirates&&pirates.length){const n=pirates.length,l=pirates.some(p=>p.loot);return['¡Piratas!',(n===1?'Hay uno':'Hay '+n)+(l?' escapando con lo robado: tocalos antes de que lleguen al barco.':' en camino: tocalos antes de que roben.')];}
@@ -1213,7 +1250,7 @@ function hudRows(){
   if(sOn){const r=smogRate(),pen=Math.round(sv/2);$('sFill').style.width=sv+'%';$('sFill').classList.toggle('hi',sv>=50);$('sNum').textContent=Math.round(sv)+'%'+(r>0.004?' ↑':r<-0.004?' ↓':'');$('sMeta').textContent=pen?'juntás y cosechás −'+pen+'%':'aire limpio';}
   if(ERA.grid==='power'){const g=grid(),gOn=(ERA.gridTech&&!!st.techs[ERA.gridTech])||g.on.size>0||BUILDS.some(b=>b.elec&&counts[b.id]);$('gridRow').hidden=!gOn;
     if(gOn){$('gFill').style.width=(g.supply?Math.min(100,g.demand/g.supply*100):0)+'%';$('gFill').classList.toggle('hi',g.demand>g.supply);$('gNum').textContent=g.demand+'/'+g.supply;
-      const nb=bugCount();$('gMeta').textContent=ERA.storms&&storms.length?'tormenta':ERA.storms&&nb?nb+(nb===1?' quemado':' quemados'):g.unlit?g.unlit+' sin luz':nb?nb+(nb===1?' con bicho':' con bichos'):g.f<1?'todo rinde '+Math.round(g.f*100)+'%':g.supply?'alcanza':'sin usinas';}}
+      const nb=bugCount();const nm=moths.filter(loose).length;$('gMeta').textContent=ERA.storms&&storms.length?'tormenta':nm?nm+(nm===1?' polilla':' polillas'):ERA.storms&&nb?nb+(nb===1?' quemado':' quemados'):g.unlit?g.unlit+' sin luz':nb?nb+(nb===1?' con bicho':' con bichos'):g.f<1?'todo rinde '+Math.round(g.f*100)+'%':g.supply?'alcanza':'sin usinas';}}
   else if(ERA.cities){const g=grid(),nc=g.cities.length,nl=g.linked.length,down=serverDown();$('gridRow').hidden=false;
     $('gFill').style.width=(nc?nl/nc*100:0)+'%';$('gFill').classList.toggle('hi',down);$('gNum').textContent=nl+'/'+nc;
     $('gMeta').textContent=down?'servidor caído':viruses.length?viruses.length+' virus en camino':nl?'+'+fmt(cityRate()*60)+' monedas/min':'sin ciudades';}
@@ -1348,6 +1385,8 @@ function onTap(tx,ty){
     if(hit){hit.dead=true;meteors=meteors.filter(m=>!m.dead);const p=meteorPos(hit);zaps.push({x:p.x,y:p.y,t:0.5});st.res.ideas+=2;float(p.x,p.y,'+2 ideas',RCOL.ideas);return;}}
   {const hit=pirates.find(p=>!(p.wait>0)&&Math.hypot(p.x-tx,p.y-ty)<=1.3);
     if(hit){giveBack(hit);hit.dead=true;pirates=pirates.filter(p=>!p.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Pirata ahuyentado!');return;}}
+  {const hit=moths.find(m=>loose(m)&&Math.hypot(m.x-tx,m.y-0.4-ty)<=1.4);
+    if(hit){hit.dead=true;moths=moths.filter(m=>!m.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Polilla atrapada!');return;}}
   {const hit=storms.find(w=>Math.hypot(w.x-tx,w.y-0.6-ty)<=1.8);
     if(hit){hit.dead=true;storms=storms.filter(w=>!w.dead);zaps.push({x:hit.x,y:hit.y-0.6,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-1,'+2 ideas',RCOL.ideas);toast('¡Tormenta disipada!');return;}}
   {const hit=ludds.find(l=>angry(l)&&Math.hypot(l.x-tx,l.y-ty)<=1.3);
@@ -1415,7 +1454,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
-  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
+  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
 </body></html>
