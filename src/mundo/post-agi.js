@@ -5,7 +5,7 @@ const ERA={
   storage:{id:'granero',name:'Granero'},ideaBuild:'instituto',ideaTechs:['nanotec','cosmologia'],boostTech:'fusion',farmBuild:'sintetizador',nightTech:'cosmologia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','centro','escudo','puerto','sintetizador','minero','instituto'],
-  meteors:true,
+  meteors:true,defense:{id:'escudo',r:5,label:'Escudos'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo10-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la era de la AGI',perks:[
     ['agi','ideaMult',1.25,'AGI: ideas +25% durante toda la era'],

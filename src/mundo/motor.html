@@ -272,7 +272,7 @@ function renderGround(){
 let st,counts={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
-let GRID=null,BROKEN=null,bugT=0,viruses=[],meteors=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
+let GRID=null,BROKEN=null,OCEAN=null,bugT=0,viruses=[],meteors=[],pirates=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
   const L=ERA.legacy,e=prevEra(),out=L.monedas?{has:!!e,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]}:{has:!!e,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e){
@@ -407,9 +407,10 @@ function updateViruses(dt){for(const v of viruses){let move=vSpeed()*dt;
   viruses=viruses.filter(v=>!v.dead);}
 // Meteoritos (ERA.meteors): cada tanto uno apunta a la ciudad (6 de cada 10 veces a un edificio) y cae en METEOR_T segundos
 // (más con el radar). Tocarlo lo desvía (+2 ideas). Si cae sobre un edificio lo daña: deja de producir hasta que lo tocás para
-// repararlo. Si cae en tierra libre deja un cráter con mineral. Un escudo desvía solo los que apuntan a 5 casilleros o menos.
+// repararlo. Si cae en tierra libre deja un cráter con mineral. La defensa de la era (ERA.defense, el escudo) desvía sola los que
+// apuntan a ERA.defense.r casilleros o menos.
 // Caen más seguido a medida que avanzás (cada invento +10%) y con la minería de asteroides (+30%).
-const METEOR_T=10,SHIELD_R=5;
+const METEOR_T=10;
 const meteorEvery=()=>40/((1+0.1*Object.keys(st.techs).length)*(st.techs.mineria?1.3:1));
 const fallT=()=>METEOR_T*(st.techs.radar?1.5:1);
 const meteorPos=m=>{const u=m.t/m.T;return{x:m.x+6*u,y:m.y-10*u};};
@@ -417,7 +418,7 @@ function spawnMeteor(){const bs=[],land=[];
   for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&BUILD[o.t]&&!o.bug)bs.push(i);}
   const c=bs.length?bs[Math.floor(Math.random()*bs.length)]:SPAWN[1]*MW+SPAWN[0];let i=c;
   if(!bs.length||Math.random()>=0.6){const cx=c%MW,cy=(c/MW)|0;for(let k=0;k<12;k++){const x=cx+Math.floor(Math.random()*13)-6,y=cy+Math.floor(Math.random()*13)-6;if(inb(x,y)&&ground[y*MW+x]!==WATER){i=y*MW+x;break;}}}
-  const x=i%MW,y=(i/MW)|0,T0=fallT(),sh=obj.some((o,j)=>o&&o.t==='escudo'&&!o.bug&&Math.hypot(j%MW-x,((j/MW)|0)-y)<=SHIELD_R);
+  const x=i%MW,y=(i/MW)|0,T0=fallT(),sh=!!ERA.defense&&obj.some((o,j)=>o&&o.t===ERA.defense.id&&!o.bug&&Math.hypot(j%MW-x,((j/MW)|0)-y)<=ERA.defense.r);
   meteors.push({x,y,t:T0,T:T0,sh});}
 function updateMeteors(dt){
   for(const m of meteors){m.t-=dt;
@@ -426,8 +427,42 @@ function updateMeteors(dt){
     if(o&&BUILD[o.t]){if(!o.bug){o.bug=true;BROKEN=null;GRID=null;toast('¡Un meteorito dañó '+BUILD[o.t].name.toLowerCase()+'! Tocalo para repararlo.');}}
     else if(!o&&ground[i]!==WATER&&!occupied(m.x,m.y)){obj[i]={t:'ore',hp:RES.ore.hp,regen:0};float(m.x,m.y,'cráter de '+RN[ORE].toLowerCase(),RCOL[ORE]);}
     zaps.push({x:m.x,y:m.y,t:0.6,boom:true});}
-  meteors=meteors.filter(m=>!m.dead);
-  for(const z of zaps)z.t-=dt;zaps=zaps.filter(z=>z.t>0);}
+  meteors=meteors.filter(m=>!m.dead);}
+// Piratas (ERA.pirates, el invento desde el que llegan): cada tanto un barco desembarca piratas en la costa del mar más cercana
+// a un edificio. Caminan hasta él, roban monedas y mineral y vuelven al barco. Tocarlos los echa (+2 ideas) y devuelve lo que
+// llevaban. La defensa de la era (ERA.defense, la atalaya) echa sola a los que pasan a ERA.defense.r casilleros o menos.
+// Llegan más seguido con cada invento (+10%) y con la navegación (+30%); desde 5 inventos bajan de a dos.
+const PIRATE_SPD=1.5;
+const pirateEvery=()=>75/((1+0.1*Object.keys(st.techs).length)*(st.techs.navegacion?1.3:1));
+// El mar: el agua unida al borde del mapa (los lagos no cuentan).
+function ocean(){if(OCEAN)return OCEAN;OCEAN=new Uint8Array(MW*MH);const q=[];
+  for(let i=0;i<MW*MH;i++){const x=i%MW,y=(i/MW)|0;if((x===0||y===0||x===MW-1||y===MH-1)&&ground[i]===WATER){OCEAN[i]=1;q.push(i);}}
+  for(let h=0;h<q.length;h++){const c=q[h],x=c%MW,y=(c/MW)|0;for(const[dx,dy]of DIRS){const nx=x+dx,ny=y+dy;if(!inb(nx,ny))continue;const n=ny*MW+nx;if(!OCEAN[n]&&ground[n]===WATER){OCEAN[n]=1;q.push(n);}}}
+  return OCEAN;}
+function spawnPirates(){const bs=[];for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&BUILD[o.t])bs.push(i);}if(!bs.length)return;
+  const ti=bs[Math.floor(Math.random()*bs.length)],tx=ti%MW,ty=(ti/MW)|0,oc=ocean();let land=null,bd=1e9;
+  for(let i=0;i<MW*MH;i++){const x=i%MW,y=(i/MW)|0;if(ground[i]===WATER||!passable(x,y)||!DIRS.some(([dx,dy])=>inb(x+dx,y+dy)&&oc[(y+dy)*MW+x+dx]))continue;
+    const d=Math.hypot(x-tx,y-ty);if(d<bd){bd=d;land=[x,y];}}
+  if(!land)return;const path=pathAdj(land[0],land[1],tx,ty);if(!path)return;
+  const boat=DIRS.map(([dx,dy])=>[land[0]+dx,land[1]+dy]).find(([x,y])=>inb(x,y)&&oc[y*MW+x]);
+  const n=Object.keys(st.techs).length>=5?2:1;
+  for(let k=0;k<n;k++)pirates.push({x:land[0],y:land[1],path:path.slice(),home:land,boat,target:[tx,ty],state:'go',face:1,moving:false,carry:0,kind:null,loot:null,wait:k*1.2});
+  toast('¡Piratas! Desembarcaron en la costa.');}
+const lootText=l=>Object.entries(l).filter(([,v])=>v>0).map(([k,v])=>v+' '+RN[k].toLowerCase()).join(' y ');
+function pirateFlee(p){p.state='flee';const[x,y]=tileOf(p);p.path=bfs(x,y,(a,b)=>a===p.home[0]&&b===p.home[1])||[];}
+function giveBack(p){if(!p.loot)return;for(const k in p.loot)add(k,p.loot[k]);float(p.x,p.y-0.6,'+'+lootText(p.loot),'#93d36c');p.loot=null;p.carry=0;p.kind=null;}
+function updatePirates(dt){const D=ERA.defense,towers=[];if(D)obj.forEach((o,i)=>{if(o&&o.t===D.id&&!o.bug)towers.push(i);});
+  for(const p of pirates){if(p.wait>0){p.wait-=dt;continue;}
+    stepEnt(p,dt,PIRATE_SPD);
+    if(p.blocked){p.blocked=false;const[x,y]=tileOf(p);if(p.state==='go')p.path=pathAdj(x,y,p.target[0],p.target[1])||[];else pirateFlee(p);}
+    if(!p.scared&&towers.some(i=>Math.hypot(i%MW-p.x,((i/MW)|0)-p.y)<=D.r)){p.scared=true;float(p.x,p.y-1,'¡la atalaya!','#ffd35a');giveBack(p);pirateFlee(p);continue;}
+    if(p.path.length)continue;
+    if(p.state==='go'){const m=Math.min(Math.floor(st.res.monedas),15+Math.floor(st.res.monedas*0.2)),c=Math.min(Math.floor(st.res[ORE]),10);
+      if(m+c>0){st.res.monedas-=m;st.res[ORE]-=c;p.loot={monedas:m,[ORE]:c};p.carry=1;p.kind=m?'monedas':ORE;float(p.x,p.y-0.6,'−'+lootText(p.loot),'#e8654d');
+        toast('¡Los piratas robaron '+lootText(p.loot)+'! Tocalos antes de que lleguen al barco.');}
+      pirateFlee(p);}
+    else{p.dead=true;if(p.loot)toast('Los piratas se llevaron '+lootText(p.loot)+'.');}}
+  pirates=pirates.filter(p=>!p.dead);}
 function economy(){ // producción y consumo por segundo
   const pr={},us={};RK.forEach(k=>{pr[k]=0;us[k]=0;});
   for(const b of BUILDS){const p=prodOf(b);for(const k in p)pr[k]+=p[k];if(b.use&&counts[b.id])for(const k in b.use)us[k]+=b.use[k]*counts[b.id];}
@@ -572,9 +607,12 @@ function update(dt){
     if(ERA.robots){const had=vil.some(v=>v.bad);
       for(const v of vil){if(!v.bot)continue;if(v.bad){v.badT=(v.badT||0)+step;if(v.badT>=badSpread()){v.badT=0;convince(v);}}else if(Math.random()<badRate()*step)misalign(v);}
       if(!had&&vil.some(v=>v.bad))toast('¡Un robot se desalineó! Tocalo para corregirlo.');}
-    if(ERA.meteors&&Math.random()<step/meteorEvery())spawnMeteor();}
+    if(ERA.meteors&&Math.random()<step/meteorEvery())spawnMeteor();
+    if(ERA.pirates&&st.techs[ERA.pirates]&&Math.random()<step/pirateEvery())spawnPirates();}
   if(ERA.cities)updateViruses(dt);
   if(ERA.meteors)updateMeteors(dt);
+  if(ERA.pirates)updatePirates(dt);
+  for(const z of zaps)z.t-=dt;zaps=zaps.filter(z=>z.t>0);
   BROKEN=null;
   for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&RES[o.t]&&o.hp<=0){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
   updatePlayer(dt);
@@ -805,7 +843,7 @@ function drawWires(x0,y0,x1,y1){if(ERA.grid==='power'){drawPowerWires(x0,y0,x1,y
   if(!g.linked.length)return;const t=performance.now()/1000;ctx.fillStyle='#e8fff8';
   for(const l of g.links){if(!vis(l))continue;const[ax,ay]=at(l[0]),[bx,by]=at(l[1]),u=1-(t*0.7+hash(l[1].i,3,1))%1;ctx.fillRect(ax+(bx-ax)*u-0.5,ay+(by-ay)*u+2.4*u*(1-u)-0.5,1,1);}}
 // Halo rojo que late debajo de los robots desalineados.
-function drawBadBots(){const t=performance.now()/1000;for(const v of vil){if(!v.bad)continue;ctx.fillStyle='rgba(232,101,77,'+(0.25+0.12*Math.sin(t*8)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(v.x*T+8,v.y*T+13,7,3,0,0,6.29);ctx.fill();}}
+function drawBadBots(){const t=performance.now()/1000;for(const v of vil.concat(pirates)){if(!v.bad&&!v.boat)continue;ctx.fillStyle='rgba(232,101,77,'+(0.25+0.12*Math.sin(t*8)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(v.x*T+8,v.y*T+13,7,3,0,0,6.29);ctx.fill();}}
 // Virus viajando por la red, con un halo rojo que late.
 function drawViruses(){const t=performance.now()/1000;for(const v of viruses){const x=v.x*T+8,y=v.y*T+8;ctx.fillStyle='rgba(232,101,77,.28)';ctx.beginPath();ctx.arc(x,y,5+Math.sin(t*8)*0.8,0,6.29);ctx.fill();ctx.drawImage(HS.bug[Math.floor(t*6)%2],x-4,y-4,8,8);}}
 // Bicho o virus que se metió en una máquina, con un marco rojo que late.
@@ -883,6 +921,8 @@ function render(){
   const list=[];
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*MW+x];if(o)list.push({k:y+1,z:0,o,x,y});}
   list.push({k:P.y+1,z:1,e:P,f:HS.hero,p:true});for(const v of vil)list.push({k:v.y+1,z:1,e:v,f:v.bot?(v.bad?HS.robotBad:HS.robot):HS.vil[v.skin%3]});
+  // Piratas y sus barcos (un barco por desembarco, en el agua junto a la costa).
+  {const seen=new Set();for(const p of pirates){const k=p.boat&&p.boat.join();if(k&&!seen.has(k)){seen.add(k);hd(HS.boat,p.boat[0]*T,p.boat[1]*T);}if(!(p.wait>0))list.push({k:p.y+1,z:1,e:p,f:HS.pirate});}}
   drawBadBots();
   list.sort((a,b)=>a.k-b.k||a.z-b.z);
   for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else drawEnt(it.e,it.f,it.p);}
@@ -915,7 +955,7 @@ function render(){
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.t*1.5);ctx.strokeStyle='#1b1a24';ctx.strokeText(f.txt,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y);}
   ctx.globalAlpha=1;
   // Flechas rojas en el borde para los virus y los robots desalineados que están fuera de la pantalla.
-  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
+  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos),pirates);if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
     for(const v of TH){const sx=(v.x*T+8-cam.x)*s,sy=(v.y*T+8-cam.y)*s;if(sx>=0&&sx<=W&&sy>=top&&sy<=bot)continue;
       const cx=clamp(sx,14*DPR,W-14*DPR),cy=clamp(sy,top,bot),an=Math.atan2(sy-cy,sx-cx);ctx.save();ctx.translate(cx,cy);ctx.rotate(an);
       ctx.fillStyle='#e8654d';ctx.strokeStyle='#1b1a24';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(10*DPR,0);ctx.lineTo(-6*DPR,-7*DPR);ctx.lineTo(-6*DPR,7*DPR);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();}}}
@@ -929,8 +969,8 @@ const chipEl={};
   const bar=$('agiBar');for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=(i*10)+'%';bar.appendChild(t);}
   document.title='Race to AGI · Mundo abierto · '+ERA.name;$('era').textContent=ERA.name;$('buildHint').textContent=BUILDS.length+' edificios';
   // Las dos barras de abajo de la energía: humo o seguridad, y la red, los robots o el rival.
-  const H=$('hud');if(BUILDS.some(b=>b.smoke)||ERA.grid||ERA.robots||ERA.rival||ERA.meteors)H.classList.add('rows');
-  $('sLbl').textContent=ERA.rival?'Seguridad':'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.meteors?'Escudos':ERA.robots?'Robots':ERA.grid==='power'?'Luz':'Red';
+  const H=$('hud');if(BUILDS.some(b=>b.smoke)||ERA.grid||ERA.robots||ERA.rival||ERA.defense)H.classList.add('rows');
+  $('sLbl').textContent=ERA.rival?'Seguridad':'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.defense?ERA.defense.label:ERA.robots?'Robots':ERA.grid==='power'?'Luz':'Red';
   if(ERA.rival){H.style.setProperty('--sfill','#93d36c');H.style.setProperty('--gfill','#e8654d');}
 })();
 function flashChip(k){const c=chipEl[k];if(!c)return;c.classList.add('flash');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('flash'),350);}
@@ -962,6 +1002,7 @@ function threat(){
     if(viruses.length)return['¡Virus!',viruses.length+(viruses.length===1?' viene':' vienen')+' por la red. Tocalos antes de que lleguen.'];}
   if(ERA.robots){const bad=vil.filter(v=>v.bad).length;if(bad)return['¡Robot desalineado!',bad===1?'Está convirtiendo tus recursos en clips. Tocalo para corregirlo.':'Hay '+bad+' convirtiendo tus recursos en clips. Tocalos para corregirlos.'];}
   if(ERA.bugs){const nb=bugCount();if(nb)return['¡Bichos!',nb+(nb===1?' máquina trabada.':' máquinas trabadas.')+' Tocalas para aplastarlos.'];}
+  if(ERA.pirates&&pirates.length){const n=pirates.length,l=pirates.some(p=>p.loot);return['¡Piratas!',(n===1?'Hay uno':'Hay '+n)+(l?' escapando con lo robado: tocalos antes de que lleguen al barco.':' en camino: tocalos antes de que roben.')];}
   if(ERA.meteors){if(meteors.length)return['¡Meteorito!',(meteors.length===1?'Viene uno':'Vienen '+meteors.length)+': tocalo antes de que caiga. En tierra libre deja '+RN[ORE].toLowerCase()+'.'];
     const nb=bugCount();if(nb)return['Daños:',nb+(nb===1?' edificio dañado no produce.':' edificios dañados no producen.')+' Tocalos para repararlos.'];}
   return null;
@@ -1011,10 +1052,13 @@ function hudRows(){
   else if(ERA.cities){const g=grid(),nc=g.cities.length,nl=g.linked.length,down=serverDown();$('gridRow').hidden=false;
     $('gFill').style.width=(nc?nl/nc*100:0)+'%';$('gFill').classList.toggle('hi',down);$('gNum').textContent=nl+'/'+nc;
     $('gMeta').textContent=down?'servidor caído':viruses.length?viruses.length+' virus en camino':nl?'+'+fmt(cityRate()*60)+' monedas/min':'sin ciudades';}
-  else if(ERA.meteors){const bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){bs.push(i);if(o.t==='escudo'&&!o.bug)sh.push(i);}});
-    const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=SHIELD_R)).length,nb=bugCount(),on=sh.length>0||meteors.length>0||nb>0||st.time>60;$('gridRow').hidden=!on;
-    if(on){$('gFill').style.width=(bs.length?cov/bs.length*100:0)+'%';$('gFill').classList.toggle('hi',meteors.length>0||nb>0);$('gNum').textContent=Math.round(bs.length?cov/bs.length*100:0)+'%';
-      $('gMeta').textContent=meteors.length?(meteors.length===1?'1 meteorito en camino':meteors.length+' meteoritos en camino'):nb?nb+(nb===1?' dañado':' dañados'):sh.length?'cielo tranquilo':'sin escudos';}}
+  // La defensa de la era (escudos, atalayas): qué parte de los edificios cubre y qué viene en camino.
+  else if(ERA.defense){const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
+    const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,nb=ERA.meteors?bugCount():0,np=pirates.length,
+      on=sh.length>0||meteors.length>0||np>0||nb>0||(ERA.meteors?st.time>60:!!st.techs[ERA.pirates]);$('gridRow').hidden=!on;
+    if(on){$('gFill').style.width=(bs.length?cov/bs.length*100:0)+'%';$('gFill').classList.toggle('hi',meteors.length>0||np>0||nb>0);$('gNum').textContent=Math.round(bs.length?cov/bs.length*100:0)+'%';
+      $('gMeta').textContent=meteors.length?(meteors.length===1?'1 meteorito en camino':meteors.length+' meteoritos en camino'):np?(np===1?'1 pirata en la costa':np+' piratas en la costa'):
+        nb?nb+(nb===1?' dañado':' dañados'):sh.length?(ERA.meteors?'cielo tranquilo':'costa tranquila'):'sin '+D.label.toLowerCase();}}
   else if(ERA.robots){const bots=vil.filter(v=>v.bot),nb=bots.length,bad=bots.filter(v=>v.bad).length,on=nb>0||!!st.techs[ERA.robots];$('gridRow').hidden=!on;
     if(on){$('gFill').style.width=(nb?(nb-bad)/nb*100:0)+'%';$('gFill').classList.toggle('hi',bad>0);$('gNum').textContent=nb+'';$('gMeta').textContent=bad?bad+(bad===1?' desalineado':' desalineados'):nb?'todos alineados':'sin robots';}}
 }
@@ -1134,6 +1178,8 @@ function onTap(tx,ty){
   // Un meteorito se toca donde se lo ve, o en la marca del suelo.
   {const hit=meteors.find(m=>{const p=meteorPos(m);return Math.hypot(p.x-tx,p.y-ty)<=1.6||Math.hypot(m.x-tx,m.y-ty)<=1.2;});
     if(hit){hit.dead=true;meteors=meteors.filter(m=>!m.dead);const p=meteorPos(hit);zaps.push({x:p.x,y:p.y,t:0.5});st.res.ideas+=2;float(p.x,p.y,'+2 ideas',RCOL.ideas);return;}}
+  {const hit=pirates.find(p=>!(p.wait>0)&&Math.hypot(p.x-tx,p.y-ty)<=1.3);
+    if(hit){giveBack(hit);hit.dead=true;pirates=pirates.filter(p=>!p.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Pirata ahuyentado!');return;}}
   {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){hit.bad=false;hit.badT=0;hit.state='idle';hit.t=0.5;st.res.ideas+=3;float(hit.x,hit.y-0.6,'+3 ideas',RCOL.ideas);toast('Robot realineado');save();return;}}
   if(!inb(tx,ty))return;
   let o=obj[ty*MW+tx];
@@ -1194,7 +1240,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
-  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
+  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
 </body></html>
