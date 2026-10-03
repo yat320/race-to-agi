@@ -4,7 +4,9 @@ const ERA={
   ore:{id:'hierro',name:'Hierro',col:'#b8c4d6',empty:'Veta de hierro agotada',gather:'hierro',icon:[['........','........','..kkkkk.','.kvqqqQk','kqqqqQQk','kQQQQQk.','.kkkkk..','........'],{q:'#9aa6b8',Q:'#5d6270',v:'#e3e8f0'}]},
   storage:{id:'granero',name:'Granero'},ideaBuild:'universidad',ideaTechs:['monasterios','universidades','anteojos'],boostTech:'reloj',farmBuild:'molino',nightTech:'anteojos',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
-  lights:['herreria','monasterio','puerto','universidad'],
+  lights:['herreria','monasterio','hospital','puerto','universidad'],
+  // La peste enferma los edificios donde se junta gente y se contagia; el hospital los cuida a 4 casilleros (reglas en motor.html).
+  plague:['casa','monasterio','feria','puerto','universidad'],defense:{id:'hospital',r:4,label:'Hospitales',of:['casa','monasterio','feria','puerto','universidad']},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo2-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la Antigüedad',perks:[
     ['anticitera','ideaMult',1.25,'Mecanismo de Anticitera: ideas +25% durante toda la era'],
@@ -12,10 +14,10 @@ const ERA={
   ]},
   techs:[
  {id:'forja',name:'Forja del hierro',cost:{hierro:15,ideas:30},req:[],desc:'Desbloquea la herrería y la cantera.'},
- {id:'monasterios',name:'Monasterios',cost:{piedra:15,ideas:35},req:[],desc:'Desbloquea el monasterio, donde los monjes copian libros. Ideas +50%.'},
+ {id:'monasterios',name:'Monasterios',cost:{piedra:15,ideas:35},req:[],desc:'Desbloquea el monasterio, donde los monjes copian libros, y el hospital, que frena la peste. Ideas +50%.'},
  {id:'gremios',name:'Gremios',cost:{hierro:20,ideas:50},req:['forja'],desc:'Desbloquea la feria, que cambia comida por monedas.'},
  {id:'molinos',name:'Molinos de viento',cost:{madera:40,piedra:20,ideas:65},req:['monasterios'],desc:'Desbloquea el molino, que potencia las granjas.'},
- {id:'rutas',name:'Rutas comerciales',cost:{madera:60,hierro:20,ideas:95},req:['gremios'],desc:'Desbloquea el puerto: comercio con otras ciudades.'},
+ {id:'rutas',name:'Rutas comerciales',cost:{madera:60,hierro:20,ideas:95},req:['gremios'],desc:'Desbloquea el puerto: comercio con otras ciudades. Los barcos traen peste: brota 30% más seguido.'},
  {id:'universidades',name:'Universidades',cost:{monedas:30,ideas:130},req:['monasterios','gremios'],desc:'Desbloquea la universidad. Ideas +50%.'},
  {id:'anteojos',name:'Anteojos',cost:{monedas:45,ideas:270},req:['rutas','universidades'],desc:'Los sabios leen hasta viejos: ideas +50%. De noche ves más lejos.'},
  {id:'reloj',name:'Reloj mecánico',cost:{hierro:60,monedas:45,ideas:320},req:['forja','universidades'],desc:'Engranajes que miden el tiempo: todos los edificios producen +50%.'},
@@ -29,23 +31,24 @@ const ERA={
  {id:'herreria',name:'Herrería',req:'forja',base:{madera:25,piedra:20,hierro:10},grow:1.6,done:'Herrería lista',desc:'Herramientas de hierro: vos y los aldeanos juntan +30% por cada herrería.'},
  {id:'cantera',name:'Cantera',req:'forja',base:{madera:20,hierro:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
  {id:'monasterio',name:'Monasterio',req:'monasterios',base:{piedra:40,hierro:10},grow:1.5,done:'Monasterio construido',desc:'Los monjes copian libros: genera muchas ideas.',prod:{ideas:0.35}},
+ {id:'hospital',name:'Hospital',req:'monasterios',base:{madera:25,piedra:20,hierro:5},grow:1.4,done:'Hospital abierto',desc:'Lo que está a 4 casilleros no se contagia de peste, y lo que ya estaba enfermo se cura solo.'},
  {id:'feria',name:'Feria',req:'gremios',base:{madera:30,piedra:15,hierro:5},grow:1.4,done:'Feria abierta',desc:'Cambia comida por monedas. Si no hay comida, se frena.',prod:{monedas:0.12},use:{comida:0.2}},
  {id:'molino',name:'Molino',req:'molinos',base:{madera:35,piedra:30},grow:1.6,done:'Molino girando',desc:'Cada molino hace producir +50% a todas las granjas.'},
  {id:'puerto',name:'Puerto',req:'rutas',base:{madera:40,hierro:20},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. El comercio trae monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.'},
  {id:'universidad',name:'Universidad',req:'universidades',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Universidad abierta',desc:'Ideas +30% por cada universidad.'}],
-  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',monasterio:'Monasterio: genera ideas.',feria:'Feria: cambia comida por monedas.',molino:'Molino: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',universidad:'Universidad: más ideas.'},
+  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',monasterio:'Monasterio: genera ideas.',hospital:'Hospital: cuida de la peste lo que está a 4 casilleros.',feria:'Feria: cambia comida por monedas.',molino:'Molino: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',universidad:'Universidad: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
-  tips1:[],
+  tips1:[['monasterios','hospital','un hospital en el medio de la ciudad: frena la peste.']],
   tips2:[['monasterios','monasterio','un monasterio: genera muchas ideas.'],['gremios','feria','una feria para conseguir monedas.'],['rutas','puerto','un puerto pegado al agua.']],
   smogTip:'',done:'Edad Media completa.',
   deco:(o,px,py)=>{if(o.t==='molino'){ctx.save();ctx.translate(px+8,py+5);ctx.rotate(st.time*1.2);ctx.drawImage(HS.aspas,-8,-8,16,16);ctx.restore();}},
   text:{
     when:'476 d.C.',title:'La Edad Media',
-    intro:'Tu pueblo ya es una ciudad. Hay hierro en las colinas, monasterios donde se copian libros y ferias donde se comercia. La meta: construir la imprenta, para que el conocimiento se copie por miles.',
-    news:'Novedades: hierro, monasterios, ferias, molinos de viento y universidades.',
+    intro:'Tu pueblo ya es una ciudad. Hay hierro en las colinas, monasterios donde se copian libros y ferias donde se comercia. Pero también hay peste: se contagia entre casas, monasterios, ferias, puertos y universidades, y lo que se enferma rinde la mitad. La meta: construir la imprenta, para que el conocimiento se copie por miles.',
+    news:'Novedades: hierro, monasterios, ferias, molinos de viento, universidades y la peste: tocá lo que se enferma para curarlo antes de que contagie. Los hospitales cuidan lo que tienen alrededor.',
     legacy:'Lo que trae tu ciudad de la Antigüedad',
     noLegacy:'No hay una Antigüedad terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. En la compu: flechas o WASD, E para juntar, F para comer.',
+    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. A veces brota la peste: lo que se enferma rinde la mitad (en una casa enferma, los aldeanos andan y trabajan a la mitad) y contagia lo que tiene cerca. Tocalo para curarlo; los hospitales cuidan lo que tienen alrededor. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Edad Media superada',winText:()=>'Terminaste la imprenta en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Los libros ya se copian por miles.',
     winNote:'Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan al Renacimiento.'}
 };
@@ -80,7 +83,16 @@ function sailsArt(){return mkA(64,64,a=>{for(let k=0;k<4;k++){const an=k*Math.PI
 function univArt(){return mkA(64,64,a=>{stoneWall(a,12,26,40,34);for(const x of[2,50]){stoneWall(a,x,16,12,44);poly(a,[[x+6,0],[x+14,16],[x-2,16]],(X,Y)=>X<x+6?BLUER[2]:BLUER[1]);rect(a,x+4,26,4,7,hx('#2a2a3a'));}
   gable(a,10,54,14,26,BLUER);rect(a,10,25,44,2,BLUER[0]);for(const x of[18,40]){rect(a,x,32,6,10,hx('#2a2a3a'));ell(a,x+3,32,3,3,(i,j)=>j<=0?hx('#2a2a3a'):null);rect(a,x+2,34,2,6,hx('#ffd35a'));}
   rect(a,27,44,10,16,hx('#3a2418'));ell(a,32,44,5,4,(i,j)=>j<=0?hx('#3a2418'):null);rect(a,30,30,4,8,hx('#c8413b'));rect(a,2,58,60,2,STONE2[0]);outlineAll(a,OUTL);});}
+// Hospital: sala encalada sobre zócalo de piedra, techo de tejas, espadaña con campana y un cartel con una hoja de hierbas.
+function hospitalArt(){return mkA(64,64,a=>{rect(a,4,32,56,28,PLAST[2]);rect(a,46,32,14,28,PLAST[1]);stoneWall(a,4,52,56,8);
+  gable(a,0,63,12,32,TERRA);rect(a,0,31,64,2,TERRA[0]);
+  stoneWall(a,27,1,10,15);rect(a,29,6,6,7,hx('#1b1a24'));ell(a,32,6,3,3,(i,j)=>j<=0?hx('#1b1a24'):null);ell(a,32,10,2.5,2.5,hx('#e8c05a'));rect(a,31,12,2,1,hx('#a07a2a'));
+  for(const x of[9,47]){rect(a,x,38,8,10,hx('#2a2a3a'));ell(a,x+4,38,4,3,(i,j)=>j<=0?hx('#2a2a3a'):null);rect(a,x+2,40,4,7,hx('#ffd35a'));rect(a,x+3.5,40,1,7,hx('#2a2a3a'));}
+  rect(a,26,44,12,16,hx('#3a2418'));ell(a,32,44,6,5,(i,j)=>j<=0?hx('#3a2418'):null);rect(a,31,40,2,20,WOOD[1]);
+  rect(a,26,33,12,7,hx('#f6f1e4'));rect(a,26,33,12,1,WOOD[1]);ell(a,32,36.5,4,2,hx('#3f8f47'));line(a,28,37,36,36,hx('#24532a'),1);
+  for(const x of[17,43]){rect(a,x,54,6,6,TERRA[1]);rect(a,x,54,6,1,TERRA[2]);ell(a,x+3,52,4,3,LEAF[2]);ell(a,x+2,51,2,1.5,LEAF[3]);}
+  outlineAll(a,OUTL);});}
 const VILPAL2=[{c:'#8c3a2a',C:'#5f2419',j:'#d4ae62',y:'#6b4526'},{c:'#4f6d8c',C:'#35506a',j:'#7a5434',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#8a7a5a',C:'#655a40',j:'#4f3522',y:'#c9a45a'}];
 const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:ironOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:halfTimberArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),monasterio:abbeyArt(),feria:fairArt(),molino:millArt(),aspas:sailsArt(),puerto:harborArt(),universidad:univArt(),
+  casa:halfTimberArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),monasterio:abbeyArt(),feria:fairArt(),molino:millArt(),aspas:sailsArt(),puerto:harborArt(),universidad:univArt(),hospital:hospitalArt(),
   hero:[personArt({c:'#5d7a3a',C:'#435a28',j:'#7a5434'},0),personArt({c:'#5d7a3a',C:'#435a28',j:'#7a5434'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};

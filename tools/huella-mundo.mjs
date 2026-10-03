@@ -8,7 +8,7 @@ import { serve, launch } from './harness.mjs';
 
 const ERAS = {
   2: { techs: ['metalurgia', 'escritura', 'moneda', 'irrigacion', 'navegacion', 'matematica', 'astronomia', 'engranajes', 'anticitera'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'deposito', 'herreria', 'cantera', 'templo', 'mercado', 'acueducto', 'puerto', 'biblioteca', 'atalaya'] },
-  3: { techs: ['forja', 'monasterios', 'gremios', 'molinos', 'rutas', 'universidades', 'anteojos', 'reloj', 'imprenta'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'monasterio', 'feria', 'molino', 'puerto', 'universidad'] },
+  3: { techs: ['forja', 'monasterios', 'gremios', 'molinos', 'rutas', 'universidades', 'anteojos', 'reloj', 'imprenta'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'monasterio', 'feria', 'molino', 'puerto', 'universidad', 'hospital'] },
   4: { techs: ['perspectiva', 'mineria', 'banca', 'botanica', 'carabelas', 'academias', 'telescopio', 'mecanica', 'pascalina'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'taller', 'banco', 'jardin', 'puerto', 'academia'] },
   5: { techs: ['vapor', 'quimica', 'telar', 'ferrocarril', 'barcos', 'exposiciones', 'gas', 'tarjetas', 'analitica'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'parque', 'herreria', 'cantera', 'mina', 'laboratorio', 'fabrica', 'estacion', 'puerto', 'palacio'] },
   6: { techs: ['dinamo', 'motor', 'lamparita', 'frio', 'hidro', 'escuelas', 'telefono', 'valvulas', 'tabuladora'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'parque', 'herreria', 'cantera', 'usina', 'poste', 'represa', 'fabrica', 'laboratorio', 'frigorifico', 'escuela'], near: { usina: ['fabrica', 'laboratorio', 'frigorifico', 'escuela'] } },
@@ -101,7 +101,7 @@ async function era(b, srv, n, dir, legacy) {
   out.save = await p.evaluate(k => localStorage.getItem(k), 'rtagi-mundo' + n + '-v1');
   out.hud = await p.evaluate(() => document.getElementById('hud').innerText);
   for (const m of ['build', 'tech', 'tribe']) out['sheet_' + m] = await p.evaluate(m => __H.sheet(m), m);
-  // Amenazas a propósito, sin tocarlas durante un minuto: bicho, virus o robot desalineado.
+  // Amenazas a propósito, sin tocarlas durante un minuto: bicho, virus, robot desalineado, meteoritos, piratas o peste.
   out.threat = await p.evaluate(n => {
     const D = __H.D, o = D.obj();
     if (n === 7) { const q = o.find(q => q && q.t === 'computadora'); if (q) { q.bug = true; q.bugAge = 0; } }
@@ -109,6 +109,7 @@ async function era(b, srv, n, dir, legacy) {
     if (n === 9) { const v = D.vil.find(v => v.bot); if (v) D.misalign(v); }
     if (n === 11) for (let k = 0; k < 4; k++) D.spawnMeteor();
     if (n === 2) for (let k = 0; k < 3; k++) D.spawnPirates();
+    if (n === 3) o.filter(q => q && q.t === 'casa').slice(0, 3).forEach(q => { q.bug = true; q.bugAge = 0; });
     for (let k = 0; k < 600; k++) D.update(0.1);
     D.st.energy = 100; for (const v of D.vil) v.hungry = false; __H.step(2); __H.clean();
     return { fp: __H.fp(), hud: document.getElementById('hud').innerText };
