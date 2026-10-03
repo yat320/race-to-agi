@@ -3,7 +3,8 @@
 //   node tools/bot-mundo.mjs [corridas=3] [eras=2-10] [solo] [ritmo=1]
 // Con `solo`, cada era arranca sin nada de la anterior (como si la abrieras suelta) en vez de encadenarlas.
 // Con `ritmo=N` decide cada N segundos de juego en vez de cada uno (y mira las amenazas cada 3N): con 2 o 3 se parece
-// más a una persona, que tarda en abrir hojas, elegir y caminar.
+// más a una persona, que tarda en abrir hojas, elegir y caminar. Con `ignora` no toca nunca las amenazas (para medir cuánto
+// pesan sobre alguien distraído) y con `sindefensa` no construye la defensa de la era (atalayas, escudos).
 // Juega desde adentro de la página con ?debug: avanza el juego de a 0,1 s y cada segundo de juego decide qué hacer
 // (tocar amenazas, comer, investigar, construir, juntar). Investiga y construye por las hojas, como una persona.
 // La Antigüedad arranca con un legado típico de la Prehistoria (4 aldeanos, 50 ideas, ábaco, rueda y agricultura).
@@ -12,7 +13,7 @@ import { serve, launch } from './harness.mjs';
 
 const RUNS = +(process.argv[2] || 3);
 const [E0, E1] = (process.argv[3] || '2-11').split('-').map(Number);
-const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
+const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), IGNORE = OPT.includes('ignora'), NODEF = OPT.includes('sindefensa'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
 const MAX_MIN = 120;
 const PREHISTORIA = JSON.stringify({ v: 3, st: { won: true, res: { ideas: 50 }, techs: { abaco: true, rueda: true, agricultura: true } }, vil: [[0, 0], [0, 0], [0, 0], [0, 0]], obj: [] });
 
@@ -45,6 +46,7 @@ const nodes=()=>[...D.grid().on.values()].filter(n=>n.t!=='ciudad');
 function threats(){const o=D.obj();let n=0;
   for(const v of D.viruses()){D.onTap(Math.round(v.x),Math.round(v.y));n++;}
   for(const m of D.meteors().slice()){D.onTap(m.x,m.y);n++;}
+  for(const p of D.pirates().slice())if(!(p.wait>0)){D.onTap(Math.round(p.x),Math.round(p.y));n++;}
   for(const v of D.vil)if(v.bad){D.onTap(Math.round(v.x),Math.round(v.y));n++;}
   for(let i=0;i<o.length;i++)if(o[i]&&o[i].bug){D.onTap(i%MW,(i/MW)|0);n++;}
   S.taps+=n;}
@@ -56,11 +58,11 @@ function wants(){const V=D.vil.filter(v=>!v.bot).length,nT=Object.keys(D.st.tech
     w.push(['usina',1+Math.floor(els/6)]);if(B.represa)w.push(['represa',1]);}
   if(E.rival)w.push(['labseg',4],['embajada',2]);
   if(E.robots)w.push(['fabrob',2]);
-  if(E.meteors)w.push(['escudo',2]);
+  if(E.defense&&!window.__nodef)w.push([E.defense.id,2]);
   for(const b of E.builds){if(!b.req||w.some(x=>x[0]===b.id))continue;const p=b.prod||{};w.push([b.id,p.ideas||p.monedas?2:1]);}
   const full=['madera','piedra',ORE].some(k=>R()[k]>=D.cap(k)-5);if(full||cnt(E.storage.id)<1&&nT>=4)w.push([E.storage.id,Math.min(3,cnt(E.storage.id)+1)]);
   if(D.st.smog>12&&B.parque)w.push(['parque',Math.min(4,cnt('parque')+1)]);
-  return w.filter(([id,n])=>B[id]&&(!B[id].req||has(B[id].req))&&cnt(id)<n);}
+  return w.filter(([id,n])=>B[id]&&!(window.__nodef&&E.defense&&id===E.defense.id)&&(!B[id].req||has(B[id].req))&&cnt(id)<n);}
 function build(){for(const[id]of wants()){const b=B[id];if(!afford(D.buildCost(id)))continue;
     let opt={};
     if(b.elec){const ns=nodes();if(!ns.length)continue;opt={any:true,ok:(x,y)=>ns.some(n=>Math.hypot(n.x-x,n.y-y)<=2.9)};}
@@ -85,7 +87,7 @@ function gather(){const P=D.P;if(P.task||P.act||P.path.length)return;
   if(best>=0)D.onTap(best%MW,(best/MW)|0);}
 let tick=0;const PACE=window.__pace||1;
 function step(){tick++;
-  if(tick%(3*PACE)===0)threats();
+  if(tick%(3*PACE)===0&&!window.__ignore)threats();
   if(tick%PACE)return;
   if(D.st.energy<30&&R().comida>=1){$('bEat').click();S.eats++;}
   for(const t of E.techs){if(has(t.id)||!t.req.every(r=>has(r))||!afford(t.cost))continue;if(E.rival&&t===E.techs[E.techs.length-1]&&D.st.safety<100)continue;if(research(t.id))break;}
@@ -115,7 +117,7 @@ try {
       const t0 = Date.now();
       if (SOLO) await p.evaluate(() => { for (const k of Object.keys(localStorage)) if (k.startsWith('rtagi-mundo')) localStorage.removeItem(k); });
       await p.goto(srv.url + '/mundo' + n + '.html?debug');
-      await p.evaluate(k => { window.__pace = k; }, PACE);
+      await p.evaluate(([k, ig, nd]) => { window.__pace = k; window.__ignore = ig; window.__nodef = nd; }, [PACE, IGNORE, NODEF]);
       await p.evaluate(BOT);
       const r = await p.evaluate(m => window.__bot.run(m), MAX_MIN);
       await p.evaluate(() => { window.__rtagiActive = 'fin'; });
@@ -130,7 +132,7 @@ try {
   }
 } finally { await b.close(); srv.close(); }
 
-writeFileSync('out/bot-mundo' + (SOLO ? '-solo' : '') + (PACE > 1 ? '-ritmo' + PACE : '') + '.json', JSON.stringify(all, null, 1));
+writeFileSync('out/bot-mundo' + (SOLO ? '-solo' : '') + (PACE > 1 ? '-ritmo' + PACE : '') + (IGNORE ? '-ignora' : '') + (NODEF ? '-sindefensa' : '') + '.json', JSON.stringify(all, null, 1));
 // Resumen: minutos por era (mínimo, promedio y máximo entre corridas) y cuándo se investigó cada invento, en promedio.
 console.log('\n' + (SOLO ? 'Cada era sola, sin legado.' : 'Eras encadenadas: cada una arranca con lo que dejó la anterior.') + (PACE > 1 ? ' Decide cada ' + PACE + ' s.' : '') + '\nera            corridas  ganadas   mín   prom   máx  (minutos de juego hasta la obra)');
 for (let n = E0; n <= E1; n++) {
