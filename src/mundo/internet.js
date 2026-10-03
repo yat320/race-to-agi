@@ -50,7 +50,7 @@ const ERA={
     noLegacy:'No hay una Computación terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Llevá la red con antenas desde tu servidor hasta las ciudades lejanas: cada una conectada da monedas e ideas. Por la red llegan virus: tocalos antes de que lleguen al servidor, y si uno llega, tocá el servidor para limpiarlo. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Era de Internet superada',winText:()=>'Terminaste el teléfono inteligente en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ahora todos llevan Internet en el bolsillo.',
-    winNote:'Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan a la era de la IA.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era de la IA.'}
 };
 
 /* ---------- arte de la era ---------- */

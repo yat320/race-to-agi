@@ -50,7 +50,7 @@ const ERA={
     noLegacy:'No hay legado de la Prehistoria en este navegador: arrancás con 2 aldeanos. Podés cargar un código desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un depósito se llena, lo que sobra se pierde. Cuando tengas monedas llegan piratas por mar: tocalos antes de que roben, o recuperá lo que se llevan tocándolos antes de que lleguen al barco. Las atalayas echan a los que pasan cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Antigüedad superada',winText:()=>'Terminaste el mecanismo de Anticitera en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. La humanidad ya sabe construir máquinas que calculan.',
-    winNote:'Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan a la Edad Media.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Edad Media.'}
 };
 
 /* ---------- arte de la era ---------- */

@@ -1,6 +1,6 @@
-// Post-AGI del mundo abierto: iridio, puerto espacial, escudos y meteoritos; la esfera de Dyson. Datos y arte de la era; las reglas están en motor.html.
+// Era estelar del mundo abierto (la que sigue a la AGI): iridio, puerto espacial, escudos y meteoritos; la esfera de Dyson. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:11,name:'Post-AGI',de:'de la era post-AGI',next:null,
+  n:11,name:'Era estelar',de:'de la era estelar',next:null,
   ore:{id:'iridio',name:'Iridio',col:'#b8c8e8',empty:'Veta de iridio agotada',gather:'iridio',icon:[['........','..kkkk..','.kqvqqk.','kqqqvqqk','kqvqqqQk','.kqQqQk.','..kkkk..','........'],{q:'#565a6e',Q:'#3a3a48',v:'#b8c8e8'}]},
   storage:{id:'granero',name:'Granero'},ideaBuild:'instituto',ideaTechs:['nanotec','cosmologia'],boostTech:'fusion',farmBuild:'sintetizador',nightTech:'cosmologia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
@@ -21,7 +21,7 @@ const ERA={
  {id:'radar',name:'Radar orbital',cost:{monedas:30,ideas:130},req:['escudos','cohetes'],desc:'Los meteoritos tardan 50% más en caer: hay más tiempo para tocarlos.'},
  {id:'cosmologia',name:'Cosmología',cost:{monedas:55,ideas:340},req:['radar','mineria'],desc:'Desbloquea el instituto del espacio. Ideas +50% y de noche ves más lejos.'},
  {id:'fusion',name:'Fusión nuclear',cost:{iridio:70,monedas:55,ideas:450},req:['cohetes','radar'],desc:'Todo produce +50%.'},
- {id:'dyson',name:'Esfera de Dyson',cost:{piedra:130,iridio:110,monedas:130,ideas:1000},req:['cosmologia','fusion'],desc:'Un enjambre de espejos alrededor del Sol: toda su energía para la humanidad. Cierra la era post-AGI.'}],
+ {id:'dyson',name:'Esfera de Dyson',cost:{piedra:130,iridio:110,monedas:130,ideas:1000},req:['cosmologia','fusion'],desc:'Un enjambre de espejos alrededor del Sol: toda su energía para la humanidad. Cierra la era estelar.'}],
   builds:[
  {id:'casa',name:'Hábitat',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Hábitat listo: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
  {id:'granja',name:'Granja',req:null,base:{madera:12,comida:4},grow:1.25,done:'Granja lista',desc:'Produce comida sola.',prod:{comida:0.2},noSand:true},
@@ -40,19 +40,19 @@ const ERA={
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
   tips1:[['escudos','escudo','un escudo: desvía los meteoritos que caen cerca.']],
   tips2:[['nanotec','centro','un centro de la AGI: genera muchísimas ideas.'],['cohetes','puerto','un puerto espacial para conseguir monedas.'],['sintesis','sintetizador','un sintetizador: potencia las granjas.']],
-  smogTip:'Más parques.',done:'Era post-AGI completa.',
+  smogTip:'Más parques.',done:'Era estelar completa.',
   // Cada puerto lanza un cohete cada 24 s; el resto del tiempo el cohete espera en la plataforma.
   deco:(o,px,py)=>{if(o.t!=='puerto'||o.bug)return;const ph=(st.time/24+((px*7+py*3)%24)/24)%1;
     if(ph<0.22){const h=ph/0.22;hd(HS.rocket[1],px+8,py+2-h*h*40);}else if(ph>0.35)hd(HS.rocket[0],px+8,py+2);},
   text:{
-    when:'2045 d.C.',title:'Después de la AGI',
+    when:'2045 d.C.',title:'La era estelar',
     intro:'Con una AGI segura de tu lado, la humanidad sale al espacio: cohetes que van y vienen, minas en los asteroides y piedras que se desvían de su camino. Tocá los meteoritos antes de que caigan sobre tus edificios, o dejalos caer en tierra libre y aprovechá el iridio del cráter. La meta: la esfera de Dyson, toda la energía del Sol.',
     news:'Novedades: iridio, puerto espacial, escudos y meteoritos. Un edificio dañado no produce hasta que lo reparás tocándolo. Cuanto más avanzás, más seguido caen.',
     legacy:'Lo que trae tu ciudad de la era de la AGI',
     noLegacy:'No hay una AGI terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Caen meteoritos: tocalos antes de que lleguen. Si caen sobre un edificio lo dañan y hay que tocarlo para repararlo; en tierra libre dejan un cráter con iridio. Los escudos desvían los que apuntan cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'La esfera de Dyson',winText:()=>'Terminaste la esfera de Dyson en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Toda la energía del Sol, para la humanidad y su AGI.',
-    winNote:'Es un prototipo: no suma al progreso de las eras. Por ahora es la última era.'}
+    winNote:'Por ahora es la última era.'}
 };
 
 /* ---------- arte de la era ---------- */

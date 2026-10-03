@@ -1,6 +1,6 @@
 // AGI del mundo abierto: grafeno, la seguridad y la carrera contra el rival; la AGI. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:10,name:'AGI',de:'de la AGI',next:{file:'mundo11.html',to:'a la era post-AGI'},
+  n:10,name:'AGI',de:'de la AGI',next:{file:'mundo11.html',to:'a la era estelar'},
   ore:{id:'grafeno',name:'Grafeno',col:'#c8ccd2',empty:'Veta de grafeno agotada',gather:'grafeno',icon:[['........','..kkkk..','.kqvvqk.','kqkqqkqk','kqkqqkqk','.kqkkqk.','..kkkk..','........'],{q:'#4a4e5a',Q:'#2a2e38',v:'#c8ccd2'}]},
   storage:{id:'granero',name:'Granero'},ideaBuild:'instituto',ideaTechs:['computo','ciencia'],boostTech:'escalado',farmBuild:'agro',nightTech:'escalado',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
@@ -49,8 +49,8 @@ const ERA={
     legacy:'Lo que trae tu ciudad de la era de la IA',
     noLegacy:'No hay una era de la IA terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Un laboratorio rival corre hacia la AGI: si llega primero, perdés la carrera. La AGI necesita seguridad 100%: subila con laboratorios de seguridad, y frená al rival con embajadas y el tratado. En la compu: flechas o WASD, E para juntar, F para comer.',
-    win:'¡Ganaste la carrera a la AGI!',winText:()=>'Terminaste una AGI segura en el día '+(Math.floor(st.time/DAY)+1)+', cuando el rival iba '+Math.floor(st.rival)+'%. De la Prehistoria a la AGI, y la historia sigue: la era post-AGI te espera.',
-    winNote:'Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan a la era post-AGI.',
+    win:'¡Ganaste la carrera a la AGI!',winText:()=>'Terminaste una AGI segura en el día '+(Math.floor(st.time/DAY)+1)+', cuando el rival iba '+Math.floor(st.rival)+'%. De la Prehistoria a la AGI, y la historia sigue: la era estelar te espera.',
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era estelar.',
     lose:'El rival llegó primero',loseText:'El laboratorio rival terminó una AGI sin la seguridad suficiente. Esta vez la carrera se perdió. Lo que hiciste en las eras anteriores no se toca.'}
 };
 

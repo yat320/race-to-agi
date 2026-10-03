@@ -48,7 +48,7 @@ const ERA={
     noLegacy:'No hay un Renacimiento terminado en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Las fábricas, minas, trenes y barcos echan humo: con mucho humo juntás y cosechás menos, y los parques lo limpian. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Industria superada',winText:()=>'Terminaste la máquina analítica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ada Lovelace ya escribió el primer programa.',
-    winNote:'Es un prototipo: no suma al progreso de las eras. Tu ciudad, tus ideas y tus monedas pasan a la Electricidad.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Electricidad.'}
 };
 
 /* ---------- arte de la era ---------- */

@@ -6,7 +6,7 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI e
 
 | Archivo | Qué es | Estado |
 |---|---|---|
-| `index.html` | Hub: las 11 eras del mundo abierto (con la que toca jugar marcada), las misiones, prototipos, progreso total, código de legado | funciona |
+| `index.html` | Inicio del mundo abierto: sus 11 eras (con la que toca jugar marcada), el progreso hacia la AGI y el código de progreso; las misiones y la carrera por turnos quedan plegadas en "Otros modos que probamos" | funciona |
 | `era1.html` | Prehistoria por misiones (10 misiones, estilo Farm Frenzy) | jugable, probado con bot |
 | `era2.html` | Antigüedad por misiones (10 misiones, ciudad que crece) | jugable, probado con bot |
 | `carrera.html` | Prototipo por turnos (mapa, árbol de tecnologías, rival que corre a la obra) | prototipo, probado con simulaciones |
@@ -21,7 +21,7 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI e
 | `src/mundo/internet.js` → `mundo8.html` | Mundo abierto, Internet: litio, servidor y antenas para conectar cuatro ciudades lejanas que dan monedas e ideas; por la red llegan virus que hay que tocar antes de que tumben el servidor; obra final: el teléfono inteligente; arranca con lo que trae la ciudad de la Computación | prototipo |
 | `src/mundo/ia.js` → `mundo9.html` | Mundo abierto, IA: tierras raras, centros de datos y fábricas de robots que juntan solos; los robots a veces se desalinean y convierten tus recursos en clips hasta que los tocás; obra final: el asistente universal; arranca con lo que trae la ciudad de la era de Internet | prototipo |
 | `src/mundo/agi.js` → `mundo10.html` | Mundo abierto, AGI: carrera contra un laboratorio rival que acelera; la AGI necesita seguridad 100%, las embajadas y el tratado frenan al rival y, si llega primero, se pierde la carrera y se puede reintentar; arranca con lo que trae la ciudad de la era de la IA | prototipo |
-| `src/mundo/post-agi.js` → `mundo11.html` | Mundo abierto, post-AGI: iridio, puerto espacial con cohetes, escudos y meteoritos que hay que tocar antes de que dañen tus edificios (o dejarlos caer en tierra libre por el iridio del cráter); obra final: la esfera de Dyson; arranca con lo que trae la ciudad de la AGI | prototipo |
+| `src/mundo/post-agi.js` → `mundo11.html` | Mundo abierto, era estelar (la que sigue a la AGI): iridio, puerto espacial con cohetes, escudos y meteoritos que hay que tocar antes de que dañen tus edificios (o dejarlos caer en tierra libre por el iridio del cráter); obra final: la esfera de Dyson; arranca con lo que trae la ciudad de la AGI | prototipo |
 | `arbol.html` | Prototipo del árbol de progreso de las 10 eras (sin juego atrás) | prototipo |
 
 ## Correr
