@@ -395,17 +395,35 @@ const workT=v=>v.bot?(st.techs.chips?0.4:0.6):0.9;
 function addRobot(x,y){addVillager(x,y);vil[vil.length-1].bot=true;}
 function convince(v){let best=null,bd=6;for(const o of vil){if(o===v||!o.bot||o.bad)continue;const d=Math.hypot(o.x-v.x,o.y-v.y);if(d<bd){bd=d;best=o;}}if(best)misalign(best);}
 function misalign(v){v.bad=true;v.badT=0;v.carry=0;v.path=[];v.target=null;v.state='idle';}
-// Virus: cada ciudad conectada larga uno cada ~50 s, que viaja por las antenas hasta el servidor.
-// Tocándolo en el camino se borra; si llega, el servidor se cae (y la red con él) hasta que lo tocás.
+// Virus: cada ciudad conectada larga uno cada tanto (virusEvery), que viaja por las antenas hasta el servidor. Con ERA.infect
+// (las compus, con su nombre para los avisos) apunta a una al azar y, si no es el servidor, sigue de largo hasta ella.
+// Tocándolo en el camino se borra (+2 ideas). Si llega, se mete (o.bug, se guarda) y borra VIRUS_LOSS de las ideas guardadas:
+// la compu no produce y un servidor caído corta la red, hasta que la tocás o hasta que los técnicos la limpian solos a los
+// VIRUS_FIX segundos. La defensa de la era (el soporte técnico) cuida las compus a ERA.defense.r casilleros: los virus que
+// llegan rebotan y lo infectado se limpia solo en 15 s. Vienen más seguido con cada invento (+10%).
+const VIRUS_FIX=90,VIRUS_LOSS=0.15;
 const vSpeed=()=>1.1*(st.techs.firewall?0.6:1);
+const virusEvery=()=>ERA.infect?30/(1+0.1*Object.keys(st.techs).length):50;
+const infectable=o=>!!(o&&(o.t==='servidor'||ERA.infect&&ERA.infect[o.t]));
 function spawnVirus(c){const g=grid(),path=[[c.x,c.y]];let n=c;while(g.par.has(n.i)){n=g.par.get(n.i);path.push([n.x,n.y]);}
-  if(path.length>1)viruses.push({path,seg:0,u:0,x:c.x,y:c.y});}
+  if(path.length<2)return;let ti=n.i;
+  if(ERA.infect){const ts=[];obj.forEach((o,i)=>{if(infectable(o)&&!o.bug)ts.push(i);});if(ts.length)ti=ts[Math.floor(Math.random()*ts.length)];if(ti!==n.i)path.push([ti%MW,(ti/MW)|0]);}
+  viruses.push({path,seg:0,u:0,x:c.x,y:c.y,ti});}
+function virusIn(i){const o=obj[i];if(!infectable(o)||o.bug)return;
+  if(ERA.infect&&guarded(i)){zaps.push({x:i%MW,y:(i/MW)|0,t:0.5});float(i%MW,(i/MW)|0,'¡bloqueado!','#5fe3d0');return;}
+  o.bug=true;o.bugAge=0;BROKEN=null;const e=ERA.infect?Math.floor(st.res.ideas*VIRUS_LOSS):0,lost=e>0?' y borró '+e+' ideas':'';
+  if(e>0){st.res.ideas-=e;float(i%MW,(i/MW)|0,'−'+e+' ideas','#e8654d');}else float(i%MW,(i/MW)|0,'¡virus!','#e8654d');
+  if(o.t==='servidor'){GRID=null;toast('¡Un virus tumbó el servidor'+lost+'! Tocalo para limpiarlo.');}
+  else toast('¡Un virus se metió en '+ERA.infect[o.t]+lost+'! No produce: tocá el edificio para limpiarlo.');}
+// Los técnicos limpian solos lo infectado: en VIRUS_FIX segundos, o en 15 si hay un soporte técnico cerca.
+function virusFix(step){for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||!o.bug||!infectable(o))continue;o.bugAge=(o.bugAge||0)+step;
+  if(o.bugAge>=(guarded(i)?15:VIRUS_FIX)){o.bug=false;o.bugAge=0;BROKEN=null;if(o.t==='servidor')GRID=null;float(i%MW,(i/MW)|0,'¡limpio!','#5fe3d0');}}}
 function updateViruses(dt){for(const v of viruses){let move=vSpeed()*dt;
     while(move>0&&!v.dead){const[ax,ay]=v.path[v.seg],[bx,by]=v.path[v.seg+1],L=Math.hypot(bx-ax,by-ay)||1,left=(1-v.u)*L;
       if(move<left){v.u+=move/L;move=0;break;}
       move-=left;v.seg++;v.u=0;
-      if(v.seg>=v.path.length-1){v.dead=true;const o=obj[by*MW+bx];if(o&&o.t==='servidor'&&!o.bug){o.bug=true;GRID=null;toast('¡Un virus tumbó el servidor! Tocalo para limpiarlo.');}}
-      else if(st.techs.antivirus&&Math.random()<0.25){v.dead=true;float(bx,by,'¡frenado!','#5fe3d0');}}
+      if(v.seg>=v.path.length-1){v.dead=true;virusIn(by*MW+bx);}
+      else if(st.techs.antivirus&&(obj[by*MW+bx]||{}).t==='antena'&&Math.random()<0.25){v.dead=true;float(bx,by,'¡frenado!','#5fe3d0');}}
     if(!v.dead){const[ax,ay]=v.path[v.seg],[bx,by]=v.path[v.seg+1];v.x=ax+(bx-ax)*v.u;v.y=ay+(by-ay)*v.u;}}
   viruses=viruses.filter(v=>!v.dead);}
 // Meteoritos (ERA.meteors): cada tanto uno apunta a la ciudad (6 de cada 10 veces a un edificio) y cae en METEOR_T segundos
@@ -742,7 +760,7 @@ function update(dt){
           else if(o.bugAge>=bugSpread()){o.bugAge=0;spreadBug(i);}}
         else if(!ERA.moths&&Math.random()<bugRate()*step){o.bug=true;o.bugAge=0;}}
       if(!had&&bugCount())toast('¡Un bicho trabó una máquina! Tocala para aplastarlo.');}
-    if(ERA.cities)for(const c of grid().linked)if(Math.random()<step/50)spawnVirus(c);
+    if(ERA.cities){for(const c of grid().linked)if(Math.random()<step/virusEvery())spawnVirus(c);if(ERA.infect)virusFix(step);}
     if(ERA.robots){const had=vil.some(v=>v.bad);
       for(const v of vil){if(!v.bot)continue;if(v.bad){v.badT=(v.badT||0)+step;if(v.badT>=badSpread()){v.badT=0;convince(v);}}else if(Math.random()<badRate()*step)misalign(v);}
       if(!had&&vil.some(v=>v.bad))toast('¡Un robot se desalineó! Tocalo para corregirlo.');}
@@ -1163,8 +1181,9 @@ const chipEl={};
   document.title='Race to AGI · Mundo abierto · '+ERA.name;$('era').textContent=ERA.name;$('buildHint').textContent=BUILDS.length+' edificios';
   // Las dos barras de abajo de la energía: humo o seguridad, y la red, los robots o el rival.
   const H=$('hud');if(BUILDS.some(b=>b.smoke)||ERA.grid||ERA.robots||ERA.rival||ERA.defense)H.classList.add('rows');
-  $('sLbl').textContent=ERA.rival?'Seguridad':'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.grid==='power'?'Luz':ERA.defense?ERA.defense.label:ERA.robots?'Robots':'Red';
+  $('sLbl').textContent=ERA.rival?'Seguridad':ERA.cities&&ERA.defense?ERA.defense.label:'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.grid==='power'?'Luz':ERA.cities?'Red':ERA.defense?ERA.defense.label:ERA.robots?'Robots':'Red';
   if(ERA.rival){H.style.setProperty('--sfill','#93d36c');H.style.setProperty('--gfill','#e8654d');}
+  if(ERA.cities&&ERA.defense)H.style.setProperty('--sfill','#5fe3d0');
 })();
 function flashChip(k){const c=chipEl[k];if(!c)return;c.classList.add('flash');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('flash'),350);}
 const agiPct=()=>Math.min(100,10*(ERA.n-1)+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10);
@@ -1192,7 +1211,8 @@ function threat(){
   if(ERA.rival){if(st.lost)return['Perdiste la carrera:','el rival llegó primero. Podés reintentar la era desde el menú.'];
     if(!st.won&&st.rival>=70)return['¡El rival va '+Math.floor(st.rival)+'%!','Frenalo con embajadas o el tratado, o apurate.'];}
   if(ERA.cities){if(serverDown())return['Servidor caído:','tocalo para limpiar el virus y que vuelva la red.'];
-    if(viruses.length)return['¡Virus!',viruses.length+(viruses.length===1?' viene':' vienen')+' por la red. Tocalos antes de que lleguen.'];}
+    if(viruses.length)return['¡Virus!',viruses.length+(viruses.length===1?' viene':' vienen')+' por la red. Tocalos antes de que lleguen.'];
+    const ni=ERA.infect?obj.filter(o=>infectable(o)&&o.bug).length:0;if(ni)return['Virus adentro:',ni+(ni===1?' edificio no produce: tocalo para limpiarlo.':' edificios no producen: tocalos para limpiarlos.')];}
   if(ERA.robots){const bad=vil.filter(v=>v.bad).length;if(bad)return['¡Robot desalineado!',bad===1?'Está convirtiendo tus recursos en clips. Tocalo para corregirlo.':'Hay '+bad+' convirtiendo tus recursos en clips. Tocalos para corregirlos.'];}
   if(ERA.moths){const n=moths.filter(loose).length;if(n)return['¡Polillas!',(n===1?'Viene una':'Vienen '+n)+' hacia las máquinas: tocalas antes de que entren.'];}
   if(ERA.bugs){const nb=bugCount();if(nb)return['¡Bichos!',nb+(nb===1?' máquina trabada.':' máquinas trabadas.')+' Tocalas para aplastarlos.'];}
@@ -1253,17 +1273,20 @@ function hudRows(){
       const nb=bugCount();const nm=moths.filter(loose).length;$('gMeta').textContent=ERA.storms&&storms.length?'tormenta':nm?nm+(nm===1?' polilla':' polillas'):ERA.storms&&nb?nb+(nb===1?' quemado':' quemados'):g.unlit?g.unlit+' sin luz':nb?nb+(nb===1?' con bicho':' con bichos'):g.f<1?'todo rinde '+Math.round(g.f*100)+'%':g.supply?'alcanza':'sin usinas';}}
   else if(ERA.cities){const g=grid(),nc=g.cities.length,nl=g.linked.length,down=serverDown();$('gridRow').hidden=false;
     $('gFill').style.width=(nc?nl/nc*100:0)+'%';$('gFill').classList.toggle('hi',down);$('gNum').textContent=nl+'/'+nc;
-    $('gMeta').textContent=down?'servidor caído':viruses.length?viruses.length+' virus en camino':nl?'+'+fmt(cityRate()*60)+' monedas/min':'sin ciudades';}
-  // La defensa de la era (escudos, atalayas, hospitales): qué parte de los edificios cubre (con `of`, solo esos) y qué viene en camino.
-  else if(ERA.defense){const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){if(!D.of||D.of.includes(o.t))bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
-    const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,nb=ERA.meteors||ERA.plague||ERA.luddites?bugCount():0,np=pirates.length+swarms.length+ludds.filter(angry).length,
-      on=sh.length>0||meteors.length>0||np>0||nb>0||(ERA.meteors?st.time>60:ERA.plague?st.time>=PLAGUE_START:ERA.locusts?st.time>=LOCUST_START:ERA.luddites?st.time>=LUDD_START:!!st.techs[ERA.pirates]);$('gridRow').hidden=!on;
-    if(on){$('gFill').style.width=(bs.length?cov/bs.length*100:0)+'%';$('gFill').classList.toggle('hi',meteors.length>0||np>0||nb>0);$('gNum').textContent=Math.round(bs.length?cov/bs.length*100:0)+'%';
-      $('gMeta').textContent=meteors.length?(meteors.length===1?'1 meteorito en camino':meteors.length+' meteoritos en camino'):np?(ERA.locusts?(np===1?'1 manga de langostas':np+' mangas de langostas'):ERA.luddites?(np===1?'1 luddita en camino':np+' ludditas en camino'):np===1?'1 pirata en la costa':np+' piratas en la costa'):
-        nb?(ERA.plague?nb+' con peste':ERA.luddites?nb+(nb===1?' roto':' rotos'):nb+(nb===1?' dañado':' dañados')):sh.length?(ERA.meteors?'cielo tranquilo':ERA.plague?'sin peste':ERA.locusts?'campo tranquilo':ERA.luddites?'obreros tranquilos':'costa tranquila'):'sin '+D.label.toLowerCase();}}
+    $('gMeta').textContent=down?'servidor caído':viruses.length?viruses.length+' virus en camino':nl?'+'+fmt(cityRate()*60)+' monedas/min':'sin ciudades';if(ERA.defense)defenseRow('s');}
+  else if(ERA.defense)defenseRow('g');
   else if(ERA.robots){const bots=vil.filter(v=>v.bot),nb=bots.length,bad=bots.filter(v=>v.bad).length,on=nb>0||!!st.techs[ERA.robots];$('gridRow').hidden=!on;
     if(on){$('gFill').style.width=(nb?(nb-bad)/nb*100:0)+'%';$('gFill').classList.toggle('hi',bad>0);$('gNum').textContent=nb+'';$('gMeta').textContent=bad?bad+(bad===1?' desalineado':' desalineados'):nb?'todos alineados':'sin robots';}}
 }
+
+// La defensa de la era (escudos, atalayas, hospitales, soporte técnico): qué parte de los edificios cubre (con `of`, solo esos)
+// y qué viene en camino. Va en la fila de la red (p='g') o, en Internet, donde la red ya la usan las ciudades, en la del humo (p='s').
+function defenseRow(p){const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){if(!D.of||D.of.includes(o.t))bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
+  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,nb=ERA.meteors||ERA.plague||ERA.luddites||ERA.infect?bugCount():0,np=pirates.length+swarms.length+ludds.filter(angry).length,
+    on=sh.length>0||meteors.length>0||np>0||nb>0||(ERA.cities?grid().linked.length>0:ERA.meteors?st.time>60:ERA.plague?st.time>=PLAGUE_START:ERA.locusts?st.time>=LOCUST_START:ERA.luddites?st.time>=LUDD_START:!!st.techs[ERA.pirates]);$(p==='g'?'gridRow':'smogRow').hidden=!on;
+  if(on){$(p+'Fill').style.width=(bs.length?cov/bs.length*100:0)+'%';$(p+'Fill').classList.toggle('hi',meteors.length>0||np>0||nb>0);$(p+'Num').textContent=Math.round(bs.length?cov/bs.length*100:0)+'%';
+    $(p+'Meta').textContent=meteors.length?(meteors.length===1?'1 meteorito en camino':meteors.length+' meteoritos en camino'):np?(ERA.locusts?(np===1?'1 manga de langostas':np+' mangas de langostas'):ERA.luddites?(np===1?'1 luddita en camino':np+' ludditas en camino'):np===1?'1 pirata en la costa':np+' piratas en la costa'):
+      nb?(ERA.plague?nb+' con peste':ERA.infect?nb+' con virus':ERA.luddites?nb+(nb===1?' roto':' rotos'):nb+(nb===1?' dañado':' dañados')):sh.length?(ERA.meteors?'cielo tranquilo':ERA.infect?'compus cuidadas':ERA.plague?'sin peste':ERA.locusts?'campo tranquilo':ERA.luddites?'obreros tranquilos':'costa tranquila'):'sin '+D.label.toLowerCase();}}
 
 /* ---------- hojas ---------- */
 const costHTML=c=>'<div class="costs">'+Object.entries(c).map(([k,v])=>'<span class="cost'+(st.res[k]>=v?'':' miss')+'"><img class="px" alt="'+RN[k]+'" src="'+ICON[k]+'">'+v+'</span>').join('')+'</div>';
@@ -1399,7 +1422,8 @@ function onTap(tx,ty){
   if(!o&&inb(tx,ty+1)){const b=obj[(ty+1)*MW+tx];if(b&&b.t==='tree'&&b.hp>0){ty++;o=b;}}
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
   if(o){
-    if(o.bug&&o.t==='servidor'){o.bug=false;GRID=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Servidor limpio! La red vuelve a andar.');save();return;}
+    if(o.bug&&o.t==='servidor'){o.bug=false;o.bugAge=0;GRID=null;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Servidor limpio! La red vuelve a andar.');save();return;}
+    if(o.bug&&infectable(o)){o.bug=false;o.bugAge=0;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Virus borrado! Vuelve a producir.');save();return;}
     if(o.bug&&sickable(o)){o.bug=false;o.bugAge=0;o.heal=0;BROKEN=null;st.res.ideas+=2;float(tx,ty,'+2 ideas',RCOL.ideas);toast('¡Peste curada!');save();return;}
     if(o.bug&&(ERA.meteors||ERA.luddites||ERA.storms)){o.bug=false;BROKEN=null;GRID=null;float(tx,ty,'¡reparado!','#93d36c');o.fix=0;toast(ERA.luddites?'Máquinas arregladas: vuelve a producir.':ERA.storms?'Arreglado: vuelve la luz.':BUILD[o.t].name+' reparado.');save();return;}
     if(o.bug){o.bug=false;o.bugAge=0;st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);toast('¡Bicho aplastado!');save();return;}
@@ -1453,7 +1477,7 @@ resize();hud();
 if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
-  bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
+  bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),virusEvery:()=>virusEvery(),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
   rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
