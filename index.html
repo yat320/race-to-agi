@@ -36,6 +36,7 @@ h2{margin:0;font:700 20px var(--f-display)}
 .era.done .num{color:var(--ochre)}
 .era.done .state{color:var(--ochre)}
 .era.open .num{color:var(--signal)}
+.era.cur .name{color:var(--signal)}
 .era.locked .name,.era.soon .name{color:var(--muted)}
 .era-body{display:grid;min-width:0}
 .era.proto{grid-template-columns:minmax(0,1fr) auto}
@@ -68,7 +69,14 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
   </section>
 
   <section>
-    <h2>Eras</h2>
+    <h2>Mundo abierto</h2>
+    <p class="note">Una partida larga por era. Al terminar la obra pasás a la siguiente con tu gente y tus ideas.</p>
+    <ol class="eras" id="mundo"></ol>
+  </section>
+
+  <section>
+    <h2>Misiones</h2>
+    <p class="note">Otro modo de juego: partidas cortas con reloj y estrellas. Por ahora hay dos eras.</p>
     <ol class="eras" id="eras"></ol>
   </section>
 
@@ -108,21 +116,23 @@ const ERAS=[
 // state: texto de la partida guardada, o null si no hay una en curso.
 const PROTOS=[
   {id:'carrera',name:'Carrera a la obra',what:'Por turnos: mapa con niebla, tecnologías y un rival que corre hacia la misma obra.',file:'carrera.html',save:'rtagi-carrera-v1',
-    state:s=>s&&s.G&&s.G.tiles&&!s.G.over?'En curso · turno '+s.G.turn+' de 30':null},
-  {id:'mundo',name:'Mundo abierto',what:'Explorá, juntá recursos y sumá aldeanos, de la Prehistoria a la AGI. Cada era termina con una obra: del ábaco a la AGI, en una carrera final contra un rival.',save:'rtagi-mundo-v1',
-    // El botón te lleva a la era más avanzada que empezaste.
-    file:()=>mundoSave('rtagi-mundo10-v1')?'mundo10.html':mundoSave('rtagi-mundo9-v1')?'mundo9.html':mundoSave('rtagi-mundo8-v1')?'mundo8.html':mundoSave('rtagi-mundo7-v1')?'mundo7.html':mundoSave('rtagi-mundo6-v1')?'mundo6.html':mundoSave('rtagi-mundo5-v1')?'mundo5.html':mundoSave('rtagi-mundo4-v1')?'mundo4.html':mundoSave('rtagi-mundo3-v1')?'mundo3.html':mundoSave('rtagi-mundo2-v1')?'mundo2.html':'mundo.html',
-    state:s=>{const g=mundoSave('rtagi-mundo10-v1');if(g)return(g.won?'AGI · carrera ganada':g.lost?'AGI · carrera perdida':'AGI')+' · día '+(Math.floor((g.time||0)/160)+1);
-      const ia=mundoSave('rtagi-mundo9-v1');if(ia)return(ia.won?'IA · asistente universal terminado':'IA')+' · día '+(Math.floor((ia.time||0)/160)+1);
-      const w=mundoSave('rtagi-mundo8-v1');if(w)return(w.won?'Internet · teléfono inteligente terminado':'Internet')+' · día '+(Math.floor((w.time||0)/160)+1);
-      const c=mundoSave('rtagi-mundo7-v1');if(c)return(c.won?'Computación · microprocesador terminado':'Computación')+' · día '+(Math.floor((c.time||0)/160)+1);
-      const e=mundoSave('rtagi-mundo6-v1');if(e)return(e.won?'Electricidad · tabuladora terminada':'Electricidad')+' · día '+(Math.floor((e.time||0)/160)+1);
-      const i=mundoSave('rtagi-mundo5-v1');if(i)return(i.won?'Industria · máquina analítica terminada':'Industria')+' · día '+(Math.floor((i.time||0)/160)+1);
-      const r=mundoSave('rtagi-mundo4-v1');if(r)return(r.won?'Renacimiento · pascalina terminada':'Renacimiento')+' · día '+(Math.floor((r.time||0)/160)+1);
-      const m=mundoSave('rtagi-mundo3-v1');if(m)return(m.won?'Edad Media · imprenta terminada':'Edad Media')+' · día '+(Math.floor((m.time||0)/160)+1);
-      const a=mundoSave('rtagi-mundo2-v1');if(a)return(a.won?'Antigüedad · Anticitera terminado':'Antigüedad')+' · día '+(Math.floor((a.time||0)/160)+1);
-      return s&&s.st?'Prehistoria · '+(s.st.won?'ábaco terminado':'día '+(Math.floor((s.st.time||0)/150)+1)):null;}}];
-function mundoSave(k){try{const d=JSON.parse(get(k));return d&&Array.isArray(d.obj)?d:null;}catch(e){return null;}}
+    state:s=>s&&s.G&&s.G.tiles&&!s.G.over?'En curso · turno '+s.G.turn+' de 30':null}];
+// Mundo abierto: una página y una clave por era. La Prehistoria guarda distinto ({st, vil, obj}, días de 150 s).
+const MUNDO=[
+  {n:1,name:'Prehistoria',obra:'el ábaco',file:'mundo.html',save:'rtagi-mundo-v1'},
+  {n:2,name:'Antigüedad',obra:'el mecanismo de Anticitera',file:'mundo2.html',save:'rtagi-mundo2-v1'},
+  {n:3,name:'Edad Media',obra:'la imprenta',file:'mundo3.html',save:'rtagi-mundo3-v1'},
+  {n:4,name:'Renacimiento',obra:'la pascalina',file:'mundo4.html',save:'rtagi-mundo4-v1'},
+  {n:5,name:'Industria',obra:'la máquina analítica',file:'mundo5.html',save:'rtagi-mundo5-v1'},
+  {n:6,name:'Electricidad',obra:'la tabuladora eléctrica',file:'mundo6.html',save:'rtagi-mundo6-v1'},
+  {n:7,name:'Computación',obra:'el microprocesador',file:'mundo7.html',save:'rtagi-mundo7-v1'},
+  {n:8,name:'Internet',obra:'el teléfono inteligente',file:'mundo8.html',save:'rtagi-mundo8-v1'},
+  {n:9,name:'Inteligencia artificial',obra:'el asistente universal',file:'mundo9.html',save:'rtagi-mundo9-v1'},
+  {n:10,name:'AGI',obra:'la AGI, antes que el rival',file:'mundo10.html',save:'rtagi-mundo10-v1'}];
+// Partida guardada de una era del mundo abierto: {seen, won, lost, dia}, o null si nunca se abrió.
+function mundoState(e){try{const d=JSON.parse(get(e.save));if(!d)return null;
+  if(e.n===1)return d.st?{seen:!!d.st.seen||d.st.time>0,won:!!d.st.won,lost:false,dia:Math.floor((d.st.time||0)/150)+1}:null;
+  return Array.isArray(d.obj)?{seen:!!d.seen||d.time>0,won:!!d.won,lost:!!d.lost,dia:Math.floor((d.time||0)/160)+1}:null;}catch(x){return null;}}
 const $=id=>document.getElementById(id);
 function get(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function set(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
@@ -154,12 +164,29 @@ async function unpackAll(s){s=(s||'').trim().replace(/\s+/g,'');let bytes;
 function starsOf(e){try{const s=JSON.parse(get(e.save));if(s&&s.best)return Object.values(s.best).reduce((a,b)=>a+b,0);}catch(x){}return null;}
 function render(){
   const l=backfill();
-  const doneCount=ERAS.filter(e=>l.eras[e.n]&&l.eras[e.n].done).length;
+  const ms=MUNDO.map(mundoState);
+  // Una era cuenta para la barra si se terminó en cualquiera de los dos modos.
+  const doneCount=ERAS.filter(e=>(l.eras[e.n]&&l.eras[e.n].done)||(ms[e.n-1]&&ms[e.n-1].won)).length;
   $('pct').textContent=doneCount*10+'%';$('fill').style.width=doneCount*10+'%';
   const bar=$('bar');bar.querySelectorAll('.tick').forEach(t=>t.remove());
   for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=i*10+'%';bar.appendChild(t);}
+  // La era para jugar ahora: la más avanzada que abriste, o la siguiente si ya la terminaste.
+  let cur=0;for(let i=MUNDO.length-1;i>=0;i--)if(ms[i]){cur=ms[i].won&&i<MUNDO.length-1?i+1:i;break;}
+  const ml=$('mundo');ml.innerHTML='';
+  MUNDO.forEach((e,i)=>{
+    const s=ms[i],open=i===0||!!s||!!(ms[i-1]&&ms[i-1].won),main=i===cur?'btn':'btn ghost';
+    let cls,state,action;
+    if(s&&s.won){cls='done';state=(e.n===10?'Carrera ganada':'Terminada')+' en el día '+s.dia;action='<button class="'+main+'" data-mundo="'+i+'">Jugar</button>';}
+    else if(!open){cls='locked';state='Terminá la era anterior para desbloquearla';action='<span class="tag">Bloqueada</span>';}
+    else if(s&&s.seen){cls='open';state=(s.lost?'Carrera perdida':'En curso')+' · día '+s.dia;action='<button class="'+main+'" data-mundo="'+i+'">Continuar</button>';}
+    else{cls='open';state='Lista para empezar';action='<button class="'+main+'" data-mundo="'+i+'">Empezar</button>';}
+    const li=document.createElement('li');li.className='era '+cls+(i===cur?' cur':'');
+    li.innerHTML='<span class="num">'+String(e.n).padStart(2,'0')+'</span><div class="era-body"><span class="name">'+e.name+'</span><span class="when">Obra: '+e.obra+'</span><span class="state">'+state+'</span></div>'+action;
+    ml.appendChild(li);
+  });
+  // Misiones: solo las eras que ya tienen misiones.
   const list=$('eras');list.innerHTML='';
-  ERAS.forEach(e=>{
+  ERAS.filter(e=>e.file).forEach(e=>{
     const rec=l.eras[e.n],done=rec&&rec.done,prevDone=e.n===1||(l.eras[e.n-1]&&l.eras[e.n-1].done);
     const playable=!!e.file,started=playable&&!!get(e.save);
     let cls,state,action='';
@@ -187,7 +214,8 @@ function loadPage(file,txt){
 }
 function alertMsg(id,txt,err){const m=$(id);m.textContent=txt;m.classList.toggle('err',!!err);}
 $('eras').addEventListener('click',ev=>{const b=ev.target.closest('[data-go]');if(b)goEra(+b.dataset.go);});
-$('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(typeof p.file==='function'?p.file():p.file,'Cargando '+p.name.toLowerCase()+'…');});
+$('mundo').addEventListener('click',ev=>{const b=ev.target.closest('[data-mundo]');const e=b&&MUNDO[+b.dataset.mundo];if(e)loadPage(e.file,'Cargando '+e.name.toLowerCase()+'…');});
+$('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(p.file,'Cargando '+p.name.toLowerCase()+'…');});
 $('copy').addEventListener('click',()=>{
   const v=$('code').value;
   const ok=()=>alertMsg('copyMsg','Copiado');
