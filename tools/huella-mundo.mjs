@@ -11,7 +11,7 @@ const ERAS = {
   3: { techs: ['forja', 'monasterios', 'gremios', 'molinos', 'rutas', 'universidades', 'anteojos', 'reloj', 'imprenta'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'monasterio', 'feria', 'molino', 'puerto', 'universidad', 'hospital'] },
   4: { techs: ['perspectiva', 'mineria', 'banca', 'botanica', 'carabelas', 'academias', 'telescopio', 'mecanica', 'pascalina'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'taller', 'banco', 'jardin', 'puerto', 'academia', 'palomar'] },
   5: { techs: ['vapor', 'quimica', 'telar', 'ferrocarril', 'barcos', 'exposiciones', 'gas', 'tarjetas', 'analitica'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'parque', 'herreria', 'cantera', 'mina', 'laboratorio', 'fabrica', 'estacion', 'puerto', 'palacio', 'sindicato'] },
-  6: { techs: ['dinamo', 'motor', 'lamparita', 'frio', 'hidro', 'escuelas', 'telefono', 'valvulas', 'tabuladora'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'parque', 'herreria', 'cantera', 'usina', 'poste', 'represa', 'fabrica', 'laboratorio', 'frigorifico', 'escuela'], near: { usina: ['fabrica', 'laboratorio', 'frigorifico', 'escuela'] } },
+  6: { techs: ['dinamo', 'motor', 'lamparita', 'frio', 'hidro', 'escuelas', 'telefono', 'valvulas', 'tabuladora'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'parque', 'herreria', 'cantera', 'usina', 'poste', 'represa', 'fabrica', 'laboratorio', 'frigorifico', 'escuela', 'pararrayos'], near: { usina: ['fabrica', 'laboratorio', 'frigorifico', 'escuela'] } },
   7: { techs: ['eniac', 'tractor', 'transistor', 'lenguajes', 'satelite', 'universidades', 'depuracion', 'circuito', 'micro'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'parque', 'usina', 'poste', 'represa', 'herreria', 'cantera', 'computadora', 'oficina', 'galpon', 'universidad'], near: { usina: ['computadora', 'oficina', 'universidad'] } },
   8: { techs: ['www', 'biotec', 'comercio', 'email', 'firewall', 'buscadores', 'antivirus', 'banda', 'smartphone'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'servidor', 'herreria', 'cantera', 'cibercafe', 'tienda', 'semillas', 'buscador'], antenas: true },
   9: { techs: ['redes', 'vertical', 'robotica', 'software', 'alineacion', 'lenguaje', 'interpretabilidad', 'chips', 'asistente'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'datacenter', 'fabrob', 'startup', 'huerta', 'seguridad', 'labia'] },
@@ -52,6 +52,7 @@ const HELP = `window.__H={t:2000,step(n){for(let k=0;k<(n||2);k++){this.t+=200;_
     if(D.pirates){const p=D.pirates().find(p=>!(p.wait>0));if(p){D.onTap(Math.round(p.x),Math.round(p.y));n++;}}
     if(D.swarms){const w=D.swarms()[0];if(w){D.onTap(Math.round(w.x),Math.round(w.y));n++;}}
     if(D.ludds){const l=D.ludds().find(l=>l.state!=='home'&&!(l.wait>0));if(l){D.onTap(Math.round(l.x),Math.round(l.y));n++;}}
+    if(D.storms){const w=D.storms()[0];if(w){D.onTap(Math.round(w.x),Math.round(w.y-0.6));n++;}}
     const b=D.vil.find(v=>v.bad);if(b){D.onTap(Math.round(b.x),Math.round(b.y));n++;}return n;},
   gather(k){const D=this.D,o=D.obj();if(D.P.task||D.P.act)return;const ty=['tree','rock','ore','bush'][k%4],px=Math.round(D.P.x),py=Math.round(D.P.y);let best=-1,bd=1e9;
     o.forEach((q,i)=>{if(q&&q.t===ty&&q.hp>0){const d=Math.abs(i%64-px)+Math.abs(((i/64)|0)-py);if(d<bd){bd=d;best=i;}}});if(best>=0)D.onTap(best%64,(best/64)|0);},
@@ -103,7 +104,7 @@ async function era(b, srv, n, dir, legacy) {
   out.save = await p.evaluate(k => localStorage.getItem(k), 'rtagi-mundo' + n + '-v1');
   out.hud = await p.evaluate(() => document.getElementById('hud').innerText);
   for (const m of ['build', 'tech', 'tribe']) out['sheet_' + m] = await p.evaluate(m => __H.sheet(m), m);
-  // Amenazas a propósito, sin tocarlas durante un minuto: bicho, virus, robot desalineado, meteoritos, piratas, peste, langostas o ludditas.
+  // Amenazas a propósito, sin tocarlas durante un minuto: bicho, virus, robot desalineado, meteoritos, piratas, peste, langostas, ludditas o tormentas.
   out.threat = await p.evaluate(n => {
     const D = __H.D, o = D.obj();
     if (n === 7) { const q = o.find(q => q && q.t === 'computadora'); if (q) { q.bug = true; q.bugAge = 0; } }
@@ -113,6 +114,7 @@ async function era(b, srv, n, dir, legacy) {
     if (n === 2) for (let k = 0; k < 3; k++) D.spawnPirates();
     if (n === 4) for (let k = 0; k < 2; k++) D.spawnLocusts();
     if (n === 5) for (let k = 0; k < 2; k++) D.spawnLuddites();
+    if (n === 6) D.spawnStorm();
     if (n === 3) o.filter(q => q && q.t === 'casa').slice(0, 3).forEach(q => { q.bug = true; q.bugAge = 0; });
     for (let k = 0; k < 600; k++) D.update(0.1);
     D.st.energy = 100; for (const v of D.vil) v.hungry = false; __H.step(2); __H.clean();

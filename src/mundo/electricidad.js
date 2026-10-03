@@ -1,4 +1,4 @@
-// Electricidad del mundo abierto: cobre, usinas, postes y la red eléctrica; la tabuladora. Datos y arte de la era; las reglas están en motor.html.
+// Electricidad del mundo abierto: cobre, usinas, postes, la red eléctrica y las tormentas; la tabuladora. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
   n:6,name:'Electricidad',de:'de la Electricidad',next:{file:'mundo7.html',to:'a la Computación'},
   ore:{id:'cobre',name:'Cobre',col:'#f0a066',empty:'Veta de cobre agotada',gather:'cobre',icon:[['........','..kkkk..','.kqqQqk.','kqvqqQqk','kqqqQqQk','kQqqqQQk','.kkkkkk.','........']]},
@@ -6,13 +6,15 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','usina','represa'],
   grid:'power',gridTech:'dinamo',
+  // Tormentas que tiran rayos sobre lo eléctrico y cortan la red; el pararrayos se lleva los rayos a 4 casilleros (reglas en motor.html).
+  storms:true,defense:{id:'pararrayos',r:4,label:'Pararrayos'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo5-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la Industria',perks:[
     ['analitica','ideaMult',1.25,'Máquina analítica: ideas +25% durante toda la era'],
     ['ferrocarril','agri',1.25,'Ferrocarril: granjas +25%']
   ]},
   techs:[
- {id:'dinamo',name:'Dínamo',cost:{cobre:15,ideas:30},req:[],desc:'Desbloquea la usina, los postes, la herrería y la cantera.'},
+ {id:'dinamo',name:'Dínamo',cost:{cobre:15,ideas:30},req:[],desc:'Desbloquea la usina, los postes, el pararrayos, la herrería y la cantera.'},
  {id:'motor',name:'Motor eléctrico',cost:{cobre:20,ideas:50},req:['dinamo'],desc:'Desbloquea la fábrica eléctrica, que da muchas monedas.'},
  {id:'lamparita',name:'Lamparita',cost:{piedra:15,ideas:40},req:['dinamo'],desc:'Desbloquea el laboratorio. Ideas +50% y de noche ves más lejos.'},
  {id:'frio',name:'Refrigeración',cost:{madera:40,piedra:20,ideas:65},req:['dinamo'],desc:'Desbloquea el frigorífico, que potencia las granjas.'},
@@ -32,23 +34,24 @@ const ERA={
  {id:'cantera',name:'Cantera',req:'dinamo',base:{madera:20,cobre:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
  {id:'usina',name:'Usina',req:'dinamo',base:{madera:30,piedra:30,cobre:10},grow:1.5,done:'Usina encendida',desc:'Da luz a 6 edificios con ⚡. Echa humo.',power:6,node:true,smoke:0.06,smk:[[2.75,0],[5.75,0]],puffs:4},
  {id:'poste',name:'Poste',req:'dinamo',base:{madera:6,cobre:3},grow:1.06,done:'Poste instalado',desc:'Estira la red: se conecta con otro poste o una usina a 4 casilleros, y da luz a lo que esté a 3.',node:true},
+ {id:'pararrayos',name:'Pararrayos',req:'dinamo',base:{madera:10,piedra:15,cobre:8},grow:1.4,done:'Pararrayos instalado',desc:'Se lleva los rayos que caen a 4 casilleros: lo eléctrico de alrededor no se quema.'},
  {id:'represa',name:'Represa',req:'hidro',base:{piedra:50,cobre:25},grow:1.5,done:'Represa funcionando',desc:'Va pegada al agua. Da luz a 6 edificios con ⚡ sin echar humo.',power:6,node:true,water:'La represa tiene que ir pegada al agua.'},
  {id:'fabrica',name:'Fábrica eléctrica',req:'motor',base:{madera:30,piedra:25,cobre:5},grow:1.4,done:'Fábrica en marcha',desc:'Motores eléctricos: da muchas monedas.',prod:{monedas:0.35},elec:true},
  {id:'laboratorio',name:'Laboratorio',req:'lamparita',base:{piedra:40,cobre:10},grow:1.5,done:'Laboratorio abierto',desc:'Inventores con luz eléctrica: genera muchas ideas.',prod:{ideas:0.4},elec:true},
  {id:'frigorifico',name:'Frigorífico',req:'frio',base:{madera:35,piedra:30},grow:1.6,done:'Frigorífico funcionando',desc:'La cosecha no se pudre: cada frigorífico hace rendir +50% a todas las granjas.',elec:true},
  {id:'escuela',name:'Escuela',req:'escuelas',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Escuela abierta',desc:'Ideas +30% por cada escuela.',elec:true}],
-  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',parque:'Parque: limpia el humo.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',usina:'Usina: da luz a 6 edificios. Echa humo.',poste:'Poste: estira la red.',represa:'Represa: da luz a 6 edificios sin humo.',fabrica:'Fábrica eléctrica: da monedas.',laboratorio:'Laboratorio: genera ideas.',frigorifico:'Frigorífico: potencia las granjas.',escuela:'Escuela: más ideas.'},
+  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',parque:'Parque: limpia el humo.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',usina:'Usina: da luz a 6 edificios. Echa humo.',pararrayos:'Pararrayos: se lleva los rayos a 4 casilleros.',poste:'Poste: estira la red.',represa:'Represa: da luz a 6 edificios sin humo.',fabrica:'Fábrica eléctrica: da monedas.',laboratorio:'Laboratorio: genera ideas.',frigorifico:'Frigorífico: potencia las granjas.',escuela:'Escuela: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
-  tips1:[['dinamo',['usina','represa'],'una usina: da luz a 6 edificios con ⚡.'],gridTip],
+  tips1:[['dinamo',['usina','represa'],'una usina: da luz a 6 edificios con ⚡.'],gridTip,['dinamo','pararrayos','un pararrayos cerca de las usinas y los postes: se lleva los rayos.']],
   tips2:[['lamparita','laboratorio','un laboratorio con luz: genera muchas ideas.'],['motor','fabrica','una fábrica con luz para conseguir monedas.'],['hidro','represa','una represa pegada al agua: luz sin humo.']],
   smogTip:'Más parques, o represas en vez de usinas.',done:'Electricidad completa.',
   text:{
     when:'1880 d.C.',title:'La Electricidad',
-    intro:'Llega la luz eléctrica. Las usinas mueven fábricas, laboratorios y frigoríficos, pero solo si los conectás con postes y cables. La meta: construir la tabuladora eléctrica, la máquina que contó un censo entero.',
-    news:'Novedades: cobre y la red eléctrica. Los edificios con ⚡ andan solo si están cerca de una usina, una represa o un poste conectado. Las usinas echan humo; las represas no.',
+    intro:'Llega la luz eléctrica. Las usinas mueven fábricas, laboratorios y frigoríficos, pero solo si los conectás con postes y cables, y las tormentas tiran rayos que queman la red. La meta: construir la tabuladora eléctrica, la máquina que contó un censo entero.',
+    news:'Novedades: cobre y la red eléctrica. Los edificios con ⚡ andan solo si están cerca de una usina, una represa o un poste conectado. Las usinas echan humo; las represas no. Las tormentas tiran rayos que queman usinas, postes y lo que tiene ⚡: tocá la nube para disiparla y lo quemado para arreglarlo. Los pararrayos se llevan los rayos que caen cerca.',
     legacy:'Lo que trae tu ciudad de la Industria',
     noLegacy:'No hay una Industria terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Los edificios con ⚡ necesitan luz: tienen que quedar cerca de una usina, una represa o un poste conectado. Las usinas echan humo: con mucho humo juntás y cosechás menos, y los parques lo limpian. En la compu: flechas o WASD, E para juntar, F para comer.',
+    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Los edificios con ⚡ necesitan luz: tienen que quedar cerca de una usina, una represa o un poste conectado. Las usinas echan humo: con mucho humo juntás y cosechás menos, y los parques lo limpian. Las tormentas tiran rayos que queman lo eléctrico y cortan la red: tocá la nube para disiparla y lo quemado para arreglarlo; los pararrayos se llevan los rayos que caen cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Electricidad superada',winText:()=>'Terminaste la tabuladora eléctrica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las máquinas ya cuentan solas.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Computación.'}
 };
@@ -97,6 +100,11 @@ function schoolArt(){return mkA(64,64,a=>{const CEL=hx('#7ec0ee');rect(a,33,4,1,
   ell(a,33,23,3,3,IRON[0]);ell(a,33,23,2.2,2.2,hx('#f6f1e4'));a.set(33,22,IRON[0]);a.set(34,23,IRON[0]);
   rect(a,10,56,46,2,MARBLE[3]);rect(a,8,58,50,2,MARBLE[1]);outlineAll(a,OUTL);});}
 const VILPAL2=[{c:'#3a3a48',C:'#28283a',j:'#d8d0bc',y:'#3a2418'},{c:'#3f5f8a',C:'#2c4466',j:'#7a5434',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#7a4a6a',C:'#58324c',j:'#e3ddcc',y:'#8a5a2a'}];
+// Pararrayos: varilla de hierro con punta y bola de vidrio, cable de cobre que baja y base de piedra.
+function rodArt(){return mkA(64,64,a=>{stoneWall(a,22,50,20,10);rect(a,20,49,24,2,STONE2[3]);
+  rect(a,31,8,3,42,IRON[1]);rect(a,31,8,1,42,IRON[3]);poly(a,[[32.5,0],[35,8],[30,8]],IRON[2]);ell(a,32.5,20,4,4,GLASS[1]);ell(a,31.5,19,1.5,1.5,GLASS[3]);
+  for(const y of[12,30,40])rect(a,28,y,9,2,IRON[0]);for(let y=22;y<50;y++)a.set(35+Math.round(Math.sin(y*0.6)),y,COPPER[1]);
+  outlineAll(a,OUTL);});}
 const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:copperOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:italianHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),parque:parkArt(),usina:powerPlantArt(),poste:poleArt(),represa:damArt(),fabrica:elecFactoryArt(),laboratorio:edisonLabArt(),frigorifico:frigoArt(),escuela:schoolArt(),
+  casa:italianHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),parque:parkArt(),usina:powerPlantArt(),poste:poleArt(),represa:damArt(),fabrica:elecFactoryArt(),laboratorio:edisonLabArt(),frigorifico:frigoArt(),escuela:schoolArt(),pararrayos:rodArt(),
   hero:[personArt({c:'#4a6a3a',C:'#33492a',j:'#d4ae62'},0),personArt({c:'#4a6a3a',C:'#33492a',j:'#d4ae62'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
