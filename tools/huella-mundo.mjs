@@ -15,10 +15,11 @@ const ERAS = {
   7: { techs: ['eniac', 'tractor', 'transistor', 'lenguajes', 'satelite', 'universidades', 'depuracion', 'circuito', 'micro'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'parque', 'usina', 'poste', 'represa', 'herreria', 'cantera', 'computadora', 'oficina', 'galpon', 'universidad'], near: { usina: ['computadora', 'oficina', 'universidad'] } },
   8: { techs: ['www', 'biotec', 'comercio', 'email', 'firewall', 'buscadores', 'antivirus', 'banda', 'smartphone'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'servidor', 'herreria', 'cantera', 'cibercafe', 'tienda', 'semillas', 'buscador'], antenas: true },
   9: { techs: ['redes', 'vertical', 'robotica', 'software', 'alineacion', 'lenguaje', 'interpretabilidad', 'chips', 'asistente'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'datacenter', 'fabrob', 'startup', 'huerta', 'seguridad', 'labia'] },
+  11: { techs: ['nanotec', 'escudos', 'cohetes', 'sintesis', 'mineria', 'radar', 'cosmologia', 'fusion', 'dyson'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'centro', 'escudo', 'puerto', 'sintetizador', 'minero', 'instituto'] },
   10: { techs: ['computo', 'seguridad', 'productos', 'automatizacion', 'diplomacia', 'ciencia', 'tratado', 'escalado', 'agi'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'supercomp', 'labseg', 'empresa', 'agro', 'embajada', 'instituto'] },
 };
-const PREV = { 2: 'rtagi-mundo-v1' }; for (let n = 3; n <= 10; n++) PREV[n] = 'rtagi-mundo' + (n - 1) + '-v1';
-const PERKS = ['abaco', 'rueda', 'agricultura', 'anticitera', 'irrigacion', 'imprenta', 'molinos', 'pascalina', 'botanica', 'analitica', 'ferrocarril', 'tabuladora', 'frio', 'micro', 'tractor', 'smartphone', 'biotec', 'asistente', 'vertical', 'interpretabilidad'];
+const PREV = { 2: 'rtagi-mundo-v1' }; for (let n = 3; n <= 11; n++) PREV[n] = 'rtagi-mundo' + (n - 1) + '-v1';
+const PERKS = ['abaco', 'rueda', 'agricultura', 'anticitera', 'irrigacion', 'imprenta', 'molinos', 'pascalina', 'botanica', 'analitica', 'ferrocarril', 'tabuladora', 'frio', 'micro', 'tractor', 'smartphone', 'biotec', 'asistente', 'vertical', 'interpretabilidad', 'agi', 'automatizacion', 'escalado'];
 const prevSave = n => { const techs = Object.fromEntries(PERKS.map(t => [t, true])), vil = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]];
   return JSON.stringify(n === 2 ? { st: { won: true, res: { ideas: 120 }, techs }, vil, obj: [] } : { v: 1, won: true, vil, res: { ideas: 150, monedas: 60 }, techs, obj: [] }); };
 
@@ -47,6 +48,7 @@ const HELP = `window.__H={t:2000,step(n){for(let k=0;k<(n||2);k++){this.t+=200;_
   threats(){const D=this.D,o=D.obj();let n=0;
     const i=o.findIndex(q=>q&&q.bug);if(i>=0){D.onTap(i%64,(i/64)|0);n++;}
     if(D.viruses){const v=D.viruses()[0];if(v){D.onTap(Math.round(v.x),Math.round(v.y));n++;}}
+    if(D.meteors){const m=D.meteors()[0];if(m){D.onTap(m.x,m.y);n++;}}
     const b=D.vil.find(v=>v.bad);if(b){D.onTap(Math.round(b.x),Math.round(b.y));n++;}return n;},
   gather(k){const D=this.D,o=D.obj();if(D.P.task||D.P.act)return;const ty=['tree','rock','ore','bush'][k%4],px=Math.round(D.P.x),py=Math.round(D.P.y);let best=-1,bd=1e9;
     o.forEach((q,i)=>{if(q&&q.t===ty&&q.hp>0){const d=Math.abs(i%64-px)+Math.abs(((i/64)|0)-py);if(d<bd){bd=d;best=i;}}});if(best>=0)D.onTap(best%64,(best/64)|0);},
@@ -104,6 +106,7 @@ async function era(b, srv, n, dir, legacy) {
     if (n === 7) { const q = o.find(q => q && q.t === 'computadora'); if (q) { q.bug = true; q.bugAge = 0; } }
     if (n === 8) for (const c of D.grid().linked) D.spawnVirus(c);
     if (n === 9) { const v = D.vil.find(v => v.bot); if (v) D.misalign(v); }
+    if (n === 11) for (let k = 0; k < 4; k++) D.spawnMeteor();
     for (let k = 0; k < 600; k++) D.update(0.1);
     D.st.energy = 100; for (const v of D.vil) v.hungry = false; __H.step(2); __H.clean();
     return { fp: __H.fp(), hud: document.getElementById('hud').innerText };
@@ -214,11 +217,11 @@ else if (process.argv[2] === 'cargar') {
   // node tools/huella-mundo.mjs cargar <carpeta con las partidas> <salida>
   const from = process.argv[3], dir = process.argv[4]; mkdirSync(dir, { recursive: true });
   const srv = await serve(process.env.HUELLA_DIST || 'dist'), b = await launch();
-  try { for (let n = 2; n <= 10; n++) { const o = await cargar(b, srv, n, dir, from); writeFileSync(dir + '/m' + n + '.json', JSON.stringify(o)); console.log('era ' + n + ' cargada · errores ' + o.errs.length); } }
+  try { for (let n = 2; n <= 11; n++) { if (!existsSync(from + '/m' + n + '.json')) continue; const o = await cargar(b, srv, n, dir, from); writeFileSync(dir + '/m' + n + '.json', JSON.stringify(o)); console.log('era ' + n + ' cargada · errores ' + o.errs.length); } }
   finally { await b.close(); srv.close(); }
 }
 else {
-  const dir = process.argv[2] || 'out/huella', list = (process.argv[3] || '2,3,4,5,6,7,8,9,10').split(',').map(Number);
+  const dir = process.argv[2] || 'out/huella', list = (process.argv[3] || '2,3,4,5,6,7,8,9,10,11').split(',').map(Number);
   mkdirSync(dir, { recursive: true });
   const srv = await serve(process.env.HUELLA_DIST || 'dist'), b = await launch();
   try {
