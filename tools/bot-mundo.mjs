@@ -1,6 +1,6 @@
-// Bot del mundo abierto: juega las eras 2 a 10 una atrás de otra (cada una arranca con lo que dejó la anterior) y
+// Bot del mundo abierto: juega las eras 2 a 11 una atrás de otra (cada una arranca con lo que dejó la anterior) y
 // reporta cuántos minutos de juego tarda en terminar la obra de cada era. Sirve para ajustar el balance con datos.
-//   node tools/bot-mundo.mjs [corridas=3] [eras=2-10] [solo] [ritmo=1]
+//   node tools/bot-mundo.mjs [corridas=3] [eras=2-11 o una sola, como 3] [solo] [ritmo=1] [ignora] [sindefensa]
 // Con `solo`, cada era arranca sin nada de la anterior (como si la abrieras suelta) en vez de encadenarlas.
 // Con `ritmo=N` decide cada N segundos de juego en vez de cada uno (y mira las amenazas cada 3N): con 2 o 3 se parece
 // más a una persona, que tarda en abrir hojas, elegir y caminar. Con `ignora` no toca nunca las amenazas (para medir cuánto
@@ -12,7 +12,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { serve, launch } from './harness.mjs';
 
 const RUNS = +(process.argv[2] || 3);
-const [E0, E1] = (process.argv[3] || '2-11').split('-').map(Number);
+const [E0, E1 = E0] = (process.argv[3] || '2-11').split('-').map(Number);
 const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), IGNORE = OPT.includes('ignora'), NODEF = OPT.includes('sindefensa'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
 const MAX_MIN = 120;
 const PREHISTORIA = JSON.stringify({ v: 3, st: { won: true, res: { ideas: 50 }, techs: { abaco: true, rueda: true, agricultura: true } }, vil: [[0, 0], [0, 0], [0, 0], [0, 0]], obj: [] });
