@@ -1,19 +1,22 @@
-// Internet del mundo abierto: litio, servidor, antenas, ciudades y virus; el teléfono inteligente. Datos y arte de la era; las reglas están en motor.html.
+// Internet del mundo abierto: litio, servidor, antenas, ciudades, virus y soporte técnico; el teléfono inteligente. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
   n:8,name:'Internet',de:'de Internet',next:{file:'mundo9.html',to:'a la IA'},
   ore:{id:'litio',name:'Litio',col:'#b8f0a0',empty:'Veta de litio agotada',gather:'litio',icon:[['...kk...','..kkkk..','..kvqk..','..kqqk..','..kqqk..','..kQQk..','..kkkk..','........'],{q:'#9ae07a',Q:'#5aa347',v:'#e8ffe0'}]},
   storage:{id:'granero',name:'Granero'},ideaBuild:'buscador',ideaTechs:['www','email','buscadores'],boostTech:'banda',farmBuild:'semillas',nightTech:'banda',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
-  lights:['herreria','servidor','cibercafe','tienda','buscador','semillas'],
+  lights:['herreria','servidor','cibercafe','tienda','buscador','semillas','soporte'],
   landmarks:[[0,-20,'ciudad'],[20,0,'ciudad'],[0,18,'ciudad'],[-20,0,'ciudad']],
   grid:'data',cities:true,
+  // Los virus van a una compu al azar (con su nombre para los avisos); el soporte técnico cuida las que están a 4 casilleros
+  // (reglas en motor.html).
+  infect:{servidor:'el servidor',cibercafe:'un cibercafé',tienda:'una tienda online',buscador:'un buscador'},defense:{id:'soporte',r:4,label:'Soporte',of:['servidor','cibercafe','tienda','buscador']},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo7-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la Computación',perks:[
     ['micro','ideaMult',1.25,'Microprocesador: ideas +25% durante toda la era'],
     ['tractor','agri',1.25,'Tractores: granjas +25%']
   ]},
   techs:[
- {id:'www',name:'World Wide Web',cost:{litio:15,ideas:30},req:[],desc:'Desbloquea el cibercafé, el taller y la cantera. Ideas +50%.'},
+ {id:'www',name:'World Wide Web',cost:{litio:15,ideas:30},req:[],desc:'Desbloquea el cibercafé, el soporte técnico, el taller y la cantera. Ideas +50%.'},
  {id:'biotec',name:'Biotecnología',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea el laboratorio de semillas, que potencia las granjas.'},
  {id:'comercio',name:'Comercio electrónico',cost:{litio:20,ideas:50},req:['www'],desc:'Desbloquea la tienda online, que da monedas.'},
  {id:'email',name:'Correo electrónico',cost:{madera:40,piedra:20,ideas:65},req:['www'],desc:'Las ideas viajan al instante: ideas +50%.'},
@@ -28,27 +31,28 @@ const ERA={
  {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche. Comer cerca rinde el doble.',prod:{ideas:0.12}},
  {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
  {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
- {id:'servidor',name:'Servidor',req:null,base:{piedra:30,litio:10},grow:1.8,done:'Servidor encendido',desc:'El centro de tu red: las antenas se enganchan desde acá. Si le llega un virus, se cae la red: tocalo para limpiarlo.',power:1,node:true},
+ {id:'servidor',name:'Servidor',req:null,base:{piedra:30,litio:10},grow:1.8,done:'Servidor encendido',desc:'El centro de tu red: las antenas se enganchan desde acá. Si le entra un virus, se corta la red: tocalo para limpiarlo.',power:1,node:true},
  {id:'antena',name:'Antena',req:null,base:{madera:8,litio:3},grow:1.06,done:'Antena instalada',desc:'Estira la red 5 casilleros. Llevala hasta las ciudades lejanas: cada una conectada da monedas e ideas.',node:true},
+ {id:'soporte',name:'Soporte técnico',req:'www',base:{madera:15,piedra:15,litio:6},grow:1.4,done:'Soporte técnico atendiendo',desc:'Técnicos que cuidan las compus a 4 casilleros: los virus que llegan rebotan y lo infectado se limpia solo en 15 s.'},
  {id:'herreria',name:'Taller',req:'www',base:{madera:25,piedra:20,litio:10},grow:1.6,done:'Taller listo',desc:'Herramientas eléctricas: vos y los aldeanos juntan +30% por cada taller.'},
  {id:'cantera',name:'Cantera',req:'www',base:{madera:20,litio:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
  {id:'cibercafe',name:'Cibercafé',req:'www',base:{piedra:40,litio:10},grow:1.5,done:'Cibercafé abierto',desc:'Gente navegando: genera muchas ideas.',prod:{ideas:0.45}},
  {id:'tienda',name:'Tienda online',req:'comercio',base:{madera:30,piedra:25,litio:5},grow:1.4,done:'Tienda abierta',desc:'Vende por Internet: da muchas monedas.',prod:{monedas:0.35}},
  {id:'semillas',name:'Laboratorio de semillas',req:'biotec',base:{madera:35,piedra:30},grow:1.6,done:'Laboratorio de semillas listo',desc:'Cada laboratorio de semillas hace rendir +50% a todas las granjas.'},
  {id:'buscador',name:'Buscador',req:'buscadores',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Buscador en línea',desc:'Ideas +30% por cada buscador.'}],
-  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',servidor:'Servidor: el centro de tu red.',antena:'Antena: estira la red.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',cibercafe:'Cibercafé: genera ideas.',tienda:'Tienda online: da monedas.',semillas:'Laboratorio de semillas: potencia las granjas.',buscador:'Buscador: más ideas.',ciudad:'Ciudad lejana: llevá la red con antenas para comerciar.'},
+  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',servidor:'Servidor: el centro de tu red.',antena:'Antena: estira la red.',soporte:'Soporte técnico: cuida las compus cercanas de los virus.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',cibercafe:'Cibercafé: genera ideas.',tienda:'Tienda online: da monedas.',semillas:'Laboratorio de semillas: potencia las granjas.',buscador:'Buscador: más ideas.',ciudad:'Ciudad lejana: llevá la red con antenas para comerciar.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
-  tips1:[['www','servidor','un servidor: es el centro de tu red.'],()=>counts.servidor&&!grid().linked.length?['Conectá','una ciudad lejana: poné antenas desde el servidor.']:null],
+  tips1:[['www','servidor','un servidor: es el centro de tu red.'],()=>counts.servidor&&!grid().linked.length?['Conectá','una ciudad lejana: poné antenas desde el servidor.']:null,['www','soporte','un soporte técnico cerca de tus compus: frena los virus.']],
   tips2:[['www','cibercafe','un cibercafé: genera muchas ideas.'],['comercio','tienda','una tienda online para conseguir monedas.'],['biotec','semillas','un laboratorio de semillas: potencia las granjas.']],
   smogTip:'Más parques, o represas en vez de usinas.',done:'Era de Internet completa.',
   deco:(o,px,py)=>{if(o.t==='servidor'&&!o.bug)blink(px,py);},
   text:{
     when:'1991 d.C.',title:'Internet',
-    intro:'Las computadoras se conectan entre sí. Llevá la red con antenas hasta las ciudades lejanas para comerciar con ellas, pero por los mismos cables llegan virus: tocalos antes de que tumben tu servidor. La meta: el teléfono inteligente, Internet en el bolsillo.',
-    news:'Novedades: litio, servidor, antenas, ciudades para conectar y virus que viajan por la red. Ya hay luz en todos lados y no hay humo.',
+    intro:'Las computadoras se conectan entre sí. Llevá la red con antenas hasta las ciudades lejanas para comerciar con ellas, pero por los mismos cables llegan virus que se meten en tus compus y borran ideas: tocalos en el camino, o poné soporte técnico cerca de las compus. La meta: el teléfono inteligente, Internet en el bolsillo.',
+    news:'Novedades: litio, servidor, antenas, ciudades para conectar y virus que viajan por la red hasta tus compus; el soporte técnico las cuida. Ya hay luz en todos lados y no hay humo.',
     legacy:'Lo que trae tu ciudad de la Computación',
     noLegacy:'No hay una Computación terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Llevá la red con antenas desde tu servidor hasta las ciudades lejanas: cada una conectada da monedas e ideas. Por la red llegan virus: tocalos antes de que lleguen al servidor, y si uno llega, tocá el servidor para limpiarlo. En la compu: flechas o WASD, E para juntar, F para comer.',
+    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Llevá la red con antenas desde tu servidor hasta las ciudades lejanas: cada una conectada da monedas e ideas. Por la red llegan virus que van al servidor, al cibercafé, a la tienda o al buscador: tocalos en el camino. Si uno entra, borra ideas y ese edificio no produce (y si es el servidor, se corta la red) hasta que lo tocás o hasta que los técnicos lo limpian en un minuto y medio. El soporte técnico cuida las compus a 4 casilleros. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Era de Internet superada',winText:()=>'Terminaste el teléfono inteligente en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ahora todos llevan Internet en el bolsillo.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era de la IA.'}
 };
@@ -109,9 +113,21 @@ function virusArt(f){return mkA(32,32,a=>{const VR=P4('#8a1f2a','#c8413b','#e865
   for(let k=0;k<8;k++){const an=k*Math.PI/4+(f?0.25:0),x=16+Math.cos(an)*11,y=16+Math.sin(an)*11;line(a,16+Math.cos(an)*7,16+Math.sin(an)*7,x,y,VR[1],2);ell(a,x,y,2,2,VR[3]);}
   blob(a,[[16,16,8]],VR,null);ell(a,13,14,1.4,1.4,K);ell(a,19,14,1.4,1.4,K);line(a,11,11,14,12,K,1);line(a,21,11,18,12,K,1);rect(a,13,19,7,1,K);
   outlineAll(a,OUTL);});}
+// Soporte técnico: oficina celeste con un cartel de auriculares con micrófono y, en la vidriera, dos técnicos con auriculares
+// frente a monitores con tildes verdes.
+function supportArt(){return mkA(64,64,a=>{const WL=P4('#3e6a72','#5a8a90','#7aaab0','#a4ccd0'),CY=hx('#5fe3d0'),W2=hx('#f6f1e4'),OK=hx('#93d36c');
+  rect(a,14,3,36,15,DKW);for(let k=0;k<=40;k++){const an=Math.PI+Math.PI*k/40;for(const r of[6,7])a.set(Math.round(32+Math.cos(an)*r),Math.round(12+Math.sin(an)*r),CY);}
+  rect(a,23,11,4,6,CY);rect(a,37,11,4,6,CY);line(a,25,16,30,17,CY,1);ell(a,31,17,1.4,1.4,W2);rect(a,20,18,1,2,IRON[0]);rect(a,43,18,1,2,IRON[0]);
+  rect(a,4,24,56,36,WL[2]);rect(a,46,24,14,36,WL[1]);rect(a,2,20,60,4,WL[3]);
+  rect(a,8,29,32,21,hx('#1e2430'));
+  for(const[x,hair,shirt]of[[11,'#3a2418','#2f6b8a'],[25,'#8a5a2a','#e8654d']]){rect(a,x,31,11,8,hx('#24384a'));line(a,x+3,35,x+5,37,OK,1);line(a,x+5,37,x+8,33,OK,1);rect(a,x+4,39,3,2,IRON[1]);
+    rect(a,x+1,45,9,4,hx(shirt));ell(a,x+5,43,2.6,2.6,hx(hair));for(let k=0;k<=8;k++){const an=Math.PI+Math.PI*k/8;a.set(Math.round(x+5+Math.cos(an)*3.4),Math.round(43+Math.sin(an)*3.4),CY);}}
+  rect(a,8,49,32,2,WOOD[2]);rect(a,8,51,32,1,WL[0]);
+  rect(a,44,36,12,24,hx('#2a3a42'));rect(a,46,38,8,10,GLASS[1]);
+  outlineAll(a,OUTL);});}
 const VILPAL2=[{c:'#e8654d',C:'#b84a38',j:'#2a2a3a',y:'#3a2418'},{c:'#2f6b8a',C:'#204e68',j:'#e3ddcc',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#6a8a3a',C:'#4e6a28',j:'#2a2a3a',y:'#8a5a2a'}];
 const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:lithiumOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:modernHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),servidor:serverArt(),antena:towerArt(),cibercafe:cybercafeArt(),tienda:shopArt(),semillas:seedLabArt(),buscador:searchArt(),ciudad:cityArt(),bug:[virusArt(0),virusArt(1)],
+  casa:modernHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),servidor:serverArt(),antena:towerArt(),cibercafe:cybercafeArt(),tienda:shopArt(),semillas:seedLabArt(),buscador:searchArt(),soporte:supportArt(),ciudad:cityArt(),bug:[virusArt(0),virusArt(1)],
   hero:[personArt({c:'#2f8a8a',C:'#1f6060',j:'#e8654d'},0),personArt({c:'#2f8a8a',C:'#1f6060',j:'#e8654d'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
 // Lucecitas de los racks que titilan mientras el servidor anda.
 function blink(px,py){const t=Math.floor(performance.now()/150);ctx.fillStyle='#1b1a24';for(const c of[8,20,32])for(let y=24;y<54;y+=3)if(hash(c+y,t,7)<0.35)ctx.fillRect(px+(c+2)/ART,py+y/ART,1/ART,1/ART);}
