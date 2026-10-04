@@ -1,6 +1,6 @@
 // Arma dist/ listo para servir (GitHub Pages, un hosting estático o el celular).
 // Los archivos que no empiezan con <!doctype> son páginas "estilo artifact" (sin head propio) y acá se envuelven.
-// Las eras 2 a 14 del mundo abierto se arman acá: src/mundo/motor.html con los datos y el arte de cada era (src/mundo/*.js).
+// Las eras 2 a 15 del mundo abierto se arman acá: src/mundo/motor.html con los datos y el arte de cada era (src/mundo/*.js).
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
 const WRAP = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}body{margin:0}</style></head><body>';
 mkdirSync('dist', { recursive: true });

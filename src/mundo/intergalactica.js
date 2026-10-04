@@ -1,6 +1,6 @@
 // Era intergaláctica del mundo abierto (la que sigue a la galáctica): materia oscura, anclas temporales y grietas que hacen retroceder en el tiempo lo que tocan; la red de agujeros de gusano. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:14,name:'Era intergaláctica',de:'de la era intergaláctica',next:null,
+  n:14,name:'Era intergaláctica',de:'de la era intergaláctica',next:{file:'mundo15.html',to:'a la era cósmica'},
   ore:{id:'oscura',name:'Materia oscura',col:'#b4a0f0',empty:'Veta de materia oscura agotada',gather:'materia oscura',icon:[['........','..kkkk..','.kqvqqk.','kqQqvqqk','kqvQqQqk','.kqqvqk.','..kkkk..','........'],{q:'#3a2e6c',Q:'#221a44',v:'#d8ccff'}]},
   storage:{id:'granero'},ideaBuild:'ondas',ideaTechs:['oscura','universo'],boostTech:'entropia',farmBuild:'huerto',nightTech:'universo',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
@@ -55,7 +55,7 @@ const ERA={
     noLegacy:'No hay una era galáctica terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Se abren grietas temporales: hacen retroceder en el tiempo lo que produce, que rinde la mitad por cada época. Tocalas para cerrarlas y tocá lo que retrocedió para traerlo al presente; si no, el tiempo se acomoda solo de a poco. Cerca de un ancla temporal se cierran solas. En la compu: flechas o WASD.',
     win:'La red de agujeros de gusano',winText:()=>'Terminaste la red de agujeros de gusano en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las galaxias quedan a un paso: la humanidad ya puede ir y volver por todo el universo.',
-    winNote:'Por ahora es la última era.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era cósmica.'}
 };
 /* ---------- arte de la era ---------- */
 const OSC=P4('#100c22','#221a44','#3a2e6c','#5e4ea8'),OSCL=hx('#d8ccff'),CYAN=hx('#5fe3d0'),VIO=hx('#b48cff'),GOLDL=hx('#ffd35a'),CORAL=hx('#e8654d'),
