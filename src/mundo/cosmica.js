@@ -1,6 +1,6 @@
 // Era cósmica del mundo abierto (la que sigue a la intergaláctica): quarks, repulsores gravitatorios y agujeros negros que atrapan a tu gente en órbita y estiran los edificios; la computadora cósmica. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:15,name:'Era cósmica',de:'de la era cósmica',next:null,
+  n:15,name:'Era cósmica',de:'de la era cósmica',next:{file:'mundo16.html',to:'a la era multiversal'},
   ore:{id:'quarks',name:'Quarks',col:'#f0a0ff',empty:'Nube de quarks agotada',gather:'quarks',icon:[['...kk...','..krrk..','..krRk..','.kkkkkk.','kggkkbbk','kgGkkbBk','.kk..kk.','........'],{r:'#e8504a',R:'#ff9a8a',g:'#4fc060',G:'#b6f08a',b:'#4a78e8',B:'#9ac0ff'}]},
   storage:{id:'granero'},ideaBuild:'radio',ideaTechs:['quarks','fondo'],boostTech:'cuerdas',farmBuild:'sol',nightTech:'fondo',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
@@ -56,7 +56,7 @@ const ERA={
     noLegacy:'No hay una era intergaláctica terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Aparecen agujeros negros: atrapan en órbita a la gente que pasa cerca y estiran los edificios que pisan. Tocalos para evaporarlos (los grandes piden varios toques) y tocá lo estirado para arreglarlo. A los repulsores gravitatorios no se les acercan. En la compu: flechas o WASD.',
     win:'La computadora cósmica',winText:()=>'Terminaste la computadora cósmica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ahora tiene todo el tiempo del universo para pensar la última pregunta.',
-    winNote:'Por ahora es la última era.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era multiversal.'}
 };
 /* ---------- arte de la era ---------- */
 const CYAN=hx('#5fe3d0'),VIO=hx('#b48cff'),GOLDL=hx('#ffd35a'),CORAL=hx('#e8654d'),SPACE=P4('#0c0a1a','#1a1630','#2c2650','#463e78'),
