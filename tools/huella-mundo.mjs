@@ -1,4 +1,4 @@
-// Huella del mundo abierto (eras 2 a 10): juega un guion fijo con el azar sembrado, el reloj congelado y los
+// Huella del mundo abierto (eras 2 a 12): juega un guion fijo con el azar sembrado, el reloj congelado y los
 // cuadros controlados, y guarda el estado, los textos, los sprites y capturas de cada era en una carpeta.
 // Sirve para comprobar que un cambio en el motor no cambia nada: correrlo antes y después, y comparar con
 // `node tools/huella-mundo.mjs comparar <antes> <después>`.
@@ -17,9 +17,10 @@ const ERAS = {
   9: { techs: ['redes', 'vertical', 'robotica', 'software', 'alineacion', 'lenguaje', 'interpretabilidad', 'chips', 'asistente'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'datacenter', 'fabrob', 'startup', 'huerta', 'seguridad', 'labia'] },
   11: { techs: ['nanotec', 'escudos', 'cohetes', 'sintesis', 'mineria', 'radar', 'cosmologia', 'fusion', 'dyson'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'centro', 'escudo', 'puerto', 'sintetizador', 'minero', 'instituto'] },
   10: { techs: ['computo', 'seguridad', 'productos', 'automatizacion', 'diplomacia', 'ciencia', 'tratado', 'escalado', 'agi'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'supercomp', 'labseg', 'empresa', 'agro', 'embajada', 'instituto'] },
+  12: { techs: ['exotica', 'campos', 'naves', 'terraformacion', 'antimateria', 'sensores', 'xenologia', 'cuantica', 'curvatura'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'nucleo', 'contencion', 'astillero', 'terraformador', 'colector', 'academia'] },
 };
-const PREV = { 2: 'rtagi-mundo-v1' }; for (let n = 3; n <= 11; n++) PREV[n] = 'rtagi-mundo' + (n - 1) + '-v1';
-const PERKS = ['abaco', 'rueda', 'agricultura', 'anticitera', 'irrigacion', 'imprenta', 'molinos', 'pascalina', 'botanica', 'analitica', 'ferrocarril', 'tabuladora', 'frio', 'micro', 'tractor', 'smartphone', 'biotec', 'asistente', 'vertical', 'interpretabilidad', 'agi', 'automatizacion', 'escalado'];
+const PREV = { 2: 'rtagi-mundo-v1' }; for (let n = 3; n <= 12; n++) PREV[n] = 'rtagi-mundo' + (n - 1) + '-v1';
+const PERKS = ['abaco', 'rueda', 'agricultura', 'anticitera', 'irrigacion', 'imprenta', 'molinos', 'pascalina', 'botanica', 'analitica', 'ferrocarril', 'tabuladora', 'frio', 'micro', 'tractor', 'smartphone', 'biotec', 'asistente', 'vertical', 'interpretabilidad', 'agi', 'automatizacion', 'escalado', 'dyson', 'sintesis', 'cohetes'];
 const prevSave = n => { const techs = Object.fromEntries(PERKS.map(t => [t, true])), vil = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]];
   return JSON.stringify(n === 2 ? { st: { won: true, res: { ideas: 120 }, techs }, vil, obj: [] } : { v: 1, won: true, vil, res: { ideas: 150, monedas: 60 }, techs, obj: [] }); };
 
@@ -106,13 +107,14 @@ async function era(b, srv, n, dir, legacy) {
   out.save = await p.evaluate(k => localStorage.getItem(k), 'rtagi-mundo' + n + '-v1');
   out.hud = await p.evaluate(() => document.getElementById('hud').innerText);
   for (const m of ['build', 'tech', 'tribe']) out['sheet_' + m] = await p.evaluate(m => __H.sheet(m), m);
-  // Amenazas a propósito, sin tocarlas durante un minuto: bicho y polillas, virus, robot desalineado, espías, meteoritos, piratas, peste, langostas, ludditas o tormentas.
+  // Amenazas a propósito, sin tocarlas durante un minuto: bicho y polillas, virus, robot desalineado, espías, meteoritos, nanobots, piratas, peste, langostas, ludditas o tormentas.
   out.threat = await p.evaluate(n => {
     const D = __H.D, o = D.obj();
     if (n === 7) { const q = o.find(q => q && q.t === 'computadora'); if (q) { q.bug = true; q.bugAge = 0; } for (let k = 0; k < 2; k++) D.spawnMoth(); }
     if (n === 8) for (const c of D.grid().linked) D.spawnVirus(c);
     if (n === 9) { const v = D.vil.find(v => v.bot); if (v) D.misalign(v); }
     if (n === 11) for (let k = 0; k < 4; k++) D.spawnMeteor();
+    if (n === 12) for (let k = 0; k < 3; k++) D.spawnGoo();
     if (n === 2) for (let k = 0; k < 3; k++) D.spawnPirates();
     if (n === 4) for (let k = 0; k < 2; k++) D.spawnLocusts();
     if (n === 5) for (let k = 0; k < 2; k++) D.spawnLuddites();
@@ -229,11 +231,11 @@ else if (process.argv[2] === 'cargar') {
   // node tools/huella-mundo.mjs cargar <carpeta con las partidas> <salida>
   const from = process.argv[3], dir = process.argv[4]; mkdirSync(dir, { recursive: true });
   const srv = await serve(process.env.HUELLA_DIST || 'dist'), b = await launch();
-  try { for (let n = 2; n <= 11; n++) { if (!existsSync(from + '/m' + n + '.json')) continue; const o = await cargar(b, srv, n, dir, from); writeFileSync(dir + '/m' + n + '.json', JSON.stringify(o)); console.log('era ' + n + ' cargada · errores ' + o.errs.length); } }
+  try { for (let n = 2; n <= 12; n++) { if (!existsSync(from + '/m' + n + '.json')) continue; const o = await cargar(b, srv, n, dir, from); writeFileSync(dir + '/m' + n + '.json', JSON.stringify(o)); console.log('era ' + n + ' cargada · errores ' + o.errs.length); } }
   finally { await b.close(); srv.close(); }
 }
 else {
-  const dir = process.argv[2] || 'out/huella', list = (process.argv[3] || '2,3,4,5,6,7,8,9,10,11').split(',').map(Number);
+  const dir = process.argv[2] || 'out/huella', list = (process.argv[3] || '2,3,4,5,6,7,8,9,10,11,12').split(',').map(Number);
   mkdirSync(dir, { recursive: true });
   const srv = await serve(process.env.HUELLA_DIST || 'dist'), b = await launch();
   try {

@@ -1,6 +1,6 @@
-// Bot del mundo abierto: juega las eras 2 a 11 una atrás de otra (cada una arranca con lo que dejó la anterior) y
+// Bot del mundo abierto: juega las eras 2 a 12 una atrás de otra (cada una arranca con lo que dejó la anterior) y
 // reporta cuántos minutos de juego tarda en terminar la obra de cada era. Sirve para ajustar el balance con datos.
-//   node tools/bot-mundo.mjs [corridas=3] [eras=2-11 o una sola, como 3] [solo] [ritmo=1] [ignora] [sindefensa]
+//   node tools/bot-mundo.mjs [corridas=3] [eras=2-12 o una sola, como 3] [solo] [ritmo=1] [ignora] [sindefensa]
 // Con `solo`, cada era arranca sin nada de la anterior (como si la abrieras suelta) en vez de encadenarlas.
 // Con `ritmo=N` decide cada N segundos de juego en vez de cada uno (y mira las amenazas cada 3N): con 2 o 3 se parece
 // más a una persona, que tarda en abrir hojas, elegir y caminar. Con `ignora` no toca nunca las amenazas (para medir cuánto
@@ -12,7 +12,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { serve, launch } from './harness.mjs';
 
 const RUNS = +(process.argv[2] || 3);
-const [E0, E1 = E0] = (process.argv[3] || '2-11').split('-').map(Number);
+const [E0, E1 = E0] = (process.argv[3] || '2-12').split('-').map(Number);
 const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), IGNORE = OPT.includes('ignora'), NODEF = OPT.includes('sindefensa'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
 const MAX_MIN = 120;
 const PREHISTORIA = JSON.stringify({ v: 3, st: { won: true, res: { ideas: 50 }, techs: { abaco: true, rueda: true, agricultura: true } }, vil: [[0, 0], [0, 0], [0, 0], [0, 0]], obj: [] });
@@ -51,6 +51,7 @@ function threats(){const o=D.obj();let n=0;
   for(const l of D.ludds().slice())if(l.state!=='home'&&!(l.wait>0)){D.onTap(Math.round(l.x),Math.round(l.y));n++;}
   for(const w of D.storms().slice()){D.onTap(Math.round(w.x),Math.round(w.y-0.6));n++;}
   for(const m of D.moths().slice())if(m.trap==null){D.onTap(Math.round(m.x),Math.round(m.y-0.4));n++;}
+  if(D.goos)for(const g of D.goos().slice()){D.onTap(g.core%MW,(g.core/MW)|0);n++;}
   if(D.spies)for(const sp of D.spies().slice())if(!(sp.wait>0)){D.onTap(Math.round(sp.x),Math.round(sp.y));n++;}
   for(const v of D.vil)if(v.bad){D.onTap(Math.round(v.x),Math.round(v.y));n++;}
   for(let i=0;i<o.length;i++)if(o[i]&&o[i].bug){D.onTap(i%MW,(i/MW)|0);n++;}
@@ -107,7 +108,7 @@ return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
       legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety};}};
 })();`;
 
-const NAMES = { 2: 'Antigüedad', 3: 'Edad Media', 4: 'Renacimiento', 5: 'Industria', 6: 'Electricidad', 7: 'Computación', 8: 'Internet', 9: 'IA', 10: 'AGI', 11: 'Era estelar' };
+const NAMES = { 2: 'Antigüedad', 3: 'Edad Media', 4: 'Renacimiento', 5: 'Industria', 6: 'Electricidad', 7: 'Computación', 8: 'Internet', 9: 'IA', 10: 'AGI', 11: 'Era estelar', 12: 'Interestelar' };
 mkdirSync('out', { recursive: true });
 const srv = await serve(), b = await launch(), all = [], errs = [];
 try {
