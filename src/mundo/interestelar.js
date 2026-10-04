@@ -1,6 +1,6 @@
 // Era interestelar del mundo abierto (la que sigue a la estelar): materia exótica, campos de contención y nanobots grises; el motor de curvatura. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:12,name:'Era interestelar',de:'de la era interestelar',next:null,
+  n:12,name:'Era interestelar',de:'de la era interestelar',next:{file:'mundo13.html',to:'a la era galáctica'},
   ore:{id:'exotica',name:'Materia exótica',col:'#c49cff',empty:'Cristal exótico agotado',gather:'materia exótica',icon:[['....k...','...kvk..','..kvqk.k','.kvqqkkv','.kvqQkvq','kvqQQkqQ','kqQQQkQk','.kkkkkk.'],{q:'#8a5ad0',Q:'#5a3a8a',v:'#e0c8ff'}]},
   storage:{id:'granero'},ideaBuild:'academia',ideaTechs:['exotica','xenologia'],boostTech:'cuantica',farmBuild:'terraformador',nightTech:'xenologia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
@@ -53,7 +53,7 @@ const ERA={
     noLegacy:'No hay una era estelar terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Se escapan nubes de nanobots: crecen hacia tus edificios y lo que tapan no produce. Tocá cualquier parte de la nube para apagarla; si no, se apaga sola a los 100 s. Los campos de contención no las dejan crecer cerca. En la compu: flechas o WASD.',
     win:'El motor de curvatura',winText:()=>'Terminaste el motor de curvatura en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. La primera nave de la humanidad sale hacia otra estrella.',
-    winNote:'Por ahora es la última era.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era galáctica.'}
 };
 
 /* ---------- arte de la era ---------- */
