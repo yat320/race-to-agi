@@ -1,6 +1,6 @@
-// Era estelar del mundo abierto (la que sigue a la AGI): iridio, puerto espacial, escudos y meteoritos; la esfera de Dyson. Datos y arte de la era; las reglas están en motor.html.
+// Era estelar del mundo abierto (la que sigue a la AGI, antes de la interestelar): iridio, puerto espacial, escudos y meteoritos; la esfera de Dyson. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:11,name:'Era estelar',de:'de la era estelar',next:null,
+  n:11,name:'Era estelar',de:'de la era estelar',next:{file:'mundo12.html',to:'a la era interestelar'},
   ore:{id:'iridio',name:'Iridio',col:'#b8c8e8',empty:'Veta de iridio agotada',gather:'iridio',icon:[['........','..kkkk..','.kqvqqk.','kqqqvqqk','kqvqqqQk','.kqQqQk.','..kkkk..','........'],{q:'#565a6e',Q:'#3a3a48',v:'#b8c8e8'}]},
   storage:{id:'granero',name:'Granero'},ideaBuild:'instituto',ideaTechs:['nanotec','cosmologia'],boostTech:'fusion',farmBuild:'sintetizador',nightTech:'cosmologia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
@@ -52,7 +52,7 @@ const ERA={
     noLegacy:'No hay una AGI terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Caen meteoritos: tocalos antes de que lleguen. Si caen sobre un edificio lo dañan: tocalo para repararlo, o los drones lo arreglan solos a los 3 minutos; en tierra libre dejan un cráter con iridio. Los escudos desvían los que apuntan cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'La esfera de Dyson',winText:()=>'Terminaste la esfera de Dyson en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Toda la energía del Sol, para la humanidad y su AGI.',
-    winNote:'Por ahora es la última era.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era interestelar.'}
 };
 
 /* ---------- arte de la era ---------- */
