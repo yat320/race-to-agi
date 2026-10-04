@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700&family=Pixelify+Sans:wght@400;600;700&display=swap">
 <style>
-/* Layout: una columna tipo línea de tiempo · barra hacia la AGI arriba · las 13 eras del mundo abierto · progreso · otros modos plegados abajo */
+/* Layout: una columna tipo línea de tiempo · barra hacia la AGI arriba · las 14 eras del mundo abierto · progreso · otros modos plegados abajo */
 :root{
   --night:#15131b; --panel:#201d27; --panel-2:#2a2632; --line:#3e3848;
   --bone:#f0e7d4; --muted:#a99f91; --ochre:#dd9c40; --ochre-deep:#8d5b1f;
@@ -66,7 +66,7 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
 
 <div class="wrap">
   <header>
-    <div class="kicker">Mundo abierto · 13 eras</div>
+    <div class="kicker">Mundo abierto · 14 eras</div>
     <h1>Race to AGI</h1>
     <p class="lede">De las piedras al ábaco, del ábaco a la AGI y de la AGI a las estrellas. Cada era es una partida larga: cuando terminás su obra pasás a la siguiente con tu gente, tus ideas y tus monedas.</p>
   </header>
@@ -129,7 +129,8 @@ const MUNDO=[
   {n:10,name:'AGI',obra:'la AGI, antes que el rival',file:'mundo10.html',save:'rtagi-mundo10-v1'},
   {n:11,name:'Era estelar',obra:'la esfera de Dyson',file:'mundo11.html',save:'rtagi-mundo11-v1'},
   {n:12,name:'Era interestelar',obra:'el motor de curvatura',file:'mundo12.html',save:'rtagi-mundo12-v1'},
-  {n:13,name:'Era galáctica',obra:'la federación galáctica',file:'mundo13.html',save:'rtagi-mundo13-v1'}];
+  {n:13,name:'Era galáctica',obra:'la federación galáctica',file:'mundo13.html',save:'rtagi-mundo13-v1'},
+  {n:14,name:'Era intergaláctica',obra:'la red de agujeros de gusano',file:'mundo14.html',save:'rtagi-mundo14-v1'}];
 // Partida guardada de una era del mundo abierto: {seen, won, lost, dia}, o null si nunca se abrió.
 function mundoState(e){try{const d=JSON.parse(get(e.save));if(!d)return null;
   if(e.n===1)return d.st?{seen:!!d.st.seen||d.st.time>0,won:!!d.st.won,lost:false,dia:Math.floor((d.st.time||0)/150)+1}:null;
@@ -166,7 +167,7 @@ function starsOf(e){try{const s=JSON.parse(get(e.save));if(s&&s.best)return Obje
 function render(){
   const l=backfill();
   const ms=MUNDO.map(mundoState);
-  // La barra cuenta las eras del mundo abierto terminadas hasta la AGI (10); las eras estelar, interestelar y galáctica van más allá.
+  // La barra cuenta las eras del mundo abierto terminadas hasta la AGI (10); las eras estelar, interestelar, galáctica e intergaláctica van más allá.
   const doneCount=ms.slice(0,10).filter(s=>s&&s.won).length;
   $('pct').textContent=doneCount*10+'%'+(ms[10]&&ms[10].won?' · y más allá':'');$('fill').style.width=doneCount*10+'%';
   const bar=$('bar');bar.querySelectorAll('.tick').forEach(t=>t.remove());

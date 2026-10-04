@@ -113,6 +113,7 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
 .eras{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;font:400 10px var(--f-display);color:var(--muted)}
 .eras span{border-top:3px solid var(--line);padding-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eras span.on{border-color:var(--ochre);color:var(--bone)}
+.eras span.long{font-size:8.5px}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 
 #toasts{position:absolute;left:16px;right:16px;top:var(--hud-h,200px);display:grid;justify-items:center;gap:6px;pointer-events:none;z-index:6}
@@ -203,7 +204,7 @@ const BUILDS=ERA.builds;
 // recurso manda a buscarlo al que esté más cerca (sendWorker). Sin energía ni comer.
 const HANDS=ERA.n<5;
 // Los edificios básicos cambian con la época (pedido de Juani: "no tiene sentido que en la era interestelar exista una fogata"):
-// 0 antigua (eras 2 a 4), 1 industrial (5 y 6), 2 moderna (7 a 10) y 3 futura (11 y 12). Nombre y textos salen de acá en todas
+// 0 antigua (eras 2 a 4), 1 industrial (5 y 6), 2 moderna (7 a 10) y 3 futura (de la 11 en adelante). Nombre y textos salen de acá en todas
 // las eras ([nombre, al terminarlo, descripción, lo que hace, femenino]); el arte, de EP_ART. Lo que se construyó en otra época
 // se ve y se llama como entonces hasta que lo modernizás.
 const epoch=n=>n<5?0:n<7?1:n<11?2:3,EPOCH=epoch(ERA.n);
@@ -240,7 +241,7 @@ const GUARD_R=8,GUARD_SPD=3,GUARD_FLY=3.6;
 if(ERA.guard&&ERA.defense&&BUILD[ERA.defense.id]){const d=BUILD[ERA.defense.id],G=ERA.guard;
   const b={id:'cuartel',name:G.building,req:d.req,base:Object.assign({},d.base),grow:1.6,done:G.done,desc:G.desc};BUILDS.push(b);BUILD.cuartel=b;ERA.info.cuartel=G.info;}
 if(!ERA.info.monumento)ERA.info.monumento='Monumento: un edificio de otra época. La gente lo visita y da algunas ideas.';
-const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI','Estelar','Interestelar','Galáctica'];
+const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI','Estelar','Interestelar','Galáctica','Intergaláctica'];
 const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],[ORE,ERA.ore.name],['comida','Comida']];
 
 /* ---------- mundo ---------- */
@@ -315,7 +316,7 @@ function renderGround(){
 let st,counts={},OLDC={},OLDN={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
-let GRID=null,BROKEN=null,BROKEN_OLD={},OCEAN=null,bugT=0,viruses=[],meteors=[],goos=[],ufos=[],guards=[],quiet=false,pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
+let GRID=null,BROKEN=null,BROKEN_OLD={},OCEAN=null,bugT=0,viruses=[],meteors=[],goos=[],ufos=[],rifts=[],guards=[],quiet=false,pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
   const L=ERA.legacy,e=prevEra(),out=L.monedas?{has:!!e,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]}:{has:!!e,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e){
@@ -330,16 +331,21 @@ function readLegacy(){
   return out;
 }
 function freshState(){return{res:{madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
-function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;if(isOld(o)){OLDC[o.t]=(OLDC[o.t]||0)+1-oldW(o);OLDN[o.t]=(OLDN[o.t]||0)+1;}}if(BUILD.cuartel)syncGuards();}
+function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;const w=wOf(o);if(w<1)OLDC[o.t]=(OLDC[o.t]||0)+1-w;if(isOld(o))OLDN[o.t]=(OLDN[o.t]||0)+1;}if(BUILD.cuartel)syncGuards();}
 // Edificios que vienen de otra era (importCity): rinden la mitad por cada era de atraso (oldW: la mitad si es de la anterior,
 // un cuarto si es de dos eras atrás) hasta que se modernizan pagando lo mismo que uno nuevo: el primero al precio base y cada
 // uno más caro, contando los que ya están al día (y con el invento que lo desbloquea, si tiene). OLDC suma, por tipo, lo que
-// les falta para rendir como uno nuevo, y OLDN cuántos son.
+// les falta para rendir como uno nuevo (también lo que retrocedió por una grieta temporal), y OLDN cuántos son.
 const isOld=o=>!!(o&&o.era&&o.era<ERA.n&&BUILD[o.t]&&o.t!=='monumento');
 // La época con la que se dibuja y se llama un edificio básico: la de cuando se construyó, hasta que lo modernizás.
 const epOf=o=>EP_ART[o.t]&&isOld(o)?epoch(o.era):EPOCH;
-const nameOf=o=>BASIC[o.t]?BASIC[o.t][epOf(o)][0]:BUILD[o.t].name;
+// Lo que una grieta temporal hizo retroceder (o.past, ERA.rifts) se ve y se llama como era una época antes por cada salto.
+const pastEp=o=>Math.max(0,epOf(o)-(o.past||0));
+const nameOf=o=>BASIC[o.t]?BASIC[o.t][pastEp(o)][0]:BUILD[o.t].name;
 const oldW=o=>isOld(o)?Math.pow(0.5,ERA.n-o.era):1;
+// Y rinde la mitad por cada salto atrás, además del atraso de era.
+const pastW=o=>o&&o.past?Math.pow(0.5,o.past):1;
+const wOf=o=>oldW(o)*pastW(o);
 const modernCost=b=>{const n=(counts[b.id]||0)-(OLDN[b.id]||0),c={};for(const k in b.base)c[k]=Math.ceil(b.base[k]*Math.pow(b.grow,n));return c;};
 const canModern=o=>{const b=isOld(o)&&BUILD[o.t];return!!b&&(!b.req||!!st.techs[b.req])&&afford(modernCost(b));};
 function modernize(i){const o=obj[i],b=o&&BUILD[o.t];if(!isOld(o))return false;
@@ -348,7 +354,7 @@ function modernize(i){const o=obj[i],b=o&&BUILD[o.t];if(!isOld(o))return false;
   const was=nameOf(o);pay(c);o.era=ERA.n;recount();float(i%MW,(i/MW)|0,'¡modernizado!','#5fe3d0');toast((was!==b.name?was+' → ':'')+b.name+': rinde como nuevo.');save();return true;}
 function newGame(){
   const city=prevCity();setMap(city?city.map:ERA.n);mapChanged();
-  obj=city?importCity(city):genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];spies=[];goos=[];ufos=[];guards=[];
+  obj=city?importCity(city):genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];spies=[];goos=[];ufos=[];rifts=[];guards=[];
   Object.assign(P,{x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1});
   recount();
   if(city){for(const v of city.vil){const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];vil.push(m);}if(city.p)Object.assign(P,{x:city.p[0],y:city.p[1]});
@@ -369,7 +375,7 @@ function prevCity(){const L=ERA.legacy;if(L.st)return null;const pn=+((L.key.mat
     return{n:pn,map:d.map||pn,obj:d.obj,vil:d.vil||[],p:d.p};}catch(e){return null;}}
 // Qué papel cumple cada edificio de cualquier era, para pasarlo a la era que sigue cuando ahí no existe: el de ideas pasa al
 // que más ideas da, el de monedas al que más monedas da, y así; los hitos de una era (ciudades, laboratorio rival) no pasan.
-const ROLE={deposito:'storage',granero:'storage',
+const ROLE={deposito:'storage',granero:'storage',cronoteca:'ideas',portal:'monedas',ondas:'ideaBuild',huerto:'farmBuild',ancla:'defense',pozo:'ore',
   templo:'ideas',monasterio:'ideas',taller:'ideas',laboratorio:'ideas',computadora:'ideas',cibercafe:'ideas',datacenter:'ideas',supercomp:'ideas',centro:'ideas',nucleo:'ideas',archivo:'ideas',
   mercado:'monedas',feria:'monedas',banco:'monedas',fabrica:'monedas',oficina:'monedas',tienda:'monedas',startup:'monedas',empresa:'monedas',puerto:'monedas',astillero:'monedas',
   biblioteca:'ideaBuild',universidad:'ideaBuild',academia:'ideaBuild',palacio:'ideaBuild',escuela:'ideaBuild',buscador:'ideaBuild',labia:'ideaBuild',instituto:'ideaBuild',observatorio:'ideaBuild',
@@ -391,18 +397,18 @@ function importCity(c){genObjects();/* el suelo junto al inicio, como en un mapa
   return o;}
 function mapChanged(){OCEAN=null;chunks.clear();pending.clear();}
 function serialize(){
-  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b))e.push(b.era);o.push(e);}}
+  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b)||b.past)e.push(isOld(b)?b.era:0);if(b.past)e.push(b.past);o.push(e);}}
   return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[Math.round(v.x),Math.round(v.y),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0]),obj:o,...(MAPN!==ERA.n?{map:MAPN}:{})};
 }
 function load(d){
   if(!d||d.v!==1||!Array.isArray(d.obj))return false;
   setMap(d.map||ERA.n);mapChanged();genObjects();/* restaura el suelo modificado junto al inicio */renderGround();
-  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug,era]of d.obj){obj[i]={t,hp,regen,bug:!!bug};if(era)obj[i].era=era;}
+  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug,era,past]of d.obj){obj[i]={t,hp,regen,bug:!!bug};if(era)obj[i].era=era;if(past>0)obj[i].past=Math.min(3,past|0);}
   const f=freshState();
   st=Object.assign(f,{res:Object.assign(f.res,d.res),energy:d.energy,techs:d.techs||{},time:d.time||0,gathers:d.gathers||0,won:!!d.won,seen:!!d.seen,prio:d.prio||'auto',smog:clamp(+d.smog||0,0,100),rival:clamp(+d.rival||0,0,100),safety:clamp(+d.safety||0,0,100),lost:!!d.lost,legacy:d.legacy||f.legacy});
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null});
   vil.length=0;(d.vil||[]).forEach(v=>{const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];m.bad=!!v[6];vil.push(m);});
-  floats=[];guards=[];recount();return true;
+  floats=[];guards=[];rifts=[];recount();return true;
 }
 function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
 
@@ -459,15 +465,16 @@ function nearNode(g,x,y){let d=1e9;for(const n of g.on.values())if(n.t!=='ciudad
 // Cuántos edificios de un tipo andan: los que tienen ⚡ cuentan solo si tienen luz y no tienen un bicho, y rinden según alcance la red.
 // Edificios dañados (con `bug`, sin luz eléctrica) por tipo; se recalcula una vez por cuadro.
 // También cuenta lo que tapa una manga de langostas que está comiendo.
-function broken(id){if(!BROKEN){BROKEN={};BROKEN_OLD={};for(const o of obj)if(o&&o.bug&&BUILD[o.t]){BROKEN[o.t]=(BROKEN[o.t]||0)+1;if(isOld(o))BROKEN_OLD[o.t]=(BROKEN_OLD[o.t]||0)+1-oldW(o);}
-  if(swarms.length)for(const i of covered()){BROKEN[obj[i].t]=(BROKEN[obj[i].t]||0)+1;if(isOld(obj[i]))BROKEN_OLD[obj[i].t]=(BROKEN_OLD[obj[i].t]||0)+1-oldW(obj[i]);}
-  for(const g of goos)for(const i of g.cells){const o=obj[i];if(o&&BUILD[o.t]&&!o.bug){BROKEN[o.t]=(BROKEN[o.t]||0)+1;if(isOld(o))BROKEN_OLD[o.t]=(BROKEN_OLD[o.t]||0)+1-oldW(o);}}}
+function broken(id){if(!BROKEN){BROKEN={};BROKEN_OLD={};const off=o=>{BROKEN[o.t]=(BROKEN[o.t]||0)+1;const w=wOf(o);if(w<1)BROKEN_OLD[o.t]=(BROKEN_OLD[o.t]||0)+1-w;};
+  for(const o of obj)if(o&&o.bug&&BUILD[o.t])off(o);
+  if(swarms.length)for(const i of covered())off(obj[i]);
+  for(const g of goos)for(const i of g.cells){const o=obj[i];if(o&&BUILD[o.t]&&!o.bug)off(o);}}
   return BROKEN[id]||0;}
-// Los que vienen de otra era cuentan según su atraso (oldW), también los rotos o enfermos, que ya restan. Un edificio con ⚡ que
+// Los que vienen de otra era cuentan según su atraso (oldW, y lo que retrocedió por una grieta según pastW), también los rotos o enfermos, que ya restan. Un edificio con ⚡ que
 // vino de otra era todavía no es eléctrico: anda sin luz, según su atraso, hasta que lo modernizás, y ahí necesita la red.
 function act(id){const b=BUILD[id];if(!b||!b.elec){const k=ERA.plague&&ERA.plague.includes(id)?0.5:1,br=broken(id);return(counts[id]||0)-br*k-(OLDC[id]||0)+(BROKEN_OLD[id]||0)*k;}
-  const g=grid();let n=0;for(const i of g.powered)if(obj[i].t===id&&!obj[i].bug)n++;n*=g.f;
-  if(OLDC[id])for(const o of obj)if(o&&o.t===id&&!o.bug&&isOld(o))n+=oldW(o);return n;}
+  const g=grid();let n=0;for(const i of g.powered)if(obj[i].t===id&&!obj[i].bug)n+=pastW(obj[i]);n*=g.f;
+  if(OLDC[id])for(const o of obj)if(o&&o.t===id&&!o.bug&&isOld(o))n+=wOf(o);return n;}
 // Bichos (ERA.bugs): a cada máquina con `bug` que anda le sale uno cada ~90 s (el transistor y la depuración los hacen más raros).
 // Una máquina con bicho no produce; si nadie lo aplasta, se contagia a otra máquina a 5 casilleros.
 const bugRate=()=>(1/90)*(st.techs.transistor?0.6:1)*(st.techs.depuracion?0.6:1);
@@ -657,6 +664,58 @@ function updateUfos(dt){const T=towersXY();
   // Los que se llevaron vuelven, mareados, al lado de su casa.
   for(const v of vil)if(v.away>0){v.away-=dt;if(v.away<=0){v.away=0;const[hx,hy]=v.home;const sp=[[0,1],[1,0],[-1,0],[0,-1],[1,1],[-1,1]].map(([a,b])=>[hx+a,hy+b]).find(([x,y])=>passable(x,y))||tileOf(P);
     v.x=sp[0];v.y=sp[1];v.t=1;float(v.x,v.y-0.8,'¡volvió!','#93d36c');}}}
+// Grietas temporales (ERA.rifts, octubre de 2026): los agujeros de gusano rajan el tiempo. Desde RIFT_START, cada ~riftEvery()
+// segundos se abre una grieta sobre un edificio que produce (riftable) y, cada riftStep() segundos, lo hace retroceder una época
+// (o.past, hasta RIFT_MAX, se guarda): se ve y se llama como era antes (la holoplaza vuelve a ser centro cultural, café y
+// fogata; lo que no tiene versión vieja se ve en sepia) y rinde la mitad por cada salto (pastW). Después de RIFT_MAX saltos pasa
+// al edificio que produce más cercano, a RIFT_HOP casilleros o menos, hasta RIFT_JUMPS veces, y se cierra. Tocarla la cierra
+// (+2 ideas) y trae al presente lo que estaba tocando; tocar un edificio que retrocedió lo trae al presente (+2 ideas). Si nadie
+// lo toca, el tiempo se acomoda solo: avanza una época cada RIFT_HEAL segundos. La defensa de la era (el ancla temporal) cierra
+// las grietas que se abren a ERA.defense.r casilleros o menos y trae al presente lo que está cerca, una época cada 5 s. Se abren
+// más seguido con cada invento (+10%) y con los agujeros de gusano (+30%); con la física del tiempo tardan 50% más en hacer
+// retroceder. Las grietas no se guardan; lo que retrocedió, sí.
+const RIFT_START=120,RIFT_OPEN=1.5,RIFT_STEP=8,RIFT_MAX=3,RIFT_JUMPS=1,RIFT_HOP=6,RIFT_HEAL=25,RIFT_SPD=3;
+const riftEvery=()=>45/((1+0.1*Object.keys(st.techs).length)*(st.techs.gusanos?1.3:1));
+const riftStep=()=>RIFT_STEP*(st.techs.cronologia?1.5:1);
+const riftable=o=>{const b=o&&BUILD[o.t];return!!b&&o.t!=='monumento'&&(!!b.prod||o.t===ERA.ideaBuild||o.t===ERA.farmBuild);};
+const riftOut=r=>r.state!=='close';
+const riftOn=i=>rifts.find(r=>r.i===i&&riftOut(r));
+// Cómo se dibuja lo que retrocedió: una época atrás por salto y, mientras la grieta está por hacerlo retroceder otra vez, titila.
+function pastLv(o,i){let n=o.past||0;if(rifts.length){const r=riftOn(i);if(r&&r.state==='on'&&r.t>riftStep()*0.7&&Math.floor(performance.now()/110)%2)n++;}return Math.min(RIFT_MAX,n);}
+// Los edificios que puede tocar una grieta: que produzcan, que no estén del todo en el pasado ni con otra grieta encima y, si se
+// pide, cerca de un lugar y lejos de las anclas.
+function riftTargets(near,free){const out=[];obj.forEach((o,i)=>{if(!riftable(o)||(o.past||0)>=RIFT_MAX||riftOn(i))return;
+  if(near&&Math.hypot(i%MW-near[0],((i/MW)|0)-near[1])>RIFT_HOP)return;if(free&&guarded(i))return;out.push(i);});return out;}
+function spawnRift(){const c=riftTargets();if(!c.length)return;const i=c[Math.floor(Math.random()*c.length)];
+  rifts.push({i,x:i%MW,y:(i/MW)|0,state:'open',t:0,steps:0,jumps:0,ph:Math.random()*6.28});
+  toast('¡Una grieta temporal! Lo que toca retrocede en el tiempo: tocala para cerrarla.');}
+function closeRift(r,txt,col){r.state='close';r.t=0;zaps.push({x:r.x,y:r.y,t:0.5});if(txt)float(r.x,r.y-0.6,txt,col||'#5fe3d0');}
+// Trae al presente lo que retrocedió.
+function restore(i){const o=obj[i];if(!o||!o.past)return false;o.past=0;o.heal=0;recount();return true;}
+function updateRifts(dt){
+  for(const r of rifts){r.t+=dt;
+    if(r.state==='close'){if(r.t>=0.8)r.dead=true;continue;}
+    const o=obj[r.i];if(!riftable(o)){closeRift(r,'se cerró','#c8b8ff');continue;}
+    // Salta al edificio que sigue.
+    if(r.state==='move'){const gx=r.i%MW,gy=(r.i/MW)|0,d=Math.hypot(gx-r.x,gy-r.y),s=RIFT_SPD*dt;
+      if(d<=s){r.x=gx;r.y=gy;r.state='open';r.t=0;}else{r.x+=(gx-r.x)/d*s;r.y+=(gy-r.y)/d*s;}continue;}
+    // Un ancla cerca la cierra apenas se abre (o cuando la ponés al lado).
+    if(guarded(r.i)&&(r.state==='on'||r.t>=RIFT_OPEN*0.6)){closeRift(r,'¡anclada!');continue;}
+    if(r.state==='open'){if(r.t>=RIFT_OPEN){r.state='on';r.t=0;}continue;}
+    if(r.t<riftStep())continue;
+    r.t=0;r.steps++;const was=nameOf(o);o.past=Math.min(RIFT_MAX,(o.past||0)+1);o.heal=0;recount();float(r.x,r.y-0.6,'¡retrocedió!','#e8654d');
+    if(!r.told){r.told=true;const now=nameOf(o);toast(was+' retrocedió una época'+(now!==was?': ahora es '+now.toLowerCase():'')+'. Rinde la mitad: tocá la grieta para cerrarla.');}
+    if(r.steps<RIFT_MAX&&o.past<RIFT_MAX)continue;
+    const c=r.jumps<RIFT_JUMPS?riftTargets([r.x,r.y],true):[];let best=-1,bd=1e9;
+    for(const j of c){const d=Math.hypot(j%MW-r.x,((j/MW)|0)-r.y);if(d<bd){bd=d;best=j;}}
+    if(best<0){closeRift(r,'se cerró','#c8b8ff');continue;}
+    r.i=best;r.jumps++;r.steps=0;r.state='move';r.t=0;}
+  rifts=rifts.filter(r=>!r.dead);}
+// Cada medio segundo el tiempo se acomoda solo: lo que retrocedió avanza una época cada RIFT_HEAL segundos, o cada 5 cerca de un ancla.
+function riftHeal(step){let ch=false;
+  for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||!o.past||riftOn(i))continue;o.heal=(o.heal||0)+step;
+    if(o.heal>=(guarded(i)?5:RIFT_HEAL)){o.heal=0;o.past--;ch=true;float(i%MW,(i/MW)|0,o.past?'¡avanzó!':'¡al presente!','#93d36c');}}
+  if(ch)recount();}
 // Guardianes: cada cuartel terminado trae uno (syncGuards; no se guardan, al cargar salen de sus cuarteles). Patrulla cerca de
 // su cuartel y va solo a la amenaza más cercana que esté a GUARD_R casilleros del cuartel: camina hasta ella (los drones vuelan)
 // y la resuelve como un toque tuyo (tapThreat, con las mismas ideas), sin los avisos (quiet).
@@ -676,8 +735,9 @@ function threatTargets(){const T=[],add=(x,y,tx,ty,b)=>T.push({x,y,tx,ty,b});
   for(const g of goos)add(g.core%MW,(g.core/MW)|0,g.core%MW,(g.core/MW)|0);
   for(const s of spies)if(spyOut(s))add(s.x,s.y,Math.round(s.x),Math.round(s.y));
   for(const u of ufos)if(ufoOut(u))add(u.x,u.y,Math.round(u.x),Math.round(u.y-1));
+  for(const r of rifts)if(riftOut(r))add(r.x,r.y,Math.round(r.x),Math.round(r.y));
   for(const v of vil)if(v.bad)add(v.x,v.y,Math.round(v.x),Math.round(v.y));
-  for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&o.bug&&BUILD[o.t])add(i%MW,(i/MW)|0,i%MW,(i/MW)|0,true);}
+  for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&(o.bug||o.past)&&BUILD[o.t])add(i%MW,(i/MW)|0,i%MW,(i/MW)|0,true);}
   return T;}
 function guardStatus(g){return g.goal?'va a frenar una amenaza':'patrulla cerca de '+(BUILD.cuartel?BUILD.cuartel.name.toLowerCase():'su cuartel');}
 function updateGuards(dt){if(!guards.length)return;const fly=!!ERA.guard.fly;let T=null;
@@ -1052,6 +1112,7 @@ function update(dt){
     if(ERA.meteors&&Math.random()<step/meteorEvery())spawnMeteor();
     if(ERA.goo&&st.time>=GOO_START&&Math.random()<step/gooEvery())spawnGoo();
     if(ERA.ufos&&st.time>=UFO_START&&Math.random()<step/ufoEvery())spawnUfos();
+    if(ERA.rifts){if(st.time>=RIFT_START&&Math.random()<step/riftEvery())spawnRift();riftHeal(step);}
     if(ERA.pirates&&st.techs[ERA.pirates]&&Math.random()<step/pirateEvery())spawnPirates();
     if(ERA.plague&&st.time>=PLAGUE_START)plagueTick(step);
     if(ERA.locusts&&st.time>=LOCUST_START&&Math.random()<step/locustEvery())spawnLocusts();
@@ -1063,6 +1124,7 @@ function update(dt){
   if(ERA.meteors)updateMeteors(dt);
   if(ERA.goo)updateGoo(dt);
   if(ERA.ufos)updateUfos(dt);
+  if(ERA.rifts)updateRifts(dt);
   if(BUILD.cuartel)updateGuards(dt);
   if(ERA.pirates)updatePirates(dt);
   if(ERA.locusts)updateLocusts(dt);
@@ -1401,7 +1463,7 @@ function nanoShopArt(){return mkA(64,64,a=>{poly(a,[[6,60],[10,24],[54,24],[58,6
 // Guardianes (ERA.guard.kind): una persona con lo que la distingue arriba, o un dron que vuela.
 const GUARD_PAL={soldado:{c:'#a83a2a',C:'#7a2a1e',j:'#d4ae62'},medico:{c:'#2a2a34',C:'#1a1a22'},campo:{c:'#5d7a3a',C:'#435a28',j:'#8a6a2e'},
   policia:{c:'#24406e',C:'#182c4e',j:'#d4ae62'},electricista:{c:'#e07a2a',C:'#b05a1a',j:'#2a2a3a'},exterminador:{c:'#3f6a3a',C:'#2c4c28',j:'#2a2a3a'},
-  tecnico:{c:'#2f5a96',C:'#24406e',j:'#2a2a3a'},ingeniero:{c:'#e6ecf2',C:'#b8c2cc',j:'#4a78b8'},seguridad:{c:'#2a2a34',C:'#1a1a22',j:'#5d6270'},agente:{c:'#1a1a22',C:'#101016',j:'#1a1a22'}};
+  tecnico:{c:'#2f5a96',C:'#24406e',j:'#2a2a3a'},ingeniero:{c:'#e6ecf2',C:'#b8c2cc',j:'#4a78b8'},seguridad:{c:'#2a2a34',C:'#1a1a22',j:'#5d6270'},agente:{c:'#1a1a22',C:'#101016',j:'#1a1a22'},crono:{c:'#2a5a6a',C:'#1c4250',j:'#4a3a8a'}};
 function guardArt(kind,f){if(kind==='dron')return droneArt(f);return mkA(64,64,a=>{personBody(a,GUARD_PAL[kind]||{},f);const K=hx('#1b1a24');
   switch(kind){
     // Soldado: casco de bronce con cresta roja y escudo redondo.
@@ -1428,6 +1490,9 @@ function guardArt(kind,f){if(kind==='dron')return droneArt(f);return mkA(64,64,a
     // Guardia de seguridad: gorra negra con chapa y auricular.
     case'seguridad':{ell(a,32,10,13,6,(i,j)=>j<=1?K:null);rect(a,32,11,15,2,hx('#2a2a34'));rect(a,30,6,4,3,hx('#d4ae62'));rect(a,44,16,2,8,K);break;}
     // Agente: anteojos negros y corbata.
+    // Patrullero del tiempo: galera violeta con anteojos de viaje y un reloj de arena en la mano.
+    case'crono':{const V=hx('#4a3a8a'),G=hx('#ffd35a'),W=hx('#e8eef4');rect(a,17,10,30,3,V);rect(a,22,0,20,11,V);rect(a,22,6,20,2,G);ell(a,27,7,3,2,hx('#5fe3d0'));ell(a,37,7,3,2,hx('#5fe3d0'));
+      rect(a,46,29,11,2,G);rect(a,46,46,11,2,G);poly(a,[[47,31],[56,31],[51.5,38.5]],W);poly(a,[[51.5,38.5],[47,46],[56,46]],W);rect(a,49,43,6,3,G);rect(a,51,38,1,3,G);break;}
     case'agente':{rect(a,23,18,8,4,K);rect(a,33,18,8,4,K);rect(a,30,19,4,1,K);a.set(25,19,hx('#5a6270'));a.set(35,19,hx('#5a6270'));rect(a,30,30,4,13,hx('#f6f1e4'));rect(a,31,31,2,11,K);break;}
   }
   outlineAll(a,OUTL);});}
@@ -1515,6 +1580,19 @@ function drawStorms(){if(!storms.length&&!bolts.length)return;const t=performanc
     for(let k=1;k<6;k++){const u=k/6;ctx.lineTo(x0+(x1-x0)*u+((k%2)?2.5:-2.5),y0+(y1-y0)*u);}ctx.lineTo(x1,y1);ctx.stroke();
     ctx.fillStyle='rgba(255,246,200,'+(a*0.5).toFixed(2)+')';ctx.beginPath();ctx.arc(x1,y1,5,0,6.29);ctx.fill();}}
 // Ovnis: la sombra en el suelo, el halo rojo, el plato con luces que titilan y, mientras levanta a alguien, el rayo.
+// Grieta temporal: un remolino que gira al revés (el tiempo corre para atrás), un reloj en el centro con las agujas que
+// retroceden, el halo rojo de las amenazas y un anillo dorado que se llena hasta el próximo salto atrás.
+function drawRifts(){if(!rifts.length)return;const t=performance.now()/1000,C=['#9a6af0','#5fe3d0','#c8b8ff','#ffd35a'];
+  for(const r of rifts){const k=r.state==='open'?Math.min(1,r.t/RIFT_OPEN):r.state==='close'?Math.max(0,1-r.t/0.8):1,R=7.5*k;if(R<0.5)continue;
+    const cx=r.x*T+8,cy=r.y*T+6;ctx.globalAlpha=r.state==='close'?k:1;
+    if(riftOut(r)){ctx.fillStyle='rgba(232,101,77,'+(0.2+0.08*Math.sin(t*4)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(cx,cy+8,R*1.15,R*0.45,0,0,6.29);ctx.fill();}
+    ctx.fillStyle='rgba(26,16,52,.6)';ctx.beginPath();ctx.arc(cx,cy,R*0.42,0,6.29);ctx.fill();
+    ctx.lineWidth=1.1;for(let j=0;j<4;j++){const a0=r.ph+j*1.7-t*(1.6+j*0.5),rr=R*(0.38+0.2*j);ctx.strokeStyle=C[j];ctx.beginPath();ctx.arc(cx,cy,rr,a0,a0+2.3);ctx.stroke();
+      ctx.fillStyle=C[j];ctx.fillRect(cx+Math.cos(a0)*rr-0.6,cy+Math.sin(a0)*rr-0.6,1.2,1.2);}
+    const h=r.ph-t*2.5,m=-t*8;ctx.strokeStyle='#f6f1e4';ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(h)*R*0.24,cy+Math.sin(h)*R*0.24);
+    ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(m)*R*0.36,cy+Math.sin(m)*R*0.36);ctx.stroke();
+    if(r.state==='on'){const f=Math.min(1,r.t/riftStep());ctx.strokeStyle='rgba(255,211,90,.95)';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(cx,cy,R+1.4,-Math.PI/2,-Math.PI/2+f*6.283);ctx.stroke();}
+    ctx.globalAlpha=1;}}
 function drawUfos(){if(!ufos.length)return;const t=performance.now()/1000;
   for(const u of ufos){const px=u.x*T,py=u.y*T,hy=py-20+Math.round(Math.sin(t*3+u.x)*1.5);ctx.globalAlpha=u.state==='leave'?Math.max(0,1-u.t/2):1;
     if(ufoOut(u)){shadow(px+8,py+15,6,1.8);ctx.fillStyle='rgba(232,101,77,'+(0.22+0.1*Math.sin(t*8)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(px+8,hy+8,10,6,0,0,Math.PI*2);ctx.fill();}
@@ -1583,7 +1661,7 @@ function drawObj(o,x,y){
     case'rock':hd(o.hp>0?HS.rock:HS.rubble,px,py);top=py+2;break;
     case'ore':hd(o.hp>0?HS.ore:HS.rubble,px,py);top=py+2;break;
     case'bush':hd(o.hp>0?HS.bush:HS.bushE,px,py);top=py+2;break;
-    case'fogata':{const e=epOf(o);hd(epArt('fogata',e)[Math.abs(Math.floor(st.time*(e?1.5:6)))%2],px,py);}break;
+    case'fogata':{const e=Math.max(0,epOf(o)-pastLv(o,y*MW+x));hd(epArt('fogata',e)[Math.abs(Math.floor(st.time*(e?1.5:6)))%2],px,py);}break;
     // La herrería echa humo; el taller moderno y el nanotaller, no.
     case'herreria':{const e=epOf(o);shadow(px+8,py+15,8,2);hd(epArt('herreria',e),px,py);if(e<2)
       for(let k=0;k<3;k++){const ph=(st.time*0.7+k/3)%1;ctx.fillStyle='rgba(200,200,210,'+(0.7*(1-ph))+')';ctx.fillRect(px+4+Math.round(Math.sin(ph*6+k)*1.5),py-1-Math.round(ph*10),2,2);}}break;
@@ -1592,14 +1670,26 @@ function drawObj(o,x,y){
     case'rival':{shadow(px+8,py+15,8,2);hd(HS.rival,px,py);const t=performance.now()/1000;ctx.fillStyle='rgba(232,101,77,'+(0.15+0.1*Math.sin(t*3)).toFixed(2)+')';ctx.beginPath();ctx.arc(px+8,py+5.5,4,0,6.29);ctx.fill();
       ctx.font='600 4px "Pixelify Sans", monospace';ctx.textAlign='center';ctx.lineWidth=1;ctx.strokeStyle='#1b1a24';const nm='Rival '+Math.floor(st.rival)+'%';ctx.strokeText(nm,px+8,py-1.5);ctx.fillStyle='#e8654d';ctx.fillText(nm,px+8,py-1.5);}break;
     // Lo demás: sombra, sprite, humo si anda (`smk` en el edificio), rayo tachado si le falta luz, lo propio de la era (ERA.deco) y el bicho.
-    default:if(HS[o.t]){const sh=SHADOW[o.t]||[8,2],b=BUILD[o.t];shadow(px+8,py+15,sh[0],sh[1]);hd(EP_ART[o.t]?epArt(o.t,epOf(o)):HS[o.t],px,py);
+    default:if(HS[o.t]){const sh=SHADOW[o.t]||[8,2],b=BUILD[o.t],pl=pastLv(o,y*MW+x);shadow(px+8,py+15,sh[0],sh[1]);hd(EP_ART[o.t]?epArt(o.t,Math.max(0,epOf(o)-pl)):pl?pastArt(o.t,pl):HS[o.t],px,py);
       if(b&&b.smk&&runs(b))for(const[sx,sy]of b.smk)puffs(px+sx,py+sy,b.puffs||3);
       const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit&&!isOld(o))noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug){if(ERA.hijack)drawClips(px,py);else if(ERA.meteors||ERA.luddites||ERA.storms)drawDamage(px,py);else if(sickable(o))drawPlague(px,py);else drawBug(px,py);}}
   }
   if(isOld(o))oldBadge(px,py,canModern(o));
+  if(o.past)pastBadge(px,py,o.past);
   const cfg=RES[o.t];
   if(cfg&&o.hp>0&&o.hp<cfg.hp){ctx.fillStyle='#1b1a24';ctx.fillRect(px+2,top-3,12,3);ctx.fillStyle='#93d36c';ctx.fillRect(px+3,top-2,10*o.hp/cfg.hp,1);}
 }
+// Edificio que retrocedió en el tiempo: un reloj de arena en la otra esquina, con un punto por cada época que retrocedió.
+function pastBadge(px,py,n){ctx.fillStyle='#1b1a24';ctx.fillRect(px,py-1,8,9);ctx.fillStyle='#c8b8ff';ctx.fillRect(px+1,py,6,1);ctx.fillRect(px+1,py+5,6,1);
+  ctx.fillStyle='#f6f1e4';ctx.fillRect(px+2,py+1,4,1);ctx.fillRect(px+3,py+2,2,2);ctx.fillRect(px+2,py+4,4,1);ctx.fillStyle='#ffd35a';ctx.fillRect(px+3,py+1,2,1);ctx.fillRect(px+2,py+4,4,1);
+  ctx.fillStyle='#e8654d';for(let k=0;k<n;k++)ctx.fillRect(px+1+k*2,py+6.5,1.2,1);}
+// Lo que retrocedió y no tiene versión de otra época se ve en sepia, más gastado cuanto más atrás quedó.
+const PASTC={};
+function pastArt(id,n){const k=id+n;if(!PASTC[k]){const c=Array.isArray(HS[id])?HS[id][0]:HS[id],cv=document.createElement('canvas');cv.width=c.width;cv.height=c.height;const g=cv.getContext('2d');g.drawImage(c,0,0);
+  const d=g.getImageData(0,0,cv.width,cv.height),a=d.data,f=Math.min(1,0.35+0.25*n),dk=1-0.06*n;
+  for(let j=0;j<a.length;j+=4){if(!a[j+3])continue;const r=a[j],G=a[j+1],b=a[j+2],y=0.3*r+0.59*G+0.11*b;
+    a[j]=Math.min(255,(r+(y*1.07+20-r)*f)*dk);a[j+1]=Math.min(255,(G+(y*0.87+8-G)*f)*dk);a[j+2]=Math.min(255,(b+(y*0.62-b)*f)*dk);}
+  g.putImageData(d,0,0);PASTC[k]=cv;}return PASTC[k];}
 // Edificio que vino de otra era: una flechita para arriba en la esquina (late cuando ya se puede modernizar).
 function oldBadge(px,py,can){const t=performance.now()/1000,hi=can&&Math.sin(t*5)>-0.3;ctx.globalAlpha=can?1:0.6;ctx.fillStyle='#1b1a24';ctx.fillRect(px+8,py-1,8,8);
   ctx.fillStyle=hi?'#b6f08a':can?'#93d36c':'#a39b88';ctx.fillRect(px+11,py,2,1);ctx.fillRect(px+10,py+1,4,1);ctx.fillRect(px+9,py+2,6,1);ctx.fillRect(px+11,py+3,2,3);ctx.globalAlpha=1;}
@@ -1651,6 +1741,7 @@ function render(){
   drawMeteors();
   drawLocusts();
   drawUfos();
+  drawRifts();
   drawSmash();
   drawSpies();
   drawStorms();
@@ -1672,6 +1763,7 @@ function render(){
       else if(o.t==='poste'){if(G.on.has(y*MW+x))lights.push([x*T+11,y*T+6,2.4,0.85]);}else if(o.t==='antena'){if(G.on.has(y*MW+x))lights.push([x*T+8,y*T+2,1.6,0.8]);}
       else{const L=LIGHT[o.t];if(L)lights.push([x*T+L[0],y*T+L[1],L[2],L[3]]);}}
     for(const u of ufos)lights.push([u.x*T+8,u.y*T-12,2.2,0.9]);
+    for(const r of rifts)if(riftOut(r))lights.push([r.x*T+8,r.y*T+6,2.6,0.9]);
     for(const[fx,fy,r,a]of lights)hole(fx,fy,T*s*(r+0.15*Math.sin(st.time*9+fx)),a);
     hole(P.x*T+8,P.y*T+8,T*s*(st.techs[ERA.nightTech]?4:2.2),0.75);
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(lc,0,0);
@@ -1683,7 +1775,7 @@ function render(){
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.t*1.5);ctx.strokeStyle='#1b1a24';ctx.strokeText(f.txt,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y);}
   ctx.globalAlpha=1;
   // Flechas rojas en el borde para los virus y los robots desalineados que están fuera de la pantalla.
-  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos),goos.map(g=>({x:g.core%MW,y:(g.core/MW)|0})),ufos.filter(ufoOut),pirates,swarms,ludds.filter(angry),storms,moths.filter(loose),spies.filter(spyOut));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
+  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos),goos.map(g=>({x:g.core%MW,y:(g.core/MW)|0})),ufos.filter(ufoOut),rifts.filter(riftOut),pirates,swarms,ludds.filter(angry),storms,moths.filter(loose),spies.filter(spyOut));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
     for(const v of TH){const sx=(v.x*T+8-cam.x)*s,sy=(v.y*T+8-cam.y)*s;if(sx>=0&&sx<=W&&sy>=top&&sy<=bot)continue;
       const cx=clamp(sx,14*DPR,W-14*DPR),cy=clamp(sy,top,bot),an=Math.atan2(sy-cy,sx-cx);ctx.save();ctx.translate(cx,cy);ctx.rotate(an);
       ctx.fillStyle='#e8654d';ctx.strokeStyle='#1b1a24';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(10*DPR,0);ctx.lineTo(-6*DPR,-7*DPR);ctx.lineTo(-6*DPR,7*DPR);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();}}}
@@ -1752,6 +1844,9 @@ function threat(){
     if(b)return['¡Ovni!',(b===1?'Se está llevando a alguien: tocalo para espantarlo.':'Se están llevando a '+b+': tocalos para espantarlos.')];
     if(n)return['¡Ovnis!',(n===1?'Viene uno a llevarse a alguien: tocalo para espantarlo.':'Vienen '+n+' a llevarse a tu gente: tocalos para espantarlos.')];
     if(away.length)return['Abducidos:','se llevaron a '+away.length+(away.length===1?' de tu gente: vuelve en ':' de tu gente: el primero vuelve en ')+Math.ceil(Math.min(...away.map(v=>v.away)))+' s.'];}
+  if(ERA.rifts){const n=rifts.filter(riftOut).length,np=obj.filter(o=>o&&o.past&&BUILD[o.t]).length;
+    if(n)return['¡Grieta temporal!',(n===1?'Hace':'Hay '+n+' que hacen')+' retroceder en el tiempo lo que toca'+(n===1?'':'n')+': tocala'+(n===1?'':'s')+' para cerrarla'+(n===1?'':'s')+'.'];
+    if(np)return['En el pasado:',np+(np===1?' edificio rinde menos: tocalo para traerlo al presente.':' edificios rinden menos: tocalos para traerlos al presente.')];}
   if(ERA.goo&&goos.length){const n=goos.length,cov=goos.reduce((a,g)=>a+g.cells.filter(i=>obj[i]&&BUILD[obj[i].t]).length,0);
     return['¡Nanobots!',(n===1?'Una nube gris crece':n+' nubes grises crecen')+(cov?' y tapa'+(n===1?'':'n')+' '+cov+(cov===1?' edificio':' edificios'):'')+': tocala'+(n===1?'':'s')+' para apagarla'+(n===1?'':'s')+'.'];}
   if(ERA.meteors){if(meteors.length)return['¡Meteorito!',(meteors.length===1?'Viene uno':'Vienen '+meteors.length)+': tocalo antes de que caiga. En tierra libre deja '+RN[ORE].toLowerCase()+'.'];
@@ -1817,7 +1912,13 @@ function ufoRow(p){const T=towersXY(),pop=vil.filter(v=>!v.away),cov=T.length?po
     on=T.length>0||n>0||away>0||st.time>=UFO_START;$(p==='g'?'gridRow':'smogRow').hidden=!on;if(!on)return;const f=pop.length?cov/pop.length*100:0;
   $(p+'Fill').style.width=f+'%';$(p+'Fill').classList.toggle('hi',n>0||away>0);$(p+'Num').textContent=Math.round(f)+'%';
   $(p+'Meta').textContent=n?(n===1?'1 ovni en el cielo':n+' ovnis en el cielo'):away?away+(away===1?' llevado':' llevados'):T.length?'cielo despejado':'sin '+ERA.defense.label.toLowerCase();}
-function defenseRow(p){if(ERA.ufos){ufoRow(p);return;}const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){if(!D.of||D.of.includes(o.t))bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
+// Con grietas temporales, la barra cuenta qué parte de lo que produce está cerca de un ancla.
+function riftRow(p){const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(riftable(o))bs.push(i);if(o&&o.t===D.id&&!o.bug)sh.push(i);});
+  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,n=rifts.filter(riftOut).length,np=obj.filter(o=>o&&o.past&&BUILD[o.t]).length,
+    on=sh.length>0||n>0||np>0||st.time>=RIFT_START;$(p==='g'?'gridRow':'smogRow').hidden=!on;if(!on)return;const f=bs.length?cov/bs.length*100:0;
+  $(p+'Fill').style.width=f+'%';$(p+'Fill').classList.toggle('hi',n>0||np>0);$(p+'Num').textContent=Math.round(f)+'%';
+  $(p+'Meta').textContent=n?(n===1?'1 grieta abierta':n+' grietas abiertas'):np?np+' en el pasado':sh.length?'tiempo en calma':'sin '+D.label.toLowerCase();}
+function defenseRow(p){if(ERA.ufos){ufoRow(p);return;}if(ERA.rifts){riftRow(p);return;}const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){if(!D.of||D.of.includes(o.t))bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
   const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,nb=ERA.meteors||ERA.plague||ERA.luddites||ERA.infect||ERA.hijack?bugCount():0,np=pirates.length+swarms.length+ludds.filter(angry).length+goos.length,
     on=sh.length>0||meteors.length>0||np>0||nb>0||(ERA.cities?grid().linked.length>0:ERA.robots?vil.some(v=>v.bot):ERA.goo?st.time>=GOO_START:ERA.meteors?st.time>60:ERA.plague?st.time>=PLAGUE_START:ERA.locusts?st.time>=LOCUST_START:ERA.luddites?st.time>=LUDD_START:!!st.techs[ERA.pirates]);$(p==='g'?'gridRow':'smogRow').hidden=!on;
   if(on){$(p+'Fill').style.width=(bs.length?cov/bs.length*100:0)+'%';$(p+'Fill').classList.toggle('hi',meteors.length>0||np>0||nb>0);$(p+'Num').textContent=Math.round(bs.length?cov/bs.length*100:0)+'%';
@@ -1917,7 +2018,7 @@ let resetArmed=false;
 function showModal(html,cls){if($('modal').hidden&&!skipPush)navPush();skipPush=false;modalKind=cls||'';paused=true;resetArmed=false;$('modalCard').innerHTML=html;$('modal').hidden=false;const b=$('modalCard').querySelector('button');if(b)b.focus({preventScroll:true});}
 const showModalI=h=>showModal(h,'intro');
 function hideModal(fromBack){if($('modal').hidden)return;if(!fromBack)navPop();$('modal').hidden=true;paused=false;last=performance.now();}
-const erasHTML=done=>'<div class="eras">'+ERAS.map((e,i)=>'<span class="'+(i<done?'on':'')+'">'+e+'</span>').join('')+'</div>';
+const erasHTML=done=>'<div class="eras">'+ERAS.map((e,i)=>'<span class="'+(i<done?'on':'')+(e.length>12?' long':'')+'">'+e+'</span>').join('')+'</div>';
 function showIntro(){
   const L=st.legacy,E=ERA.text;
   const leg=L.has?'<div class="kicker">'+E.legacy+'</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">'+E.noLegacy+'</p>';
@@ -1952,6 +2053,10 @@ function tapThreat(tx,ty){
   // Un ovni se toca donde se lo ve, arriba, o en el rayo mientras levanta a alguien.
   {const hit=ufos.find(u=>ufoOut(u)&&(Math.hypot(u.x-tx,u.y-1-ty)<=1.5||(u.state==='beam'&&Math.hypot(u.x-tx,u.y-ty)<=1.2)));
     if(hit){const held=hit.state==='beam';scareUfo(hit,'¡espantado!');st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast(held?'¡Ovni espantado! Soltó a '+(hit.prey&&hit.prey.bot?'tu robot.':'tu aldeano.'):'¡Ovni espantado!');return true;}}
+  // Una grieta se toca sobre el edificio que hace retroceder (o mientras salta al que sigue): se cierra y ese edificio vuelve al presente.
+  {const hit=rifts.find(r=>riftOut(r)&&Math.hypot(r.x-tx,r.y-ty)<=(r.state==='move'?1.3:0.75));
+    if(hit){const back=hit.state!=='move'&&restore(hit.i);closeRift(hit,'¡cerrada!');st.res.ideas+=2;float(hit.x,hit.y-1.1,'+2 ideas',RCOL.ideas);
+      toast(back?'¡Grieta cerrada! '+nameOf(obj[hit.i])+' volvió al presente.':'¡Grieta cerrada!');save();return true;}}
   // Una nube de nanobots se apaga tocando cualquiera de sus casilleros.
   if(goos.length){const g=gooAt(ty*MW+tx);if(g){killGoo(g,'¡apagada!');st.res.ideas+=2;float(tx,ty-0.6,'+2 ideas',RCOL.ideas);toast('¡Nanobots apagados!');return true;}}
   // Un meteorito se toca donde se lo ve, o en la marca del suelo.
@@ -1971,7 +2076,9 @@ function tapThreat(tx,ty){
     if(hit){scatter(hit);swarms=swarms.filter(w=>!w.dead);st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Langostas espantadas!');return true;}}
   {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){realign(hit);st.res.ideas+=3;float(hit.x,hit.y-0.6,'+3 ideas',RCOL.ideas);toast('Robot realineado');save();return true;}}
   if(!inb(tx,ty))return false;
-  const o=obj[ty*MW+tx];if(!o||!o.bug||!BUILD[o.t])return false;
+  const o=obj[ty*MW+tx];
+  if(o&&o.past&&BUILD[o.t]){const was=nameOf(o);restore(ty*MW+tx);st.res.ideas+=2;float(tx,ty,'+2 ideas',RCOL.ideas);toast((was!==nameOf(o)?was+' → ':'')+nameOf(o)+': volvió al presente.');save();return 'b';}
+  if(!o||!o.bug||!BUILD[o.t])return false;
     if(o.bug&&o.t==='servidor'){o.bug=false;o.bugAge=0;GRID=null;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Servidor limpio! La red vuelve a andar.');save();return 'b';}
     if(o.bug&&hijackable(o)){const r=vil.find(v=>v.at===ty*MW+tx);if(r){realign(r);st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);}else{o.bug=false;BROKEN=null;}toast('Robot realineado: el edificio vuelve a producir.');save();return 'b';}
     if(o.bug&&infectable(o)){o.bug=false;o.bugAge=0;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Virus borrado! Vuelve a producir.');save();return 'b';}
@@ -2043,7 +2150,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),virusEvery:()=>virusEvery(),spies:()=>spies,spawnSpies:()=>spawnSpies(),spyEvery:()=>spyEvery(),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
-  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),guards:()=>guards,threatTargets:()=>threatTargets(),guardArt:(k,f)=>guardArt(k,f),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
+  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),rifts:()=>rifts,spawnRift:()=>spawnRift(),riftEvery:()=>riftEvery(),guards:()=>guards,threatTargets:()=>threatTargets(),guardArt:(k,f)=>guardArt(k,f),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
 </body></html>
