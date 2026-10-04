@@ -1,6 +1,0 @@
-__pycache__/
-*.pyc
-.venv/
-data/*.db
-output/*.mp4
-videos/*.mp4
