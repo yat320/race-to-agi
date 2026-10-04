@@ -1,6 +1,6 @@
 // Era galáctica del mundo abierto (la que sigue a la interestelar): neutronio, torres de interferencia y ovnis que se llevan a tu gente; la federación galáctica. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:13,name:'Era galáctica',de:'de la era galáctica',next:null,
+  n:13,name:'Era galáctica',de:'de la era galáctica',next:{file:'mundo14.html',to:'a la era intergaláctica'},
   ore:{id:'neutronio',name:'Neutronio',col:'#8ab0f0',empty:'Veta de neutronio agotada',gather:'neutronio',icon:[['........','..kkkk..','.kqvqqk.','kqqvQqqk','kqQvvqQk','.kqQqqk.','..kkkk..','........'],{q:'#2a3a6a',Q:'#1a2440',v:'#e8f4ff'}]},
   storage:{id:'granero'},ideaBuild:'observatorio',ideaTechs:['neutronio','cartografia'],boostTech:'energia',farmBuild:'jardin',nightTech:'cartografia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
@@ -55,7 +55,7 @@ const ERA={
     noLegacy:'No hay una era interestelar terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Llegan ovnis: siguen a alguien de tu gente y lo levantan con un rayo. Tocalos para espantarlos; si no, se lo llevan y lo devuelven a los 3 minutos. Cerca de una torre de interferencia no se llevan a nadie. En la compu: flechas o WASD.',
     win:'La federación galáctica',winText:()=>'Terminaste la federación galáctica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. La humanidad ya no está sola: tiene amigos entre las estrellas.',
-    winNote:'Por ahora es la última era.'}
+    winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era intergaláctica.'}
 };
 /* ---------- arte de la era ---------- */
 const NEU=P4('#1a2440','#2a3a6a','#4a6aa8','#8ab0f0'),NEUL=hx('#e8f4ff'),CYAN=hx('#5fe3d0'),VIO=hx('#d08cff'),WHITE=P4('#a8b4c0','#c8d2dc','#e6ecf2','#ffffff'),DARK=P4('#14161c','#20242e','#2e3440','#404858');
