@@ -23,21 +23,22 @@ const ERA={
  {id:'astronomia',name:'Astronomía',cost:{monedas:40,ideas:250},req:['navegacion','matematica'],desc:'Ideas +50%. De noche ves más lejos.'},
  {id:'engranajes',name:'Engranajes',cost:{cobre:50,monedas:40,ideas:300},req:['metalurgia','matematica'],desc:'Todos los edificios producen +50%.'},
  {id:'anticitera',name:'Mecanismo de Anticitera',cost:{piedra:100,cobre:80,monedas:80,ideas:600},req:['astronomia','engranajes'],desc:'Una computadora de engranajes que predice el movimiento de los astros. Cierra la Antigüedad.'}],
+  // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
- {id:'granja',name:'Granja',req:null,base:{madera:12,comida:4},grow:1.25,done:'Granja lista',desc:'Produce comida sola.',prod:{comida:0.2},noSand:true},
- {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche. Comer cerca rinde el doble.',prod:{ideas:0.12}},
- {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
+ {id:'granja',req:null,base:{madera:12,comida:4},grow:1.25,prod:{comida:0.2},noSand:true},
+ {id:'fogata',req:null,base:{madera:5,piedra:4},grow:1.6,prod:{ideas:0.12}},
+ {id:'aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,prod:{madera:0.12}},
  {id:'deposito',name:'Depósito',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Depósito construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
  {id:'herreria',name:'Herrería',req:'metalurgia',base:{madera:25,piedra:20,cobre:10},grow:1.6,done:'Herrería lista',desc:'Herramientas de cobre: vos y los aldeanos juntan +30% por cada herrería.'},
- {id:'cantera',name:'Cantera',req:'metalurgia',base:{madera:20,cobre:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
+ {id:'cantera',req:'metalurgia',base:{madera:20,cobre:8},grow:1.35,prod:{piedra:0.12}},
  {id:'atalaya',name:'Atalaya',req:'metalurgia',base:{madera:20,piedra:20,cobre:5},grow:1.4,done:'Atalaya construida',desc:'Sus guardias echan a los piratas que pasan a 4 casilleros o menos.'},
  {id:'templo',name:'Templo',req:'escritura',base:{piedra:40,cobre:15},grow:1.5,done:'Templo construido',desc:'Los escribas del templo generan muchas ideas.',prod:{ideas:0.35}},
  {id:'mercado',name:'Mercado',req:'moneda',base:{madera:30,piedra:15,cobre:5},grow:1.4,done:'Mercado abierto',desc:'Cambia comida por monedas. Si no hay comida, se frena.',prod:{monedas:0.12},use:{comida:0.2}},
  {id:'acueducto',name:'Acueducto',req:'irrigacion',base:{piedra:50,cobre:15},grow:1.6,done:'Acueducto terminado',desc:'Cada acueducto hace producir +50% a todas las granjas.'},
  {id:'puerto',name:'Puerto',req:'navegacion',base:{madera:40,cobre:20},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. El comercio trae monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.'},
  {id:'biblioteca',name:'Biblioteca',req:'matematica',base:{madera:30,piedra:30,monedas:25},grow:1.6,done:'Biblioteca abierta',desc:'Ideas +30% por cada biblioteca.'}],
-  info:{atalaya:'Atalaya: echa a los piratas que pasan cerca.',casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',deposito:'Depósito: más capacidad.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',templo:'Templo: genera ideas.',mercado:'Mercado: cambia comida por monedas.',acueducto:'Acueducto: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',biblioteca:'Biblioteca: más ideas.'},
+  info:{atalaya:'Atalaya: echa a los piratas que pasan cerca.',casa:'Casa: acá viven 2 aldeanos.',deposito:'Depósito: más capacidad.',herreria:'Herrería: juntás más rápido.',templo:'Templo: genera ideas.',mercado:'Mercado: cambia comida por monedas.',acueducto:'Acueducto: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',biblioteca:'Biblioteca: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
   tips1:[['moneda','atalaya','una atalaya: echa a los piratas que desembarcan.']],
   tips2:[['escritura','templo','un templo: genera muchas ideas.'],['moneda','mercado','un mercado para conseguir monedas.'],['navegacion','puerto','un puerto pegado al agua.']],
@@ -92,6 +93,6 @@ function pirateBoatArt(){return mkA(64,64,a=>{poly(a,[[6,40],[58,40],[50,54],[14
 function pirateArt(f){const c=personArt({c:'#3a3a48',C:'#24242c',j:'#c8413b',y:'#2a1a12'},f),g=c.getContext('2d');
   g.fillStyle='#c8413b';g.fillRect(20,6,25,6);g.fillRect(43,10,5,4);g.fillStyle='#1b1a24';g.fillRect(25,19,5,5);g.fillRect(21,17,20,1);
   g.fillStyle='#d6dae2';for(let k=0;k<12;k++)g.fillRect(50+Math.round(k*0.4),44-k*1.5,2,2);g.fillStyle='#e8c05a';g.fillRect(47,44,6,2);return c;}
-const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:oreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:casaArt(),granja:granjaArt(),aserradero:sawmillArt(),deposito:storeArt2(),herreria:forgeArt(),cantera:quarryArt(),templo:templeArt(),mercado:marketArt(),acueducto:aqueductArt(),puerto:harborArt(),biblioteca:libraryArt(),atalaya:atalayaArt(),boat:pirateBoatArt(),pirate:[pirateArt(0),pirateArt(1)],
+const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:oreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:epArt('fogata'),
+  casa:casaArt(),granja:epArt('granja'),aserradero:epArt('aserradero'),deposito:storeArt2(),herreria:epArt('herreria'),cantera:epArt('cantera'),templo:templeArt(),mercado:marketArt(),acueducto:aqueductArt(),puerto:harborArt(),biblioteca:libraryArt(),atalaya:atalayaArt(),boat:pirateBoatArt(),pirate:[pirateArt(0),pirateArt(1)],
   hero:[personArt({c:'#e9e0c8',C:'#b3a78a',j:'#4a78b8'},0),personArt({c:'#e9e0c8',C:'#b3a78a',j:'#4a78b8'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};

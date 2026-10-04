@@ -2,7 +2,7 @@
 const ERA={
   n:11,name:'Era estelar',de:'de la era estelar',next:{file:'mundo12.html',to:'a la era interestelar'},
   ore:{id:'iridio',name:'Iridio',col:'#b8c8e8',empty:'Veta de iridio agotada',gather:'iridio',icon:[['........','..kkkk..','.kqvqqk.','kqqqvqqk','kqvqqqQk','.kqQqQk.','..kkkk..','........'],{q:'#565a6e',Q:'#3a3a48',v:'#b8c8e8'}]},
-  storage:{id:'granero',name:'Granero'},ideaBuild:'instituto',ideaTechs:['nanotec','cosmologia'],boostTech:'fusion',farmBuild:'sintetizador',nightTech:'cosmologia',
+  storage:{id:'granero'},ideaBuild:'instituto',ideaTechs:['nanotec','cosmologia'],boostTech:'fusion',farmBuild:'sintetizador',nightTech:'cosmologia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','centro','escudo','puerto','sintetizador','minero','instituto'],
   meteors:true,defense:{id:'escudo',r:5,label:'Escudos'},
@@ -13,7 +13,7 @@ const ERA={
     ['escalado','speed',1.2,'Escalado: te movés 20% más rápido']
   ]},
   techs:[
- {id:'nanotec',name:'Nanotecnología',cost:{iridio:15,ideas:30},req:[],desc:'Desbloquea el centro de la AGI, el taller y la cantera. Ideas +50%.'},
+ {id:'nanotec',name:'Nanotecnología',cost:{iridio:15,ideas:30},req:[],desc:'Desbloquea el centro de la AGI, el nanotaller y la perforadora láser. Ideas +50%.'},
  {id:'escudos',name:'Escudos',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea el escudo: desvía los meteoritos que apuntan cerca.'},
  {id:'cohetes',name:'Cohetes reutilizables',cost:{iridio:20,ideas:50},req:['nanotec'],desc:'Desbloquea el puerto espacial, que da monedas.'},
  {id:'sintesis',name:'Síntesis de alimentos',cost:{madera:40,piedra:20,ideas:65},req:['nanotec'],desc:'Desbloquea el sintetizador, que potencia las granjas.'},
@@ -22,21 +22,22 @@ const ERA={
  {id:'cosmologia',name:'Cosmología',cost:{monedas:55,ideas:340},req:['radar','mineria'],desc:'Desbloquea el instituto del espacio. Ideas +50% y de noche ves más lejos.'},
  {id:'fusion',name:'Fusión nuclear',cost:{iridio:70,monedas:55,ideas:450},req:['cohetes','radar'],desc:'Todo produce +50%.'},
  {id:'dyson',name:'Esfera de Dyson',cost:{piedra:130,iridio:110,monedas:130,ideas:1000},req:['cosmologia','fusion'],desc:'Un enjambre de espejos alrededor del Sol: toda su energía para la humanidad. Cierra la era estelar.'}],
+  // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Hábitat',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Hábitat listo: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
- {id:'granja',name:'Granja',req:null,base:{madera:12,comida:4},grow:1.25,done:'Granja lista',desc:'Produce comida sola.',prod:{comida:0.2},noSand:true},
- {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche.',prod:{ideas:0.12}},
- {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
- {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
- {id:'herreria',name:'Taller',req:'nanotec',base:{madera:25,piedra:20,iridio:10},grow:1.6,done:'Taller listo',desc:'Herramientas de nanotecnología: los aldeanos y los robots juntan +30% por cada taller.'},
- {id:'cantera',name:'Cantera',req:'nanotec',base:{madera:20,iridio:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
+ {id:'granja',req:null,base:{madera:12,comida:4},grow:1.25,prod:{comida:0.2},noSand:true},
+ {id:'fogata',req:null,base:{madera:5,piedra:4},grow:1.6,prod:{ideas:0.12}},
+ {id:'aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,prod:{madera:0.12}},
+ {id:'granero',req:null,base:{madera:25,piedra:15},grow:1.4},
+ {id:'herreria',name:'Nanotaller',req:'nanotec',base:{madera:25,piedra:20,iridio:10},grow:1.6,done:'Nanotaller listo',desc:'Herramientas de nanotecnología: los aldeanos y los robots juntan +30% por cada nanotaller.'},
+ {id:'cantera',req:'nanotec',base:{madera:20,iridio:8},grow:1.35,prod:{piedra:0.12}},
  {id:'centro',name:'Centro de la AGI',req:'nanotec',base:{piedra:40,iridio:10},grow:1.5,done:'Centro de la AGI encendido',desc:'La AGI piensa con vos: genera muchísimas ideas.',prod:{ideas:0.6}},
  {id:'escudo',name:'Escudo',req:'escudos',base:{madera:25,piedra:25,iridio:5},grow:1.4,done:'Escudo encendido',desc:'Desvía los meteoritos que apuntan a 5 casilleros o menos.'},
  {id:'puerto',name:'Puerto espacial',req:'cohetes',base:{madera:30,piedra:25,iridio:5},grow:1.4,done:'Puerto espacial abierto',desc:'Los cohetes comercian con las colonias: da muchas monedas.',prod:{monedas:0.45}},
  {id:'sintetizador',name:'Sintetizador',req:'sintesis',base:{madera:35,piedra:30},grow:1.6,done:'Sintetizador listo',desc:'Cada sintetizador hace rendir +50% a todas las granjas.'},
  {id:'minero',name:'Mina de asteroides',req:'mineria',base:{madera:30,piedra:15,monedas:10},grow:1.4,done:'Mina de asteroides lista',desc:'Trae iridio de los asteroides.',prod:{iridio:0.12}},
  {id:'instituto',name:'Instituto del espacio',req:'cosmologia',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Instituto abierto',desc:'Ideas +30% por cada instituto.'}],
-  info:{casa:'Hábitat: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Taller: los aldeanos juntan más rápido.',cantera:'Cantera: produce piedra.',centro:'Centro de la AGI: genera ideas.',escudo:'Escudo: desvía los meteoritos que apuntan a 5 casilleros o menos.',puerto:'Puerto espacial: da monedas.',sintetizador:'Sintetizador: potencia las granjas.',minero:'Mina de asteroides: da iridio.',instituto:'Instituto del espacio: más ideas.'},
+  info:{casa:'Hábitat: acá viven 2 aldeanos.',herreria:'Nanotaller: los aldeanos juntan más rápido.',centro:'Centro de la AGI: genera ideas.',escudo:'Escudo: desvía los meteoritos que apuntan a 5 casilleros o menos.',puerto:'Puerto espacial: da monedas.',sintetizador:'Sintetizador: potencia las granjas.',minero:'Mina de asteroides: da iridio.',instituto:'Instituto del espacio: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
   tips1:[['escudos','escudo','un escudo: desvía los meteoritos que caen cerca.']],
   tips2:[['nanotec','centro','un centro de la AGI: genera muchísimas ideas.'],['cohetes','puerto','un puerto espacial para conseguir monedas.'],['sintesis','sintetizador','un sintetizador: potencia las granjas.']],
@@ -50,7 +51,7 @@ const ERA={
     news:'Novedades: iridio, puerto espacial, escudos y meteoritos. Un edificio dañado no produce hasta que lo reparás tocándolo o lo arreglan solos los drones, a los 3 minutos. Cuanto más avanzás, más seguido caen.',
     legacy:'Lo que trae tu ciudad de la era de la AGI',
     noLegacy:'No hay una AGI terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Caen meteoritos: tocalos antes de que lleguen. Si caen sobre un edificio lo dañan: tocalo para repararlo, o los drones lo arreglan solos a los 3 minutos; en tierra libre dejan un cráter con iridio. Los escudos desvían los que apuntan cerca. En la compu: flechas o WASD.',
+    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Caen meteoritos: tocalos antes de que lleguen. Si caen sobre un edificio lo dañan: tocalo para repararlo, o los drones lo arreglan solos a los 3 minutos; en tierra libre dejan un cráter con iridio. Los escudos desvían los que apuntan cerca. En la compu: flechas o WASD.',
     win:'La esfera de Dyson',winText:()=>'Terminaste la esfera de Dyson en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Toda la energía del Sol, para la humanidad y su AGI.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era interestelar.'}
 };
@@ -102,7 +103,7 @@ function spaceInstArt(){return mkA(64,64,a=>{const CN=P4('#6a7a8a','#8a9aaa','#a
 function meteorArt(f){return mkA(32,32,a=>{ell(a,16,16,10,10,f?hx('#ffb050'):hx('#f08a24'));blob(a,[[16,16,7],[13,13,4]],P4('#3a3238','#54484e','#6e6266','#8a7e80'),null);
   for(const[x,y]of[[14,15],[18,18],[17,12]])a.set(x,y,hx('#2a2228'));outlineAll(a,OUTL);});}
 const VILPAL2=[{c:'#e8eef4',C:'#b8c2cc',j:'#5fe3d0',y:'#3a2418'},{c:'#3a4a6a',C:'#28344e',j:'#e8c05a',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#7a4a8a',C:'#583468',j:'#e8eef4',y:'#8a5a2a'}];
-const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:iridiumOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:habitatArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),centro:agiCenterArt(),escudo:shieldArt(),puerto:spaceportArt(),
+const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:iridiumOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:epArt('fogata'),
+  casa:habitatArt(),granja:epArt('granja'),aserradero:epArt('aserradero'),granero:epArt('granero'),herreria:epArt('herreria'),cantera:epArt('cantera'),centro:agiCenterArt(),escudo:shieldArt(),puerto:spaceportArt(),
   sintetizador:synthArt(),minero:asteroidMineArt(),instituto:spaceInstArt(),meteor:[meteorArt(0),meteorArt(1)],rocket:[rocketArt(0),rocketArt(1)],
   hero:[personArt({c:'#5fe3d0',C:'#3fa89c',j:'#2a2a3a'},0),personArt({c:'#5fe3d0',C:'#3fa89c',j:'#2a2a3a'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
