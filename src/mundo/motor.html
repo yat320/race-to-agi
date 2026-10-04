@@ -243,7 +243,7 @@ const GUARD_R=8,GUARD_SPD=3,GUARD_FLY=3.6;
 if(ERA.guard&&ERA.defense&&BUILD[ERA.defense.id]){const d=BUILD[ERA.defense.id],G=ERA.guard;
   const b={id:'cuartel',name:G.building,req:d.req,base:Object.assign({},d.base),grow:1.6,done:G.done,desc:G.desc};BUILDS.push(b);BUILD.cuartel=b;ERA.info.cuartel=G.info;}
 if(!ERA.info.monumento)ERA.info.monumento='Monumento: un edificio de otra época. La gente lo visita y da algunas ideas.';
-const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI','Estelar','Interestelar','Galáctica','Intergaláctica','Cósmica'];
+const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI','Estelar','Interestelar','Galáctica','Intergaláctica','Cósmica','Multiversal'];
 const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],[ORE,ERA.ore.name],['comida','Comida']];
 
 /* ---------- mundo ---------- */
@@ -318,7 +318,7 @@ function renderGround(){
 let st,counts={},OLDC={},OLDN={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
-let GRID=null,BROKEN=null,BROKEN_OLD={},OCEAN=null,bugT=0,viruses=[],meteors=[],goos=[],ufos=[],rifts=[],holes=[],guards=[],quiet=false,pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
+let GRID=null,BROKEN=null,BROKEN_OLD={},OCEAN=null,bugT=0,viruses=[],meteors=[],goos=[],ufos=[],rifts=[],holes=[],twins=[],guards=[],quiet=false,pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
   const L=ERA.legacy,e=prevEra(),out=L.monedas?{has:!!e,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]}:{has:!!e,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e){
@@ -356,7 +356,7 @@ function modernize(i){const o=obj[i],b=o&&BUILD[o.t];if(!isOld(o))return false;
   const was=nameOf(o);pay(c);o.era=ERA.n;recount();float(i%MW,(i/MW)|0,'¡modernizado!','#5fe3d0');toast((was!==b.name?was+' → ':'')+b.name+': rinde como nuevo.');save();return true;}
 function newGame(){
   const city=prevCity();setMap(city?city.map:ERA.n);mapChanged();
-  obj=city?importCity(city):genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];spies=[];goos=[];ufos=[];rifts=[];holes=[];guards=[];
+  obj=city?importCity(city):genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];spies=[];goos=[];ufos=[];rifts=[];holes=[];twins=[];guards=[];
   Object.assign(P,{x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1});
   recount();
   if(city){for(const v of city.vil){const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];vil.push(m);}if(city.p)Object.assign(P,{x:city.p[0],y:city.p[1]});
@@ -377,7 +377,7 @@ function prevCity(){const L=ERA.legacy;if(L.st)return null;const pn=+((L.key.mat
     return{n:pn,map:d.map||pn,obj:d.obj,vil:d.vil||[],p:d.p};}catch(e){return null;}}
 // Qué papel cumple cada edificio de cualquier era, para pasarlo a la era que sigue cuando ahí no existe: el de ideas pasa al
 // que más ideas da, el de monedas al que más monedas da, y así; los hitos de una era (ciudades, laboratorio rival) no pasan.
-const ROLE={deposito:'storage',granero:'storage',babel:'ideas',bolsa:'monedas',radio:'ideaBuild',sol:'farmBuild',repulsor:'defense',colisionador:'ore',cronoteca:'ideas',portal:'monedas',ondas:'ideaBuild',huerto:'farmBuild',ancla:'defense',pozo:'ore',
+const ROLE={deposito:'storage',granero:'storage',ventana:'ideas',canje:'monedas',telar:'ideaBuild',semillero:'farmBuild',verdad:'defense',pulidora:'ore',babel:'ideas',bolsa:'monedas',radio:'ideaBuild',sol:'farmBuild',repulsor:'defense',colisionador:'ore',cronoteca:'ideas',portal:'monedas',ondas:'ideaBuild',huerto:'farmBuild',ancla:'defense',pozo:'ore',
   templo:'ideas',monasterio:'ideas',taller:'ideas',laboratorio:'ideas',computadora:'ideas',cibercafe:'ideas',datacenter:'ideas',supercomp:'ideas',centro:'ideas',nucleo:'ideas',archivo:'ideas',
   mercado:'monedas',feria:'monedas',banco:'monedas',fabrica:'monedas',oficina:'monedas',tienda:'monedas',startup:'monedas',empresa:'monedas',puerto:'monedas',astillero:'monedas',
   biblioteca:'ideaBuild',universidad:'ideaBuild',academia:'ideaBuild',palacio:'ideaBuild',escuela:'ideaBuild',buscador:'ideaBuild',labia:'ideaBuild',instituto:'ideaBuild',observatorio:'ideaBuild',
@@ -410,7 +410,7 @@ function load(d){
   st=Object.assign(f,{res:Object.assign(f.res,d.res),energy:d.energy,techs:d.techs||{},time:d.time||0,gathers:d.gathers||0,won:!!d.won,seen:!!d.seen,prio:d.prio||'auto',smog:clamp(+d.smog||0,0,100),rival:clamp(+d.rival||0,0,100),safety:clamp(+d.safety||0,0,100),lost:!!d.lost,legacy:d.legacy||f.legacy});
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null});
   vil.length=0;(d.vil||[]).forEach(v=>{const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];m.bad=!!v[6];vil.push(m);});
-  floats=[];guards=[];rifts=[];holes=[];recount();return true;
+  floats=[];guards=[];rifts=[];holes=[];twins=[];recount();return true;
 }
 function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
 
@@ -775,6 +775,47 @@ function updateHoles(dt){const T=towersXY(),D=ERA.defense;
   // Los que están en órbita dan vueltas cada vez más cerca.
   for(const v of vil){const h=v.orb;if(!h)continue;if(!holes.includes(h)||!holeOut(h)){freeOrbit(h);v.orb=null;continue;}
     v.or=Math.max(0.9,v.or-dt*0.4);v.oa+=dt*2.4/v.or;v.x=h.x+Math.cos(v.oa)*v.or;v.y=h.y+Math.sin(v.oa)*v.or*0.6;v.face=Math.sin(v.oa)>0?1:-1;v.moving=true;v.lift=0.35;}}
+// Dobles (ERA.twins, octubre de 2026): de otros universos llegan copias de tu gente. Desde TWIN_START, cada ~twinEvery() segundos
+// se abre un portal a TWIN_FROM casilleros de un edificio y sale el doble de alguien de tu gente, con su mismo dibujo. Camina
+// hasta la ciudad y se mezcla: anda de un edificio a otro y cada TWIN_STEAL segundos roba (twinCut() de lo que más tengas entre
+// ideas, monedas y mineral; se ve el número arriba de él). Después de TWIN_TRIPS robos vuelve a su portal y se escapa con todo.
+// Lo delata que titila cada tanto (un corte de colores) y, más fuerte, justo después de robar. Tocarlo lo manda de vuelta a su
+// universo (+2 ideas) y devuelve lo robado. La defensa de la era (el espejo de la verdad) desenmascara y echa a los que pasan a
+// ERA.defense.r casilleros. Vienen más seguido con cada invento (+10%) y con el comercio entre universos (+30%); con la prueba de
+// identidad roban la mitad. No se guardan (lo que llevaban se pierde con ellos).
+const TWIN_START=120,TWIN_FROM=11,TWIN_SPD=1.6,TWIN_STEAL=7,TWIN_TRIPS=4,TWIN_CUT=0.06,TWIN_MIN=3;
+const twinEvery=()=>40/((1+0.1*Object.keys(st.techs).length)*(st.techs.canje?1.3:1));
+const twinOut=w=>w.state!=='gone';
+const twinCut=()=>TWIN_CUT*(st.techs.identidad?0.5:1);
+function spawnTwin(){const bs=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t])bs.push(i);});if(!bs.length||!vil.length)return;
+  const src=vil[Math.floor(Math.random()*vil.length)],ti=bs[Math.floor(Math.random()*bs.length)],tx=ti%MW,ty=(ti/MW)|0;
+  for(let k=0;k<40;k++){const an=Math.random()*6.283,d=TWIN_FROM+Math.random()*3,x=Math.round(tx+Math.cos(an)*d),y=Math.round(ty+Math.sin(an)*d);
+    if(!passable(x,y))continue;const path=pathAdj(x,y,tx,ty);if(!path)continue;
+    twins.push({x,y,home:[x,y],path,state:'come',face:1,moving:false,t:0,st:TWIN_STEAL,trips:0,loot:{},skin:src.skin,bot:!!src.bot,ph:Math.random()*5,reveal:0});
+    toast('¡Se abrió un portal! Viene un doble de alguien de tu gente: buscá al que titila y tocalo.');return;}}
+// Se escapa: camina hasta su portal.
+function twinFlee(w){w.state='flee';const[x,y]=tileOf(w);w.path=bfs(x,y,(a,b)=>a===w.home[0]&&b===w.home[1])||[];if(!w.path.length&&(x!==w.home[0]||y!==w.home[1])){w.x=w.home[0];w.y=w.home[1];}}
+// Lo manda de vuelta a su universo y devuelve lo que llevaba.
+function expelTwin(w,txt){if(!twinOut(w))return;const got=Object.entries(w.loot).filter(([,v])=>v>0);for(const[k,v]of got)add(k,v);
+  w.state='gone';w.gt=0;w.loot={};zaps.push({x:w.x,y:w.y,t:0.5});float(w.x,w.y-1,txt,'#5fe3d0');if(got.length)float(w.x,w.y-0.4,'+'+got.map(([k,v])=>v+' '+RN[k].toLowerCase()).join(' y '),'#93d36c');}
+function twinSteal(w){const ks=['ideas','monedas',ORE].sort((a,b)=>st.res[b]-st.res[a]),k=ks[0],have=Math.floor(st.res[k]),n=Math.min(have,Math.max(TWIN_MIN,Math.floor(have*twinCut())));
+  w.trips++;if(n<=0)return;st.res[k]-=n;w.loot[k]=(w.loot[k]||0)+n;w.reveal=1.5;float(w.x,w.y-1,'−'+n+' '+RN[k].toLowerCase(),'#d08cff');
+  if(!w.told){w.told=true;toast('¡Alguien de tu gente te robó '+n+' '+RN[k].toLowerCase()+'! Es un doble: tocalo para devolverlo a su universo.');}}
+function updateTwins(dt){if(!twins.length)return;const T=towersXY();
+  for(const w of twins){
+    if(w.state==='gone'){w.gt+=dt;continue;}
+    w.t+=dt;w.reveal=Math.max(0,w.reveal-dt);stepEnt(w,dt,TWIN_SPD);if(w.blocked){w.blocked=false;w.path=[];}
+    if(T.length&&jammed(T,w.x,w.y)){expelTwin(w,'¡desenmascarado!');continue;}
+    if(w.state==='come'){if(!w.path.length){w.state='blend';w.st=TWIN_STEAL*0.6;}continue;}
+    if(w.state==='blend'){w.st-=dt;if(w.st<=0){w.st=TWIN_STEAL;twinSteal(w);if(w.trips>=TWIN_TRIPS){twinFlee(w);continue;}}
+      // Anda de un edificio a otro, como uno más.
+      if(!w.path.length){w.wt=(w.wt||0)-dt;if(w.wt<=0){w.wt=1+Math.random()*2;const[x,y]=tileOf(w),bs=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]&&Math.hypot(i%MW-x,((i/MW)|0)-y)<=6)bs.push(i);});
+        if(bs.length){const i=bs[Math.floor(Math.random()*bs.length)];w.path=pathAdj(x,y,i%MW,(i/MW)|0)||[];}}}
+      continue;}
+    // Llegó a su portal: se va con lo robado.
+    if(!w.path.length){const got=Object.entries(w.loot).filter(([,v])=>v>0);w.state='gone';w.gt=0;zaps.push({x:w.x,y:w.y,t:0.5});
+      if(got.length){float(w.x,w.y-1,'se escapó','#e8654d');toast('Un doble se escapó a su universo con '+got.map(([k,v])=>v+' '+RN[k].toLowerCase()).join(' y ')+'.');}}}
+  twins=twins.filter(w=>twinOut(w)||w.gt<0.8);}
 // Guardianes: cada cuartel terminado trae uno (syncGuards; no se guardan, al cargar salen de sus cuarteles). Patrulla cerca de
 // su cuartel y va solo a la amenaza más cercana que esté a GUARD_R casilleros del cuartel: camina hasta ella (los drones vuelan)
 // y la resuelve como un toque tuyo (tapThreat, con las mismas ideas), sin los avisos (quiet).
@@ -796,6 +837,7 @@ function threatTargets(){const T=[],add=(x,y,tx,ty,b)=>T.push({x,y,tx,ty,b});
   for(const u of ufos)if(ufoOut(u))add(u.x,u.y,Math.round(u.x),Math.round(u.y-1));
   for(const r of rifts)if(riftOut(r))add(r.x,r.y,Math.round(r.x),Math.round(r.y));
   for(const h of holes)if(holeOut(h))add(h.x,h.y,Math.round(h.x),Math.round(h.y));
+  for(const w of twins)if(twinOut(w))add(w.x,w.y,Math.round(w.x),Math.round(w.y));
   for(const v of vil)if(v.bad)add(v.x,v.y,Math.round(v.x),Math.round(v.y));
   for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&(o.bug||o.past)&&BUILD[o.t])add(i%MW,(i/MW)|0,i%MW,(i/MW)|0,true);}
   return T;}
@@ -1174,6 +1216,7 @@ function update(dt){
     if(ERA.ufos&&st.time>=UFO_START&&Math.random()<step/ufoEvery())spawnUfos();
     if(ERA.rifts){if(st.time>=RIFT_START&&Math.random()<step/riftEvery())spawnRift();riftHeal(step);}
     if(ERA.holes&&st.time>=HOLE_START&&Math.random()<step/holeEvery())spawnHoles();
+    if(ERA.twins&&st.time>=TWIN_START&&Math.random()<step/twinEvery())spawnTwin();
     if(ERA.pirates&&st.techs[ERA.pirates]&&Math.random()<step/pirateEvery())spawnPirates();
     if(ERA.plague&&st.time>=PLAGUE_START)plagueTick(step);
     if(ERA.locusts&&st.time>=LOCUST_START&&Math.random()<step/locustEvery())spawnLocusts();
@@ -1187,6 +1230,7 @@ function update(dt){
   if(ERA.ufos)updateUfos(dt);
   if(ERA.rifts)updateRifts(dt);
   if(ERA.holes)updateHoles(dt);
+  if(ERA.twins)updateTwins(dt);
   if(BUILD.cuartel)updateGuards(dt);
   if(ERA.pirates)updatePirates(dt);
   if(ERA.locusts)updateLocusts(dt);
@@ -1525,7 +1569,7 @@ function nanoShopArt(){return mkA(64,64,a=>{poly(a,[[6,60],[10,24],[54,24],[58,6
 // Guardianes (ERA.guard.kind): una persona con lo que la distingue arriba, o un dron que vuela.
 const GUARD_PAL={soldado:{c:'#a83a2a',C:'#7a2a1e',j:'#d4ae62'},medico:{c:'#2a2a34',C:'#1a1a22'},campo:{c:'#5d7a3a',C:'#435a28',j:'#8a6a2e'},
   policia:{c:'#24406e',C:'#182c4e',j:'#d4ae62'},electricista:{c:'#e07a2a',C:'#b05a1a',j:'#2a2a3a'},exterminador:{c:'#3f6a3a',C:'#2c4c28',j:'#2a2a3a'},
-  tecnico:{c:'#2f5a96',C:'#24406e',j:'#2a2a3a'},ingeniero:{c:'#e6ecf2',C:'#b8c2cc',j:'#4a78b8'},seguridad:{c:'#2a2a34',C:'#1a1a22',j:'#5d6270'},agente:{c:'#1a1a22',C:'#101016',j:'#1a1a22'},crono:{c:'#2a5a6a',C:'#1c4250',j:'#4a3a8a'},astronauta:{c:'#e8eef4',C:'#b8c2cc',j:'#5a6270'}};
+  tecnico:{c:'#2f5a96',C:'#24406e',j:'#2a2a3a'},ingeniero:{c:'#e6ecf2',C:'#b8c2cc',j:'#4a78b8'},seguridad:{c:'#2a2a34',C:'#1a1a22',j:'#5d6270'},agente:{c:'#1a1a22',C:'#101016',j:'#1a1a22'},crono:{c:'#2a5a6a',C:'#1c4250',j:'#4a3a8a'},astronauta:{c:'#e8eef4',C:'#b8c2cc',j:'#5a6270'},detective:{c:'#a8865a',C:'#7a5e3a',j:'#4a3a2a'}};
 function guardArt(kind,f){if(kind==='dron')return droneArt(f);return mkA(64,64,a=>{personBody(a,GUARD_PAL[kind]||{},f);const K=hx('#1b1a24');
   switch(kind){
     // Soldado: casco de bronce con cresta roja y escudo redondo.
@@ -1558,6 +1602,9 @@ function guardArt(kind,f){if(kind==='dron')return droneArt(f);return mkA(64,64,a
     // Astronauta: casco de vidrio redondo y una mochila cohete con su llama.
     case'astronauta':{const GL=hx('#a8d8f0'),M=hx('#8a93a3');rect(a,8,26,9,18,M);rect(a,8,26,9,2,hx('#c8d2dc'));poly(a,[[9,44],[16,44],[12.5,52]],hx('#f08a24'));poly(a,[[11,44],[14,44],[12.5,49]],hx('#ffd35a'));
       ell(a,32,15,15,14,(i,j)=>{const d=Math.hypot(i/15,j/14);return d>0.86?(i+j<0?hx('#e8f4ff'):GL):null;});a.set(24,7,hx('#ffffff'));a.set(25,6,hx('#ffffff'));break;}
+    // Detective: gorra de cazador a cuadros con orejeras y una lupa en la mano.
+    case'detective':{const C1=hx('#8a6a3a'),C2=hx('#6a4e2a');ell(a,32,9,13,7,(i,j)=>j<=2?(((i>>1)+(j>>1))&1?C1:C2):null);rect(a,19,9,4,8,C2);rect(a,41,9,4,8,C2);rect(a,30,1,4,2,C2);
+      line(a,48,46,52,36,hx('#5a3a20'),2);ell(a,54,31,5,5,(i,j)=>{const d=Math.hypot(i,j);return d>3.6?hx('#c8a050'):d>1.5||i>0?hx('#bfe4f4'):hx('#ffffff');});break;}
     case'agente':{rect(a,23,18,8,4,K);rect(a,33,18,8,4,K);rect(a,30,19,4,1,K);a.set(25,19,hx('#5a6270'));a.set(35,19,hx('#5a6270'));rect(a,30,30,4,13,hx('#f6f1e4'));rect(a,31,31,2,11,K);break;}
   }
   outlineAll(a,OUTL);});}
@@ -1676,6 +1723,16 @@ function drawHoles(){if(!holes.length)return;const t=performance.now()/1000;
     disk(0,Math.PI,1.4);
     for(let j=0;j<7;j++){const u=(t*0.45+j/7+h.ph)%1,a=t*2.5+j*0.9+h.ph,rr=r*2.4*(1-u)+r;ctx.fillStyle=j%2?'#ffd35a':'#c8b8ff';ctx.fillRect(cx+Math.cos(a)*rr-0.5,cy+Math.sin(a)*rr*0.45-0.5,1,1);}
     if(holeOut(h)){const n=Math.ceil(h.m);for(let j=0;j<n;j++){ctx.fillStyle='#1b1a24';ctx.fillRect(cx-n*1.6+j*3.2-0.2,cy-r-5.2,2.4,2.4);ctx.fillStyle='#ffd35a';ctx.fillRect(cx-n*1.6+j*3.2+0.2,cy-r-4.8,1.6,1.6);}}
+    ctx.globalAlpha=1;}}
+// Doble: titila cada tanto con un corte de colores (más fuerte justo después de robar); su portal es un óvalo violeta que gira.
+function drawGlitch(w){const t=performance.now()/1000+w.ph;if(!(w.reveal>0)&&t%1.8>0.16)return;const px=w.x*T,py=w.y*T-3,f=Math.floor(t*24);
+  ctx.globalAlpha=0.8;for(let k=0;k<3;k++){const r=((f*7+k*13)%11)/11;ctx.fillStyle=k%2?'#4fe8ff':'#ff4fd8';ctx.fillRect(px+1+(r*4-2),py+2+r*12,13,1.4);}
+  ctx.globalAlpha=1;}
+function drawTwinPortals(){if(!twins.length)return;const t=performance.now()/1000;
+  for(const w of twins){const k=twinOut(w)?1:Math.max(0,1-w.gt/0.8),cx=w.home[0]*T+8,cy=w.home[1]*T+7;if(k<=0)continue;ctx.globalAlpha=k;
+    ctx.fillStyle='rgba(232,101,77,'+(0.16+0.08*Math.sin(t*4)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(cx,cy+8,7,2.5,0,0,6.29);ctx.fill();
+    ctx.fillStyle='rgba(40,16,70,.7)';ctx.beginPath();ctx.ellipse(cx,cy,4.2,7,0,0,6.29);ctx.fill();
+    for(let j=0;j<3;j++){const a0=t*(2+j)+j*2;ctx.strokeStyle=['#d08cff','#4fe8ff','#ff4fd8'][j];ctx.lineWidth=0.8;ctx.beginPath();ctx.ellipse(cx,cy,4.6-j*1.2,7.4-j*1.8,0,a0,a0+3.6);ctx.stroke();}
     ctx.globalAlpha=1;}}
 function drawUfos(){if(!ufos.length)return;const t=performance.now()/1000;
   for(const u of ufos){const px=u.x*T,py=u.y*T,hy=py-20+Math.round(Math.sin(t*3+u.x)*1.5);ctx.globalAlpha=u.state==='leave'?Math.max(0,1-u.t/2):1;
@@ -1812,13 +1869,15 @@ function render(){
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*MW+x];if(o)list.push({k:y+1,z:0,o,x,y});}
   list.push({k:P.y+1,z:1,e:P,f:HS.hero,p:true});for(const v of vil)if(!v.away)list.push({k:v.y+1,z:1,e:v,f:v.bot?(v.bad?HS.robotBad:HS.robot):HS.vil[v.skin%3]});
   for(const g of guards)list.push({k:g.y+1,z:1,e:g,f:HS.guard});
+  for(const w of twins)if(twinOut(w))list.push({k:w.y+1,z:1,e:w,f:w.bot?HS.robot:HS.vil[w.skin%3],tw:true});
   // Piratas y sus barcos (un barco por desembarco, en el agua junto a la costa).
   {const seen=new Set();for(const p of pirates){const k=p.boat&&p.boat.join();if(k&&!seen.has(k)){seen.add(k);hd(HS.boat,p.boat[0]*T,p.boat[1]*T);}if(!(p.wait>0))list.push({k:p.y+1,z:1,e:p,f:HS.pirate});}}
   for(const l of ludds)if(!(l.wait>0))list.push({k:l.y+1,z:1,e:l,f:HS.luddite});
   for(const s of spies)if(spyOut(s))list.push({k:s.y+1,z:1,e:s,f:HS.spy});
   drawBadBots();
   list.sort((a,b)=>a.k-b.k||a.z-b.z);
-  for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else drawEnt(it.e,it.f,it.p);}
+  drawTwinPortals();
+  for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else{drawEnt(it.e,it.f,it.p);if(it.tw)drawGlitch(it.e);}}
   drawGoo(x0,y0,x1,y1);
   drawWires(x0,y0,x1,y1);
   drawViruses();
@@ -1848,6 +1907,7 @@ function render(){
       else{const L=LIGHT[o.t];if(L)lights.push([x*T+L[0],y*T+L[1],L[2],L[3]]);}}
     for(const u of ufos)lights.push([u.x*T+8,u.y*T-12,2.2,0.9]);
     for(const r of rifts)if(riftOut(r))lights.push([r.x*T+8,r.y*T+6,2.6,0.9]);
+    for(const w of twins)if(twinOut(w))lights.push([w.home[0]*T+8,w.home[1]*T+7,2.2,0.85]);
     for(const[fx,fy,r,a]of lights)hole(fx,fy,T*s*(r+0.15*Math.sin(st.time*9+fx)),a);
     hole(P.x*T+8,P.y*T+8,T*s*(st.techs[ERA.nightTech]?4:2.2),0.75);
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(lc,0,0);
@@ -1861,7 +1921,7 @@ function render(){
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.t*1.5);ctx.strokeStyle='#1b1a24';ctx.strokeText(f.txt,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y);}
   ctx.globalAlpha=1;
   // Flechas rojas en el borde para los virus y los robots desalineados que están fuera de la pantalla.
-  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos),goos.map(g=>({x:g.core%MW,y:(g.core/MW)|0})),ufos.filter(ufoOut),rifts.filter(riftOut),holes.filter(holeOut),pirates,swarms,ludds.filter(angry),storms,moths.filter(loose),spies.filter(spyOut));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
+  {const TH=viruses.concat(vil.filter(v=>v.bad),meteors.map(meteorPos),goos.map(g=>({x:g.core%MW,y:(g.core/MW)|0})),ufos.filter(ufoOut),rifts.filter(riftOut),holes.filter(holeOut),twins.filter(twinOut).map(w=>({x:w.home[0],y:w.home[1]})),pirates,swarms,ludds.filter(angry),storms,moths.filter(loose),spies.filter(spyOut));if(TH.length){ctx.setTransform(1,0,0,1,0,0);const top=hudH+10*DPR,bot=H-barH-10*DPR;
     for(const v of TH){const sx=(v.x*T+8-cam.x)*s,sy=(v.y*T+8-cam.y)*s;if(sx>=0&&sx<=W&&sy>=top&&sy<=bot)continue;
       const cx=clamp(sx,14*DPR,W-14*DPR),cy=clamp(sy,top,bot),an=Math.atan2(sy-cy,sx-cx);ctx.save();ctx.translate(cx,cy);ctx.rotate(an);
       ctx.fillStyle='#e8654d';ctx.strokeStyle='#1b1a24';ctx.lineWidth=2*DPR;ctx.beginPath();ctx.moveTo(10*DPR,0);ctx.lineTo(-6*DPR,-7*DPR);ctx.lineTo(-6*DPR,7*DPR);ctx.closePath();ctx.stroke();ctx.fill();ctx.restore();}}}
@@ -1930,6 +1990,9 @@ function threat(){
     if(b)return['¡Ovni!',(b===1?'Se está llevando a alguien: tocalo para espantarlo.':'Se están llevando a '+b+': tocalos para espantarlos.')];
     if(n)return['¡Ovnis!',(n===1?'Viene uno a llevarse a alguien: tocalo para espantarlo.':'Vienen '+n+' a llevarse a tu gente: tocalos para espantarlos.')];
     if(away.length)return['Abducidos:','se llevaron a '+away.length+(away.length===1?' de tu gente: vuelve en ':' de tu gente: el primero vuelve en ')+Math.ceil(Math.min(...away.map(v=>v.away)))+' s.'];}
+  if(ERA.twins){const ws=twins.filter(twinOut),fl=ws.filter(w=>w.state==='flee').length;
+    if(fl)return['¡Se escapa un doble!',(fl===1?'Vuelve a su portal':'Vuelven '+fl+' a sus portales')+' con lo que robó: tocalo antes de que llegue.'];
+    if(ws.length)return['¡Dobles!',(ws.length===1?'Hay uno disfrazado':'Hay '+ws.length+' disfrazados')+' entre tu gente y te roba'+(ws.length===1?'':'n')+': buscá al que titila y tocalo.'];}
   if(ERA.holes){const hs=holes.filter(holeOut),no=vil.filter(v=>v.orb).length,nb=bugCount();
     if(hs.length){const n=Math.max(...hs.map(h=>Math.ceil(h.m)));return['¡Agujero negro!',(hs.length===1?'Tira de todo lo que tiene cerca: tocalo para evaporarlo'+(n>1?' ('+n+' toques)':'')+'.':'Hay '+hs.length+' tirando de tu ciudad: tocalos para evaporarlos.')+(no?' Tiene'+(hs.length>1?'n':'')+' '+no+' en órbita.':'')];}
     if(nb)return['Daños:',nb+(nb===1?' edificio estirado no produce: tocalo para arreglarlo.':' edificios estirados no producen: tocalos para arreglarlos.')];}
@@ -2013,7 +2076,12 @@ function holeRow(p){const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BU
     on=sh.length>0||n>0||nb>0||st.time>=HOLE_START;$(p==='g'?'gridRow':'smogRow').hidden=!on;if(!on)return;const f=bs.length?cov/bs.length*100:0;
   $(p+'Fill').style.width=f+'%';$(p+'Fill').classList.toggle('hi',n>0||nb>0);$(p+'Num').textContent=Math.round(f)+'%';
   $(p+'Meta').textContent=n?(n===1?'1 agujero negro':n+' agujeros negros')+(no?' · '+no+' en órbita':''):nb?nb+(nb===1?' estirado':' estirados'):sh.length?'gravedad en calma':'sin '+D.label.toLowerCase();}
-function defenseRow(p){if(ERA.ufos){ufoRow(p);return;}if(ERA.rifts){riftRow(p);return;}if(ERA.holes){holeRow(p);return;}const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){if(!D.of||D.of.includes(o.t))bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
+// Con dobles, la barra cuenta qué parte de tu gente trabaja cerca de un espejo de la verdad.
+function twinRow(p){const T=towersXY(),pop=vil.filter(v=>!v.away),cov=T.length?pop.filter(v=>jammed(T,v.x,v.y)).length:0,n=twins.filter(twinOut).length,
+    on=T.length>0||n>0||st.time>=TWIN_START;$(p==='g'?'gridRow':'smogRow').hidden=!on;if(!on)return;const f=pop.length?cov/pop.length*100:0;
+  $(p+'Fill').style.width=f+'%';$(p+'Fill').classList.toggle('hi',n>0);$(p+'Num').textContent=Math.round(f)+'%';
+  $(p+'Meta').textContent=n?(n===1?'1 doble suelto':n+' dobles sueltos'):T.length?'gente verificada':'sin '+ERA.defense.label.toLowerCase();}
+function defenseRow(p){if(ERA.ufos){ufoRow(p);return;}if(ERA.rifts){riftRow(p);return;}if(ERA.holes){holeRow(p);return;}if(ERA.twins){twinRow(p);return;}const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){if(!D.of||D.of.includes(o.t))bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
   const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,nb=ERA.meteors||ERA.plague||ERA.luddites||ERA.infect||ERA.hijack?bugCount():0,np=pirates.length+swarms.length+ludds.filter(angry).length+goos.length,
     on=sh.length>0||meteors.length>0||np>0||nb>0||(ERA.cities?grid().linked.length>0:ERA.robots?vil.some(v=>v.bot):ERA.goo?st.time>=GOO_START:ERA.meteors?st.time>60:ERA.plague?st.time>=PLAGUE_START:ERA.locusts?st.time>=LOCUST_START:ERA.luddites?st.time>=LUDD_START:!!st.techs[ERA.pirates]);$(p==='g'?'gridRow':'smogRow').hidden=!on;
   if(on){$(p+'Fill').style.width=(bs.length?cov/bs.length*100:0)+'%';$(p+'Fill').classList.toggle('hi',meteors.length>0||np>0||nb>0);$(p+'Num').textContent=Math.round(bs.length?cov/bs.length*100:0)+'%';
@@ -2150,6 +2218,9 @@ function tapThreat(tx,ty){
   // Un ovni se toca donde se lo ve, arriba, o en el rayo mientras levanta a alguien.
   {const hit=ufos.find(u=>ufoOut(u)&&(Math.hypot(u.x-tx,u.y-1-ty)<=1.5||(u.state==='beam'&&Math.hypot(u.x-tx,u.y-ty)<=1.2)));
     if(hit){const held=hit.state==='beam';scareUfo(hit,'¡espantado!');st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast(held?'¡Ovni espantado! Soltó a '+(hit.prey&&hit.prey.bot?'tu robot.':'tu aldeano.'):'¡Ovni espantado!');return true;}}
+  // Un doble se toca donde está, aunque haya alguien de tu gente al lado.
+  {const hit=twins.find(w=>twinOut(w)&&Math.hypot(w.x-tx,w.y-ty)<=1.0);
+    if(hit){expelTwin(hit,'¡era un doble!');st.res.ideas+=2;float(hit.x,hit.y-1.6,'+2 ideas',RCOL.ideas);toast('¡Era un doble! Volvió a su universo.');return true;}}
   // Un agujero negro pide un toque por cada punto de masa: cada uno lo achica y el último lo evapora.
   {const hit=holes.find(h=>holeOut(h)&&Math.hypot(h.x-tx,h.y-ty)<=1.3);
     if(hit){hit.m-=1;zaps.push({x:hit.x,y:hit.y,t:0.4});
@@ -2253,7 +2324,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),virusEvery:()=>virusEvery(),spies:()=>spies,spawnSpies:()=>spawnSpies(),spyEvery:()=>spyEvery(),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
-  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),rifts:()=>rifts,spawnRift:()=>spawnRift(),riftEvery:()=>riftEvery(),holes:()=>holes,spawnHoles:()=>spawnHoles(),holeEvery:()=>holeEvery(),guards:()=>guards,threatTargets:()=>threatTargets(),guardArt:(k,f)=>guardArt(k,f),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
+  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),rifts:()=>rifts,spawnRift:()=>spawnRift(),riftEvery:()=>riftEvery(),holes:()=>holes,spawnHoles:()=>spawnHoles(),holeEvery:()=>holeEvery(),twins:()=>twins,spawnTwin:()=>spawnTwin(),twinEvery:()=>twinEvery(),guards:()=>guards,threatTargets:()=>threatTargets(),guardArt:(k,f)=>guardArt(k,f),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
 </body></html>
