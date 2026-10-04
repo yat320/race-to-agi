@@ -3,7 +3,8 @@
 //   node tools/bot-prehistoria.mjs [corridas=3] [ritmo=1] [ignora] [sindefensa]
 // Juega desde adentro de la página con ?debug: avanza el juego de a 0,1 s y cada segundo de juego decide qué hacer (comer,
 // investigar, hacer herramientas, construir, trabajar en las obras, cazar y juntar lo que más falta). Los aldeanos andan
-// solos en automático, como en el juego. Toca los lobos cada 3 s (`ignora`: nunca) y pone 2 antorchas (`sindefensa`: ninguna),
+// solos en automático, como en el juego. Toca los lobos cada 3 s (`ignora`: nunca) y pone 2 antorchas y 2 cuchas con sus perros
+// (`sindefensa`: nada de eso),
 // como bot-mundo.mjs con las amenazas de las otras eras.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { serve, launch } from './harness.mjs';
@@ -25,7 +26,7 @@ const S={techs:[],builds:{},eats:0,hunts:0,wolves:0,wait:{investigando:0,'sin id
 // (mandan las ideas que entran) o sin poder empezar el próximo invento (faltan materiales).
 function tally(){const rs=st().rs;if(rs)S.wait[R().ideas>=1?'investigando':'sin ideas']++;else if(nextTech())S.wait.materiales++;}
 // Qué construir, en orden: [edificio, cuántos, invento que lo habilita].
-const PLAN=[['fogata',1,'fuego'],['choza',2,'refugio'],...(window.__nodef?[]:[['antorcha',2,'fuego']]),['campamento',1,'caza'],['almacen',1,'almacen'],['puente',2,'puentes'],['taller',1,'pedernal'],
+const PLAN=[['fogata',1,'fuego'],['choza',2,'refugio'],...(window.__nodef?[]:[['antorcha',2,'fuego']]),['campamento',1,'caza'],...(window.__nodef?[]:[['cucha',2,'domesticacion']]),['almacen',1,'almacen'],['puente',2,'puentes'],['taller',1,'pedernal'],
   ['cueva',1,'pinturas'],['choza',3,'refugio'],['fogata',2,'fuego'],['cultivo',3,'agricultura'],['monumento',1,'abaco']];
 // Mejoras de edificios ya terminados: [edificio, hasta qué nivel].
 const LEVELS=[['fogata',2],['choza',2],['cueva',2],['campamento',2],['almacen',2],['fogata',3]];
@@ -98,7 +99,7 @@ let last=null;
 return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
     while(!st().won&&st().time<maxMin*60){for(let k=0;k<10;k++)D.update(0.1);
       for(const t of D.TECHS)if(has(t.id)&&!S.techs.some(x=>x[0]===t.id))S.techs.push([t.id,Math.round(st().time)]);tally();step();}
-    return{won:st().won,min:Math.round(st().time/6)/10,vil:D.vil.length,techs:S.techs,wait:S.wait,builds:S.builds,eats:S.eats,hunts:S.hunts,wolves:S.wolves,pin:Math.round(D.wolfPinT),lost:D.wolfLost,ideas:Math.round(R().ideas),upg:Object.assign({},st().upg),res:Object.fromEntries(Object.entries(R()).map(([k,v])=>[k,Math.round(v)])),count:Object.assign({},D.agg.count),rs:st().rs,P:[Math.round(D.P.x),Math.round(D.P.y)],busy:{task:D.P.task,act:D.P.act,hunt:!!D.P.hunt,path:D.P.path.length},far:FAR.size,need:need(),next:(nextTech()||{}).id};}};
+    return{won:st().won,min:Math.round(st().time/6)/10,vil:D.vil.length,techs:S.techs,wait:S.wait,builds:S.builds,eats:S.eats,hunts:S.hunts,wolves:S.wolves,pin:Math.round(D.wolfPinT),lost:D.wolfLost,dogs:D.st.dogScares||0,ideas:Math.round(R().ideas),upg:Object.assign({},st().upg),res:Object.fromEntries(Object.entries(R()).map(([k,v])=>[k,Math.round(v)])),count:Object.assign({},D.agg.count),rs:st().rs,P:[Math.round(D.P.x),Math.round(D.P.y)],busy:{task:D.P.task,act:D.P.act,hunt:!!D.P.hunt,path:D.P.path.length},far:FAR.size,need:need(),next:(nextTech()||{}).id};}};
 })();`;
 
 mkdirSync('out', { recursive: true });
@@ -118,7 +119,7 @@ try {
     const t0 = Date.now(), r = await p.evaluate(m => window.__bot.run(m), MAX_MIN);
     r.run = run; all.push(r);
     console.log('corrida ' + run + (r.won ? ' · terminada en ' + r.min + ' min' : ' · sin terminar a los ' + r.min + ' min') + ' · ' + r.vil + ' aldeanos · ' + r.techs.length + ' inventos · ' +
-      r.hunts + ' cacerías · ' + r.wolves + ' lobos espantados · ' + r.pin + ' s con alguien acorralado · ' + r.lost + ' aldeanos se fueron por los lobos (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
+      r.hunts + ' cacerías · ' + r.wolves + ' lobos espantados (' + r.dogs + ' por los perros) · ' + r.pin + ' s con alguien acorralado · ' + r.lost + ' aldeanos se fueron por los lobos (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
     await ctx.close();
   }
 } finally { await b.close(); srv.close(); }
