@@ -8,6 +8,8 @@ const ERA={
   grid:'power',gridTech:'dinamo',
   // Tormentas que tiran rayos sobre lo eléctrico y cortan la red; el pararrayos se lleva los rayos a 4 casilleros (reglas en motor.html).
   storms:true,defense:{id:'pararrayos',r:4,label:'Pararrayos'},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'electricista',building:'Cuadrilla eléctrica',unit:'Electricista',done:'Cuadrilla eléctrica lista: llegó un electricista',desc:'Trae un electricista que sale solo a disipar tormentas y a arreglar lo quemado, a 8 casilleros o menos.',info:'Cuadrilla eléctrica: su electricista arregla lo quemado cerca.',tip:'una cuadrilla eléctrica: el electricista sale solo a arreglar lo quemado.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo5-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la Industria',perks:[
     ['analitica','ideaMult',1.25,'Máquina analítica: ideas +25% durante toda la era'],

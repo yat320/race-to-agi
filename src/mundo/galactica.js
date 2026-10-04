@@ -6,6 +6,8 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','archivo','interferencia','mercado','jardin','forja','observatorio'],
   ufos:true,defense:{id:'interferencia',r:4,label:'Interferencia'},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'agente',building:'Agencia',unit:'Agente',done:'Agencia lista: llegó un agente',desc:'Trae un agente que sale solo a espantar ovnis, a 8 casilleros o menos.',info:'Agencia: su agente espanta ovnis cerca.',tip:'una agencia: el agente sale solo a espantar ovnis.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo12-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la era interestelar',perks:[
     ['curvatura','ideaMult',1.25,'Motor de curvatura: ideas +25% durante toda la era'],

@@ -10,6 +10,8 @@ const ERA={
   // Los espías del rival van a uno de estos edificios (con su nombre para los avisos); el puesto de guardia atrapa a los que
   // pasan a 4 casilleros (reglas en motor.html).
   spies:{supercomp:'una supercomputadora',empresa:'una empresa de IA',instituto:'un instituto'},defense:{id:'guardia',r:4,label:'Guardias',of:['supercomp','empresa','instituto']},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'seguridad',building:'Central de seguridad',unit:'Guardia',done:'Central de seguridad lista: llegó un guardia',desc:'Trae un guardia que sale solo a atrapar espías, a 8 casilleros o menos.',info:'Central de seguridad: su guardia atrapa espías cerca.',tip:'una central de seguridad: el guardia sale solo a atrapar espías.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo9-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la era de la IA',perks:[
     ['asistente','ideaMult',1.25,'Asistente universal: ideas +25% durante toda la era'],

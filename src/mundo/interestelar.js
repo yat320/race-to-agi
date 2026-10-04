@@ -6,6 +6,8 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','nucleo','contencion','astillero','terraformador','colector','academia'],
   goo:true,defense:{id:'contencion',r:4,label:'Contención'},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'dron',fly:true,building:'Hangar de drones',unit:'Dron',done:'Hangar listo: salió un dron',desc:'Trae un dron que vuela solo a apagar nubes de nanobots, a 8 casilleros o menos.',info:'Hangar de drones: su dron apaga nanobots cerca.',tip:'un hangar de drones: el dron vuela solo a apagar nanobots.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo11-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la era estelar',perks:[
     ['dyson','ideaMult',1.25,'Esfera de Dyson: ideas +25% durante toda la era'],

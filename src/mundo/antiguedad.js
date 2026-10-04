@@ -7,6 +7,8 @@ const ERA={
   lights:['herreria','templo','puerto','atalaya'],
   // Piratas desde que hay monedas; las atalayas los echan.
   pirates:'moneda',defense:{id:'atalaya',r:4,label:'Atalayas'},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'soldado',building:'Cuartel',unit:'Soldado',done:'Cuartel listo: llegó un soldado',desc:'Trae un soldado que patrulla cerca y sale solo a echar a los piratas a 8 casilleros o menos.',info:'Cuartel: su soldado echa a los piratas que andan cerca.',tip:'un cuartel: el soldado sale solo a echar a los piratas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo-v1',st:true,aldeanos:6,ideas:150,monedas:0,mudan:' aldeanos de tu tribu viven en la casa comunal',de:'de la Prehistoria',perks:[
     ['abaco','ideaMult',1.25,'Ábaco: ideas +25% durante toda la era'],

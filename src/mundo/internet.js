@@ -10,6 +10,8 @@ const ERA={
   // Los virus van a una compu al azar (con su nombre para los avisos); el soporte técnico cuida las que están a 4 casilleros
   // (reglas en motor.html).
   infect:{servidor:'el servidor',cibercafe:'un cibercafé',tienda:'una tienda online',buscador:'un buscador'},defense:{id:'soporte',r:4,label:'Soporte',of:['servidor','cibercafe','tienda','buscador']},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'tecnico',building:'Mesa de ayuda',unit:'Técnico',done:'Mesa de ayuda lista: llegó un técnico',desc:'Trae un técnico que sale solo a borrar virus y a limpiar las compus, a 8 casilleros o menos.',info:'Mesa de ayuda: su técnico borra virus cerca.',tip:'una mesa de ayuda: el técnico sale solo a borrar virus.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo7-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la Computación',perks:[
     ['micro','ideaMult',1.25,'Microprocesador: ideas +25% durante toda la era'],
