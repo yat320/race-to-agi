@@ -53,6 +53,7 @@ img.px{image-rendering:pixelated;width:16px;height:16px;flex:none}
 #goal .gl{font:600 12.5px var(--f-display);color:var(--ochre);margin-right:4px}
 
 #bar{position:absolute;left:0;right:0;bottom:0;padding:14px 16px calc(12px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:6px;background:linear-gradient(to top,rgba(21,19,27,.96),rgba(21,19,27,.7) 70%,rgba(21,19,27,0));z-index:2}
+#bar.nohands{grid-template-columns:repeat(3,minmax(0,1fr)) auto}
 #bar button{position:relative;font:600 14px var(--f-display);color:var(--bone);background:var(--panel);border:1px solid var(--line);border-bottom:3px solid var(--ochre-deep);padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;min-width:0}
 #bar button small{font:400 10px var(--f-body);color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 #bar button:active{transform:translateY(2px);border-bottom-width:1px}
@@ -130,7 +131,7 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
       <div class="agi-bar" id="agiBar"><div class="agi-fill" id="agiFill"></div></div>
     </div>
     <div class="res" id="res"></div>
-    <div class="vitals"><span class="lbl">Energía</span><div class="ebar"><div id="eFill"></div></div><span id="eNum">100</span><span id="meta">Día 1</span></div>
+    <div class="vitals"><span class="lbl" id="eLbl">Energía</span><div class="ebar" id="eBar"><div id="eFill"></div></div><span id="eNum">100</span><span id="meta">Día 1</span></div>
     <div class="vitals" id="smogRow" hidden><span class="lbl" id="sLbl"></span><div class="ebar"><div id="sFill"></div></div><span id="sNum">0%</span><span id="sMeta"></span></div>
     <div class="vitals" id="gridRow" hidden><span class="lbl" id="gLbl"></span><div class="ebar"><div id="gFill"></div></div><span id="gNum">0/0</span><span id="gMeta"></span></div>
     <div id="goal"></div>
@@ -198,6 +199,9 @@ const TYPE_OF={madera:'tree',piedra:'rock',comida:'bush',[ORE]:'ore'};
 const TECHS=ERA.techs,FINAL=TECHS[TECHS.length-1].id;
 const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=ERA.builds;
+// Desde la Industria el jugador no junta a mano (pedido de Juani): lo hacen los aldeanos, los robots y los edificios, y tocar un
+// recurso manda a buscarlo al que esté más cerca (sendWorker). Sin energía ni comer.
+const HANDS=ERA.n<5;
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
 // Lo que queda de un edificio de otra era que esta no tiene (ver importCity): no se construye y da algunas ideas.
 if(!BUILD.monumento){const m={id:'monumento',name:'Monumento',req:null,base:{},grow:1,hidden:true,desc:'Un edificio de otra época que ya no se usa: la gente lo visita y da algunas ideas.',prod:{ideas:0.05}};BUILDS.push(m);BUILD.monumento=m;}
@@ -313,8 +317,14 @@ function newGame(){
   if(city){for(const v of city.vil){const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];vil.push(m);}if(city.p)Object.assign(P,{x:city.p[0],y:city.p[1]});
     const nb=obj.filter(o=>o&&BUILD[o.t]).length,nr=vil.filter(v=>v.bot).length,nh=vil.length-nr;
     st.legacy.perks[0]='Tu ciudad sigue entera: '+nb+' edificios'+(nr?', '+nh+' aldeanos y '+nr+' robots':' y '+nh+' aldeanos')+'. Lo que viene de otra era rinde la mitad por cada era de atraso hasta que lo modernizás';}
-  else{const hx=SPAWN[0]-2,hy=SPAWN[1]-2;for(let i=0;i<st.legacy.aldeanos;i++)addVillager(hx,hy);}
+  else{const hx=SPAWN[0]-2,hy=SPAWN[1]-2;for(let i=0;i<st.legacy.aldeanos;i++)addVillager(hx,hy);if(!HANDS)starterKit();}
 }
+// Sin juntar a mano, una era que arranca sin ciudad trae lo básico ya hecho: otra casa con 2 aldeanos, una granja, un aserradero
+// y una cantera, cada uno en la tierra libre más cercana a su lugar.
+function starterKit(){for(const[dx,dy,t]of[[-4,-1,'casa'],[-3,2,'granja'],[3,2,'aserradero'],[1,4,'cantera']]){if(!BUILD[t])continue;let best=null,bd=1e9;
+    for(let y=SPAWN[1]+dy-3;y<=SPAWN[1]+dy+3;y++)for(let x=SPAWN[0]+dx-3;x<=SPAWN[0]+dx+3;x++){if(!inb(x,y)||ground[y*MW+x]===WATER||obj[y*MW+x]||Math.hypot(x-SPAWN[0],y-SPAWN[1])<2)continue;const d=Math.hypot(x-SPAWN[0]-dx,y-SPAWN[1]-dy);if(d<bd){bd=d;best=[x,y];}}
+    if(!best)continue;obj[best[1]*MW+best[0]]={t};if(t==='casa')for(let k=0;k<2;k++)addVillager(best[0],best[1]);}
+  recount();}
 // La ciudad de la era anterior, si se terminó en este motor (desde la Antigüedad) y tiene edificios: su mapa, lo que había en
 // él y su gente. Una partida guardada antes de que existiera `map` está en el mapa propio de su era.
 function prevCity(){const L=ERA.legacy;if(L.st)return null;const pn=+((L.key.match(/mundo(\d+)-/)||[])[1]);if(!pn)return null;
@@ -451,7 +461,9 @@ function rivalEta(){const k=(100/RIVAL_T)*rivalMult(),bq=1+st.time/1800,c=(100-s
 const BOT_FIX=90;
 const badRate=()=>(1/150)*(st.techs.alineacion?0.5:1)*(st.techs.interpretabilidad?0.5:1)*Math.pow(0.75,counts.seguridad||0)*(ERA.hijack?1+0.1*Object.keys(st.techs).length:1);
 const badSpread=()=>st.techs.interpretabilidad?40:20;
-const workT=v=>v.bot?(st.techs.chips?0.4:0.6):0.9;
+// Desde la Industria los aldeanos trabajan con máquinas: juntan más rápido y cargan más por viaje (CARRY).
+const workT=v=>v.bot?(st.techs.chips?0.4:0.6):HANDS?0.9:0.6;
+const CARRY=HANDS?3:5;
 function addRobot(x,y){addVillager(x,y);vil[vil.length-1].bot=true;}
 function convince(v){let best=null,bd=6;for(const o of vil){if(o===v||!o.bot||o.bad)continue;const d=Math.hypot(o.x-v.x,o.y-v.y);if(d<bd){bd=d;best=o;}}if(best)misalign(best);}
 function misalign(v){v.bad=true;v.badT=0;v.carry=0;v.path=[];v.target=null;v.state='idle';v.go=v.at=null;v.fixT=0;}
@@ -862,12 +874,21 @@ function pickTarget(v){
   if(!path)return false;
   v.target=tgt;v.path=path;v.state='go';return true;
 }
+// Sin juntar a mano: el aldeano o robot libre más cercano (que no esté llevando nada) va a buscar ese recurso.
+function sendWorker(tx,ty){let best=null,bd=1e9;
+  for(const v of vil){if(v.bad||v.carry||v.state==='return')continue;const d=Math.hypot(v.x-tx,v.y-ty)+(v.hungry?50:0);if(d<bd){bd=d;best=v;}}
+  if(!best){toast(vil.length?'Están todos ocupados: probá en un rato.':'No hay quien lo junte: construí '+BUILD.casa.name.toLowerCase()+'s.');return false;}
+  const[x,y]=tileOf(best),p=pathAdj(x,y,tx,ty);if(!p){toast('No llegan hasta ahí.');return false;}
+  best.target=[tx,ty];best.path=p;best.state='go';float(best.x,best.y-0.6,'¡voy!','#5fe3d0');return true;}
 function goHome(v){
   v.target=null;if(!v.carry){v.state='idle';v.t=0.5;return;}
   const[x,y]=tileOf(v),p=pathAdj(x,y,v.home[0],v.home[1]);
   if(p){v.path=p;v.state='return';}else deposit(v);
 }
-function deposit(v){if(v.carry&&v.kind){add(v.kind,v.carry);float(v.x,v.y-0.5,'+'+fmt(v.carry),RCOL[v.kind]);flashChip(v.kind);}v.carry=0;v.state='idle';v.t=1.2;}
+// Sin juntar a mano, las ideas que daba juntar ahora salen de las entregas: 1 cada 2.
+function deposit(v){if(v.carry&&v.kind){add(v.kind,v.carry);float(v.x,v.y-0.5,'+'+fmt(v.carry),RCOL[v.kind]);flashChip(v.kind);
+    if(!HANDS){st.gathers++;if(st.gathers%2===0){st.res.ideas+=1;float(v.x,v.y-1.1,'+1 idea',RCOL.ideas);}}}
+  v.carry=0;v.state='idle';v.t=1.2;}
 function updateVillager(v,dt){
   if(v.bad){stepEnt(v,dt,2);v.t-=dt;if(v.blocked){v.blocked=false;v.path=[];}
     if(ERA.hijack&&hijackStep(v,dt)){}else if(v.t<=0&&!v.path.length){v.t=1+Math.random();const[x,y]=tileOf(v),d=DIRS8[Math.floor(Math.random()*8)];if(passable(x+d[0],y+d[1]))v.path=[[x+d[0],y+d[1]]];}
@@ -882,7 +903,7 @@ function updateVillager(v,dt){
       if(canGather(o)&&adj(x,y,v.target[0],v.target[1])){v.state='work';v.t=workT(v);if(v.target[0]!==x)v.face=v.target[0]>x?1:-1;}else{v.state='idle';v.t=0.3;v.target=null;}}break;
     case'work':{v.t-=dt*(v.hungry?0.5:1)*(sk?0.5:1);if(v.t<=0){const[x,y]=v.target,o=obj[y*MW+x],r=canGather(o)?doGather(o):null;
       if(r){v.carry+=r.n;v.kind=r.kind;}
-      if(!r||v.carry>=3||!canGather(o))goHome(v);else v.t=workT(v);}}break;
+      if(!r||v.carry>=CARRY||!canGather(o))goHome(v);else v.t=workT(v);}}break;
     case'return':if(!v.path.length){const[x,y]=tileOf(v);if(Math.max(Math.abs(x-v.home[0]),Math.abs(y-v.home[1]))<=1)deposit(v);else goHome(v);}break;
   }
 }
@@ -890,7 +911,7 @@ function updateVillager(v,dt){
 /* ---------- actualización ---------- */
 function update(dt){
   st.time+=dt;
-  st.energy=Math.max(0,st.energy-dt/4);
+  st.energy=HANDS?Math.max(0,st.energy-dt/4):100;
   for(const b of BUILDS){
     if(!counts[b.id]||!b.prod)continue;
     if(!runs(b))continue;
@@ -1380,14 +1401,14 @@ const agiPct=()=>Math.min(100,10*(ERA.n-1)+TECHS.filter(t=>st.techs[t.id]).lengt
 // Después de la AGI la barra queda llena y el texto cuenta los inventos de la era.
 const pctText=()=>ERA.n>10?'más allá: '+TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length:fmt(agiPct())+'% a la AGI';
 function goalText(){
-  if(st.energy<25)return['Comé algo:','tu energía está baja.'];
+  if(HANDS&&st.energy<25)return['Comé algo:','tu energía está baja.'];
   const hungry=vil.filter(v=>v.hungry).length;
   if(hungry)return['Hambre:',hungry+(hungry===1?' aldeano no comió.':' aldeanos no comieron.')+' Construí granjas.'];
   const a=threat();if(a)return a;
   if(st.smog>=30&&!counts.parque)return['Mucho humo:','tu gente junta menos. Construí parques.'];
   {const t=tips(ERA.tips1);if(t)return t;}
-  if(st.smog>=60)return['Humo espeso:','juntás y cosechás −'+Math.round(st.smog/2)+'%. '+ERA.smogTip];
-  if(st.gathers===0&&!counts.granja)return['Empezá:','construí una granja y juntá '+ERA.ore.gather+' en las colinas.'];
+  if(st.smog>=60)return['Humo espeso:','se junta y se cosecha −'+Math.round(st.smog/2)+'%. '+ERA.smogTip];
+  if(st.gathers===0&&!counts.granja)return['Empezá:',HANDS?'construí una granja y juntá '+ERA.ore.gather+' en las colinas.':'construí una granja. Tocá un recurso y va a buscarlo el aldeano más cercano.'];
   const full=['madera','piedra',ORE,'comida','monedas'].find(k=>st.res[k]>=cap(k));
   if(full)return[ERA.storage.name+' lleno:','no entra más '+RN[full].toLowerCase()+'.'];
   {const t=tips(ERA.tips2);if(t)return t;}
@@ -1463,7 +1484,7 @@ function hudRows(){
     const R=st.rival;$('gridRow').hidden=false;$('gFill').style.width=R+'%';$('gNum').textContent=Math.floor(R)+'%';
     const ns=spies.filter(spyOut).length;$('gMeta').textContent=st.won?'le ganaste':st.lost?'llegó primero':(ns?(ns===1?'1 espía · ':ns+' espías · '):'')+'llega en ~'+Math.max(1,Math.ceil(rivalEta()/60))+' min';return;}
   const sv=st.smog,sOn=sv>=0.5||BUILDS.some(b=>b.smoke&&counts[b.id]);$('smogRow').hidden=!sOn;
-  if(sOn){const r=smogRate(),pen=Math.round(sv/2);$('sFill').style.width=sv+'%';$('sFill').classList.toggle('hi',sv>=50);$('sNum').textContent=Math.round(sv)+'%'+(r>0.004?' ↑':r<-0.004?' ↓':'');$('sMeta').textContent=pen?'juntás y cosechás −'+pen+'%':'aire limpio';}
+  if(sOn){const r=smogRate(),pen=Math.round(sv/2);$('sFill').style.width=sv+'%';$('sFill').classList.toggle('hi',sv>=50);$('sNum').textContent=Math.round(sv)+'%'+(r>0.004?' ↑':r<-0.004?' ↓':'');$('sMeta').textContent=pen?'se junta y se cosecha −'+pen+'%':'aire limpio';}
   if(ERA.grid==='power'){const g=grid(),gOn=(ERA.gridTech&&!!st.techs[ERA.gridTech])||g.on.size>0||BUILDS.some(b=>b.elec&&counts[b.id]);$('gridRow').hidden=!gOn;
     if(gOn){$('gFill').style.width=(g.supply?Math.min(100,g.demand/g.supply*100):0)+'%';$('gFill').classList.toggle('hi',g.demand>g.supply);$('gNum').textContent=g.demand+'/'+g.supply;
       const nb=bugCount();const nm=moths.filter(loose).length;$('gMeta').textContent=ERA.storms&&storms.length?'tormenta':nm?nm+(nm===1?' polilla':' polillas'):ERA.storms&&nb?nb+(nb===1?' quemado':' quemados'):g.unlit?g.unlit+' sin luz':nb?nb+(nb===1?' con bicho':' con bichos'):g.f<1?'todo rinde '+Math.round(g.f*100)+'%':g.supply?'alcanza':'sin usinas';}}
@@ -1522,7 +1543,7 @@ function renderSheet(){
       '<p class="note">En automático van a buscar lo que menos tenés y priorizan comida si falta.</p>'+
       '<div class="group">Economía por minuto</div><div class="eco-wrap"><table class="eco"><thead><tr><th>Recurso</th><th>Produce</th><th>Consume</th><th>Neto</th></tr></thead><tbody>'+
       RK.map(k=>{const p=pr[k]*60,u=us[k]*60,n=p-u;return'<tr><td><img class="px" alt="" src="'+ICON[k]+'">'+RN[k]+'</td><td>'+fmt(p)+'</td><td>'+fmt(u)+'</td><td class="'+(n>0.05?'pos':n<-0.05?'neg':'')+'">'+(n>0.05?'+':'')+fmt(n)+'</td></tr>';}).join('')+
-      '</tbody></table></div><p class="note">Solo edificios y comida de los aldeanos. No incluye lo que juntan a mano. Capacidad: '+cap('madera')+' por recurso.</p>';
+      '</tbody></table></div><p class="note">Solo edificios y comida de los aldeanos. No incluye lo que '+(HANDS?'juntan a mano':'traen los aldeanos')+'. Capacidad: '+cap('madera')+' por recurso.</p>';
   }
 }
 function openSheet(m){if(placing){placing=null;$('place').hidden=true;}else if(!sheetMode)navPush();sheetOpenedAt=performance.now();sheetMode=m;sheetSig='';$('sheet').hidden=false;renderSheet();}
@@ -1603,7 +1624,8 @@ $('modalCard').addEventListener('click',e=>{
   else if(m==='reset'){if(!resetArmed){resetArmed=true;b.textContent='Tocá de nuevo para borrar la era';b.classList.add('warn');return;}
     try{localStorage.removeItem(KEY);}catch(err){}newGame();closeSheet();stopPlace();showIntro();}
 });
-$('bEat').onclick=eat;$('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tech');$('bTribe').onclick=()=>openSheet('tribe');$('bMenu').onclick=showMenu;
+$('bEat').onclick=eat;if(!HANDS){$('bEat').hidden=true;$('bar').classList.add('nohands');for(const id of['eLbl','eBar','eNum'])$(id).hidden=true;}
+$('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tech');$('bTribe').onclick=()=>openSheet('tribe');$('bMenu').onclick=showMenu;
 
 /* ---------- entrada ---------- */
 const INFO=ERA.info;
@@ -1641,6 +1663,7 @@ function onTap(tx,ty){
     if(o.bug){o.bug=false;o.bugAge=0;st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);toast('¡Bicho aplastado!');save();return;}
     if(isOld(o)){sheetSel=ty*MW+tx;openSheet('bld');return;}
     if(!RES[o.t]){const b=BUILD[o.t];toast(INFO[o.t]+(o.t==='rival'?' Va '+Math.floor(st.rival)+'%.':'')+(o.t==='ciudad'?(grid().on.has(ty*MW+tx)?' Ya está conectada.':' Todavía no está conectada.'):'')+(b&&b.prod?prodLine(b):'')+(b&&b.elec?(grid().powered.has(ty*MW+tx)?' Tiene luz.':' Sin luz: poné un poste cerca.'):''));return;}
+    if(!HANDS){if(o.hp<=0)toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');else sendWorker(tx,ty);return;}
     if(o.hp<=0){toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');P.act=null;P.task=null;const p=bfs(px,py,(x,y)=>x===tx&&y===ty);if(p)P.path=p;return;}
     P.act=null;P.retried=false;P.task={x:tx,y:ty};
     if(adj(px,py,tx,ty)&&P.x===px&&P.y===py){P.path=[];return;}
@@ -1660,8 +1683,8 @@ const keys=new Set();let lastKey=null;
 addEventListener('keydown',e=>{
   if(!alive()||paused||sheetMode)return;const d=KMAP[e.code];
   if(d){e.preventDefault();keys.add(d);lastKey=d;if(P.act||P.task){P.act=null;P.task=null;}if(!P.path.length)keyStep();return;}
-  if(e.code==='KeyE'||e.code==='Space'){e.preventDefault();const[px,py]=tileOf(P),dir=lastKey?KD[lastKey]:[P.face,0],x=px+dir[0],y=py+dir[1];if(inb(x,y)&&canGather(obj[y*MW+x]))P.act={x,y,t:0.1};}
-  if(e.code==='KeyF')eat();
+  if(HANDS&&(e.code==='KeyE'||e.code==='Space')){e.preventDefault();const[px,py]=tileOf(P),dir=lastKey?KD[lastKey]:[P.face,0],x=px+dir[0],y=py+dir[1];if(inb(x,y)&&canGather(obj[y*MW+x]))P.act={x,y,t:0.1};}
+  if(HANDS&&e.code==='KeyF')eat();
 });
 addEventListener('keyup',e=>{const d=KMAP[e.code];if(d)keys.delete(d);});
 function keyStep(){

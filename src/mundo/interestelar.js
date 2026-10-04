@@ -25,10 +25,10 @@ const ERA={
   builds:[
  {id:'casa',name:'Arcología',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Arcología lista: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
  {id:'granja',name:'Granja',req:null,base:{madera:12,comida:4},grow:1.25,done:'Granja lista',desc:'Produce comida sola.',prod:{comida:0.2},noSand:true},
- {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche. Comer cerca rinde el doble.',prod:{ideas:0.12}},
+ {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche.',prod:{ideas:0.12}},
  {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
  {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
- {id:'herreria',name:'Nanotaller',req:'exotica',base:{madera:25,piedra:20,exotica:10},grow:1.6,done:'Nanotaller listo',desc:'Herramientas que se arman solas: vos y los aldeanos juntan +30% por cada nanotaller.'},
+ {id:'herreria',name:'Nanotaller',req:'exotica',base:{madera:25,piedra:20,exotica:10},grow:1.6,done:'Nanotaller listo',desc:'Herramientas que se arman solas: los aldeanos y los robots juntan +30% por cada nanotaller.'},
  {id:'cantera',name:'Cantera',req:'exotica',base:{madera:20,exotica:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
  {id:'nucleo',name:'Núcleo cuántico',req:'exotica',base:{piedra:40,exotica:10},grow:1.5,done:'Núcleo cuántico encendido',desc:'Calcula en muchos mundos a la vez: genera muchísimas ideas.',prod:{ideas:0.6}},
  {id:'contencion',name:'Campo de contención',req:'campos',base:{madera:25,piedra:25,exotica:5},grow:1.4,done:'Campo de contención encendido',desc:'Los nanobots no crecen a 4 casilleros o menos, y lo que quedó adentro se apaga.'},
@@ -36,7 +36,7 @@ const ERA={
  {id:'terraformador',name:'Terraformador',req:'terraformacion',base:{madera:35,piedra:30},grow:1.6,done:'Terraformador listo',desc:'Cada terraformador hace rendir +50% a todas las granjas.'},
  {id:'colector',name:'Colector exótico',req:'antimateria',base:{madera:30,piedra:15,monedas:10},grow:1.4,done:'Colector listo',desc:'Junta materia exótica solo.',prod:{exotica:0.12}},
  {id:'academia',name:'Academia galáctica',req:'xenologia',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Academia abierta',desc:'Ideas +30% por cada academia.'}],
-  info:{casa:'Arcología: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Nanotaller: juntás más rápido.',cantera:'Cantera: produce piedra.',nucleo:'Núcleo cuántico: genera ideas.',contencion:'Campo de contención: los nanobots no crecen a 4 casilleros o menos.',astillero:'Astillero estelar: da monedas.',terraformador:'Terraformador: potencia las granjas.',colector:'Colector exótico: da materia exótica.',academia:'Academia galáctica: más ideas.'},
+  info:{casa:'Arcología: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Nanotaller: los aldeanos juntan más rápido.',cantera:'Cantera: produce piedra.',nucleo:'Núcleo cuántico: genera ideas.',contencion:'Campo de contención: los nanobots no crecen a 4 casilleros o menos.',astillero:'Astillero estelar: da monedas.',terraformador:'Terraformador: potencia las granjas.',colector:'Colector exótico: da materia exótica.',academia:'Academia galáctica: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
   tips1:[['campos','contencion','un campo de contención: los nanobots no crecen cerca.']],
   tips2:[['exotica','nucleo','un núcleo cuántico: genera muchísimas ideas.'],['naves','astillero','un astillero estelar para conseguir monedas.'],['terraformacion','terraformador','un terraformador: potencia las granjas.']],
@@ -49,8 +49,8 @@ const ERA={
     intro:'Con toda la energía del Sol, la humanidad mira a otras estrellas. Pero las fábricas que se arman solas a veces se escapan: nubes de nanobots grises que crecen y tapan todo lo que tocan. Tocalas para apagarlas, o rodeá tu ciudad de campos de contención. La meta: el motor de curvatura, la primera nave hacia otra estrella.',
     news:'Novedades: materia exótica, campos de contención y nanobots grises. Lo que tapa una nube no produce y lo que se puede juntar, se lo come. Si nadie la apaga, se queda sin energía a los 100 s. Cuanto más avanzás, más seguido se escapan.',
     legacy:'Lo que trae tu ciudad de la era estelar',
-    noLegacy:'No hay una era estelar terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Se escapan nubes de nanobots: crecen hacia tus edificios y lo que tapan no produce. Tocá cualquier parte de la nube para apagarla; si no, se apaga sola a los 100 s. Los campos de contención no las dejan crecer cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
+    noLegacy:'No hay una era estelar terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Se escapan nubes de nanobots: crecen hacia tus edificios y lo que tapan no produce. Tocá cualquier parte de la nube para apagarla; si no, se apaga sola a los 100 s. Los campos de contención no las dejan crecer cerca. En la compu: flechas o WASD.',
     win:'El motor de curvatura',winText:()=>'Terminaste el motor de curvatura en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. La primera nave de la humanidad sale hacia otra estrella.',
     winNote:'Por ahora es la última era.'}
 };
