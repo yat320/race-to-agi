@@ -98,7 +98,7 @@ let last=null;
 return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
     while(!st().won&&st().time<maxMin*60){for(let k=0;k<10;k++)D.update(0.1);
       for(const t of D.TECHS)if(has(t.id)&&!S.techs.some(x=>x[0]===t.id))S.techs.push([t.id,Math.round(st().time)]);tally();step();}
-    return{won:st().won,min:Math.round(st().time/6)/10,vil:D.vil.length,techs:S.techs,wait:S.wait,builds:S.builds,eats:S.eats,hunts:S.hunts,wolves:S.wolves,pin:Math.round(D.wolfPinT),ideas:Math.round(R().ideas),upg:Object.assign({},st().upg),res:Object.fromEntries(Object.entries(R()).map(([k,v])=>[k,Math.round(v)])),count:Object.assign({},D.agg.count),rs:st().rs,P:[Math.round(D.P.x),Math.round(D.P.y)],busy:{task:D.P.task,act:D.P.act,hunt:!!D.P.hunt,path:D.P.path.length},far:FAR.size,need:need(),next:(nextTech()||{}).id};}};
+    return{won:st().won,min:Math.round(st().time/6)/10,vil:D.vil.length,techs:S.techs,wait:S.wait,builds:S.builds,eats:S.eats,hunts:S.hunts,wolves:S.wolves,pin:Math.round(D.wolfPinT),lost:D.wolfLost,ideas:Math.round(R().ideas),upg:Object.assign({},st().upg),res:Object.fromEntries(Object.entries(R()).map(([k,v])=>[k,Math.round(v)])),count:Object.assign({},D.agg.count),rs:st().rs,P:[Math.round(D.P.x),Math.round(D.P.y)],busy:{task:D.P.task,act:D.P.act,hunt:!!D.P.hunt,path:D.P.path.length},far:FAR.size,need:need(),next:(nextTech()||{}).id};}};
 })();`;
 
 mkdirSync('out', { recursive: true });
@@ -118,7 +118,7 @@ try {
     const t0 = Date.now(), r = await p.evaluate(m => window.__bot.run(m), MAX_MIN);
     r.run = run; all.push(r);
     console.log('corrida ' + run + (r.won ? ' · terminada en ' + r.min + ' min' : ' · sin terminar a los ' + r.min + ' min') + ' · ' + r.vil + ' aldeanos · ' + r.techs.length + ' inventos · ' +
-      r.hunts + ' cacerías · ' + r.wolves + ' lobos espantados · ' + r.pin + ' s con alguien acorralado (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
+      r.hunts + ' cacerías · ' + r.wolves + ' lobos espantados · ' + r.pin + ' s con alguien acorralado · ' + r.lost + ' aldeanos se fueron por los lobos (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
     await ctx.close();
   }
 } finally { await b.close(); srv.close(); }
