@@ -91,12 +91,22 @@ function gather(){const P=D.P;if(P.task||P.act||P.path.length)return;
   const o=D.obj(),px=Math.round(P.x),py=Math.round(P.y);let best=-1,bd=1e9;
   for(let i=0;i<o.length;i++){const q=o[i];if(!q||q.t!==TYPE[k]||!(q.hp>0))continue;const d=Math.abs(i%MW-px)+Math.abs(((i/MW)|0)-py);if(d<bd){bd=d;best=i;}}
   if(best>=0)D.onTap(best%MW,(best/MW)|0);}
+// Modernizar lo que vino de la era anterior (rinde la mitad): primero lo que produce, uno por vez, si alcanza.
+function modern(){if(!D.modernize)return false;const o=D.obj();let best=-1,bv=-1;
+  const ns=E.grid==='power'?nodes():null;
+  for(let i=0;i<o.length;i++){const q=o[i];if(!D.canModern(q))continue;const b=B[q.t],x=i%MW,y=(i/MW)|0;
+    // Uno con ⚡ modernizado necesita luz: si queda lejos de la red, primero un poste hacia él.
+    if(b.elec&&ns&&!ns.some(n=>Math.hypot(n.x-x,n.y-y)<=2.9)){if(B.poste&&ns.length&&afford(D.buildCost('poste'))){let bn=null,bd=1e9;for(const n of ns){const d=Math.hypot(n.x-x,n.y-y);if(d<bd){bd=d;bn=n;}}
+        if(place('poste',{any:true,at:[bn.x,bn.y],r:5,ok:(px,py)=>Math.hypot(px-bn.x,py-bn.y)<=4.4&&Math.hypot(px-x,py-y)<bd-1}))return true;}continue;}
+    const v=b&&b.prod?2:b&&(b.id===E.ideaBuild||b.id===E.farmBuild)?1:0;if(v>bv){bv=v;best=i;}}
+  if(best<0)return false;const t=o[best].t;if(D.modernize(best)){S.modern=(S.modern||0)+1;return true;}return false;}
 let tick=0;const PACE=window.__pace||1;
 function step(){tick++;
   if(tick%(3*PACE)===0&&!window.__ignore)threats();
   if(tick%PACE)return;
   if(D.st.energy<30&&R().comida>=1){$('bEat').click();S.eats++;}
   for(const t of E.techs){if(has(t.id)||!t.req.every(r=>has(r))||!afford(t.cost))continue;if(E.rival&&t===E.techs[E.techs.length-1]&&D.st.safety<100)continue;if(research(t.id))break;}
+  modern();
   for(let k=0;k<3&&build();k++);
   gather();S.smogMax=Math.max(S.smogMax,D.st.smog);
   if(tick%(60-60%PACE)===0&&E.rival)S.safety.push([Math.round(D.st.time/60),Math.round(D.st.safety),Math.round(D.st.rival)]);}

@@ -199,6 +199,9 @@ const TECHS=ERA.techs,FINAL=TECHS[TECHS.length-1].id;
 const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=ERA.builds;
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
+// Lo que queda de un edificio de otra era que esta no tiene (ver importCity): no se construye y da algunas ideas.
+if(!BUILD.monumento){const m={id:'monumento',name:'Monumento',req:null,base:{},grow:1,hidden:true,desc:'Un edificio de otra época que ya no se usa: la gente lo visita y da algunas ideas.',prod:{ideas:0.05}};BUILDS.push(m);BUILD.monumento=m;}
+if(!ERA.info.monumento)ERA.info.monumento='Monumento: un edificio de otra época. La gente lo visita y da algunas ideas.';
 const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI','Estelar','Interestelar'];
 const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],[ORE,ERA.ore.name],['comida','Comida']];
 
@@ -209,8 +212,10 @@ const ground=new Uint8Array(MW*MH);
 let obj=new Array(MW*MH).fill(null);
 function makeNoise(seed,cell){const r=mulberry32(seed);const gw=Math.ceil(MW/cell)+2,gh=Math.ceil(MH/cell)+2;const g=[];for(let i=0;i<gw*gh;i++)g.push(r());const sm=t=>t*t*(3-2*t);
   return(x,y)=>{const fx=x/cell,fy=y/cell,ix=Math.floor(fx),iy=Math.floor(fy),u=sm(fx-ix),v=sm(fy-iy);const a=g[iy*gw+ix],b=g[iy*gw+ix+1],c=g[(iy+1)*gw+ix],d=g[(iy+1)*gw+ix+1];return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;};}
-// Cada era tiene su mapa: las semillas salen del número de era.
-const nLake=makeNoise(ERA.n*100+11,9),nForest=makeNoise(ERA.n*100+21,7),nHill=makeNoise(ERA.n*100+31,10),nCoast=makeNoise(ERA.n*100+41,6);
+// Cada era tiene su mapa (las semillas salen del número de era), pero una ciudad que viene de la era anterior sigue en el mapa
+// donde estaba: MAPN es el número de la era de ese mapa y se guarda con la partida (`map`) cuando no es el de la era.
+let MAPN=ERA.n,nLake,nForest,nHill,nCoast;
+function setMap(n){MAPN=n;nLake=makeNoise(n*100+11,9);nForest=makeNoise(n*100+21,7);nHill=makeNoise(n*100+31,10);nCoast=makeNoise(n*100+41,6);genGround();}
 function genGround(){
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
     const i=y*MW+x,edge=Math.min(x,y,MW-1-x,MH-1-y),ds=Math.hypot(x-SPAWN[0],y-SPAWN[1]);
@@ -246,7 +251,7 @@ function genObjects(){
     if(best){const i=best[1]*MW+best[0];ground[i]=GRASS;o[i]={t};}}
   return o;
 }
-genGround();
+setMap(ERA.n);
 const groundCv=document.createElement('canvas');groundCv.width=MW*T;groundCv.height=MH*T;
 function renderGround(){
   const g=groundCv.getContext('2d'),r=mulberry32(99);
@@ -269,10 +274,10 @@ function renderGround(){
 }
 
 /* ---------- estado ---------- */
-let st,counts={};
+let st,counts={},OLDC={},OLDN={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
-let GRID=null,BROKEN=null,OCEAN=null,bugT=0,viruses=[],meteors=[],goos=[],pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
+let GRID=null,BROKEN=null,BROKEN_OLD={},OCEAN=null,bugT=0,viruses=[],meteors=[],goos=[],pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
   const L=ERA.legacy,e=prevEra(),out=L.monedas?{has:!!e,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]}:{has:!!e,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e){
@@ -287,21 +292,65 @@ function readLegacy(){
   return out;
 }
 function freshState(){return{res:{madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
-function recount(){GRID=null;BROKEN=null;counts={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined)counts[o.t]++;}
+function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;if(isOld(o)){OLDC[o.t]=(OLDC[o.t]||0)+1-oldW(o);OLDN[o.t]=(OLDN[o.t]||0)+1;}}}
+// Edificios que vienen de otra era (importCity): rinden la mitad por cada era de atraso (oldW: la mitad si es de la anterior,
+// un cuarto si es de dos eras atrás) hasta que se modernizan pagando lo mismo que uno nuevo: el primero al precio base y cada
+// uno más caro, contando los que ya están al día (y con el invento que lo desbloquea, si tiene). OLDC suma, por tipo, lo que
+// les falta para rendir como uno nuevo, y OLDN cuántos son.
+const isOld=o=>!!(o&&o.era&&o.era<ERA.n&&BUILD[o.t]&&o.t!=='monumento');
+const oldW=o=>isOld(o)?Math.pow(0.5,ERA.n-o.era):1;
+const modernCost=b=>{const n=(counts[b.id]||0)-(OLDN[b.id]||0),c={};for(const k in b.base)c[k]=Math.ceil(b.base[k]*Math.pow(b.grow,n));return c;};
+const canModern=o=>{const b=isOld(o)&&BUILD[o.t];return!!b&&(!b.req||!!st.techs[b.req])&&afford(modernCost(b));};
+function modernize(i){const o=obj[i],b=o&&BUILD[o.t];if(!isOld(o))return false;
+  if(b.req&&!st.techs[b.req]){toast('Para modernizarlo necesitás '+TECH[b.req].name+'.');return false;}
+  const c=modernCost(b);if(!afford(c)){toast('Te falta para modernizarlo.');return false;}
+  pay(c);o.era=ERA.n;recount();float(i%MW,(i/MW)|0,'¡modernizado!','#5fe3d0');toast(b.name+' modernizado: rinde como nuevo.');save();return true;}
 function newGame(){
-  obj=genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];spies=[];goos=[];
+  const city=prevCity();setMap(city?city.map:ERA.n);mapChanged();
+  obj=city?importCity(city):genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];spies=[];goos=[];
   Object.assign(P,{x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1});
   recount();
-  const hx=SPAWN[0]-2,hy=SPAWN[1]-2;for(let i=0;i<st.legacy.aldeanos;i++)addVillager(hx,hy);
+  if(city){for(const v of city.vil){const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];vil.push(m);}if(city.p)Object.assign(P,{x:city.p[0],y:city.p[1]});
+    const nb=obj.filter(o=>o&&BUILD[o.t]).length,nr=vil.filter(v=>v.bot).length,nh=vil.length-nr;
+    st.legacy.perks[0]='Tu ciudad sigue entera: '+nb+' edificios'+(nr?', '+nh+' aldeanos y '+nr+' robots':' y '+nh+' aldeanos')+'. Lo que viene de otra era rinde la mitad por cada era de atraso hasta que lo modernizás';}
+  else{const hx=SPAWN[0]-2,hy=SPAWN[1]-2;for(let i=0;i<st.legacy.aldeanos;i++)addVillager(hx,hy);}
 }
+// La ciudad de la era anterior, si se terminó en este motor (desde la Antigüedad) y tiene edificios: su mapa, lo que había en
+// él y su gente. Una partida guardada antes de que existiera `map` está en el mapa propio de su era.
+function prevCity(){const L=ERA.legacy;if(L.st)return null;const pn=+((L.key.match(/mundo(\d+)-/)||[])[1]);if(!pn)return null;
+  try{const d=JSON.parse(localStorage.getItem(L.key));if(!d||!d.won||!Array.isArray(d.obj)||!d.obj.some(e=>!RES[e[1]]&&ROLE[e[1]]!=='drop'))return null;
+    return{n:pn,map:d.map||pn,obj:d.obj,vil:d.vil||[],p:d.p};}catch(e){return null;}}
+// Qué papel cumple cada edificio de cualquier era, para pasarlo a la era que sigue cuando ahí no existe: el de ideas pasa al
+// que más ideas da, el de monedas al que más monedas da, y así; los hitos de una era (ciudades, laboratorio rival) no pasan.
+const ROLE={deposito:'storage',granero:'storage',
+  templo:'ideas',monasterio:'ideas',taller:'ideas',laboratorio:'ideas',computadora:'ideas',cibercafe:'ideas',datacenter:'ideas',supercomp:'ideas',centro:'ideas',nucleo:'ideas',
+  mercado:'monedas',feria:'monedas',banco:'monedas',fabrica:'monedas',oficina:'monedas',tienda:'monedas',startup:'monedas',empresa:'monedas',puerto:'monedas',astillero:'monedas',
+  biblioteca:'ideaBuild',universidad:'ideaBuild',academia:'ideaBuild',palacio:'ideaBuild',escuela:'ideaBuild',buscador:'ideaBuild',labia:'ideaBuild',instituto:'ideaBuild',
+  acueducto:'farmBuild',molino:'farmBuild',jardin:'farmBuild',estacion:'farmBuild',frigorifico:'farmBuild',galpon:'farmBuild',semillas:'farmBuild',huerta:'farmBuild',agro:'farmBuild',sintetizador:'farmBuild',terraformador:'farmBuild',
+  atalaya:'defense',hospital:'defense',palomar:'defense',sindicato:'defense',pararrayos:'defense',trampa:'defense',soporte:'defense',supervision:'defense',guardia:'defense',escudo:'defense',contencion:'defense',
+  mina:'ore',minero:'ore',colector:'ore',ciudad:'drop',rival:'drop'};
+function bestFor(k){let id=null,v=0;for(const b of BUILDS)if(b.prod&&b.prod[k]>v&&b.id!=='fogata'&&b.id!=='monumento'){v=b.prod[k];id=b.id;}return id;}
+function mapId(t){if(BUILD[t])return t;const r=ROLE[t];if(r==='drop')return null;
+  const id=r==='ideaBuild'?ERA.ideaBuild:r==='farmBuild'?ERA.farmBuild:r==='defense'?ERA.defense&&ERA.defense.id:r==='storage'?ERA.storage.id:r==='ore'?bestFor(ORE):r?bestFor(r):null;
+  return id&&BUILD[id]?id:'monumento';}
+// Arma el mapa con la ciudad anterior: los recursos como estaban, cada edificio como el de esta era que cumple su papel (los que
+// vienen de otra era quedan con `era` y rinden la mitad hasta modernizarlos) y los hitos de esta era en la tierra libre más cercana.
+function importCity(c){genObjects();/* el suelo junto al inicio, como en un mapa nuevo */
+  const o=new Array(MW*MH).fill(null);
+  for(const[i,t,hp,regen,,era]of c.obj){if(i<0||i>=MW*MH)continue;if(RES[t]){o[i]={t,hp,regen};continue;}const id=mapId(t);if(id)o[i]=id==='monumento'?{t:id}:{t:id,era:era||c.n};}
+  for(const[dx,dy,t]of ERA.landmarks||[]){let best=null,bd=1e9;
+    for(let y=2;y<MH-2;y++)for(let x=2;x<MW-2;x++){if(ground[y*MW+x]===WATER||o[y*MW+x])continue;const d=Math.hypot(x-SPAWN[0]-dx,y-SPAWN[1]-dy);if(d<bd){bd=d;best=[x,y];}}
+    if(best)o[best[1]*MW+best[0]]={t};}
+  return o;}
+function mapChanged(){OCEAN=null;chunks.clear();pending.clear();}
 function serialize(){
-  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b)o.push([i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0]);}
-  return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[Math.round(v.x),Math.round(v.y),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0]),obj:o};
+  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b))e.push(b.era);o.push(e);}}
+  return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[Math.round(v.x),Math.round(v.y),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0]),obj:o,...(MAPN!==ERA.n?{map:MAPN}:{})};
 }
 function load(d){
   if(!d||d.v!==1||!Array.isArray(d.obj))return false;
-  genObjects();/* restaura el suelo modificado junto al inicio */renderGround();
-  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug]of d.obj)obj[i]={t,hp,regen,bug:!!bug};
+  setMap(d.map||ERA.n);mapChanged();genObjects();/* restaura el suelo modificado junto al inicio */renderGround();
+  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug,era]of d.obj){obj[i]={t,hp,regen,bug:!!bug};if(era)obj[i].era=era;}
   const f=freshState();
   st=Object.assign(f,{res:Object.assign(f.res,d.res),energy:d.energy,techs:d.techs||{},time:d.time||0,gathers:d.gathers||0,won:!!d.won,seen:!!d.seen,prio:d.prio||'auto',smog:clamp(+d.smog||0,0,100),rival:clamp(+d.rival||0,0,100),safety:clamp(+d.safety||0,0,100),lost:!!d.lost,legacy:d.legacy||f.legacy});
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null});
@@ -344,7 +393,7 @@ function smogRate(){let em=0;for(const b of BUILDS)if(b.smoke&&runs(b))em+=b.smo
 const LINK=ERA.grid==='power'?4.5:5,REACH=3;
 function grid(){if(GRID)return GRID;return GRID=ERA.grid==='power'?powerGrid():dataGrid();}
 function powerGrid(){const nodes=[],els=[];
-  for(let i=0;i<obj.length;i++){const o=obj[i],b=o&&BUILD[o.t];if(!b)continue;const n={x:i%MW,y:(i/MW)|0,i,t:o.t};if(b.node){if(!o.bug)nodes.push(n);}else if(b.elec)els.push(n);}
+  for(let i=0;i<obj.length;i++){const o=obj[i],b=o&&BUILD[o.t];if(!b)continue;const n={x:i%MW,y:(i/MW)|0,i,t:o.t};if(b.node){if(!o.bug)nodes.push(n);}else if(b.elec&&!isOld(o))els.push(n);}
   const on=new Map(),links=[],q=nodes.filter(n=>BUILD[n.t].power);q.forEach(n=>on.set(n.i,n));
   for(let h=0;h<q.length;h++){const a=q[h];for(const n of nodes)if(!on.has(n.i)&&Math.hypot(n.x-a.x,n.y-a.y)<=LINK){on.set(n.i,n);links.push([a,n]);q.push(n);}}
   const powered=new Set(),drops=[],pc={};
@@ -363,11 +412,15 @@ function nearNode(g,x,y){let d=1e9;for(const n of g.on.values())if(n.t!=='ciudad
 // Cuántos edificios de un tipo andan: los que tienen ⚡ cuentan solo si tienen luz y no tienen un bicho, y rinden según alcance la red.
 // Edificios dañados (con `bug`, sin luz eléctrica) por tipo; se recalcula una vez por cuadro.
 // También cuenta lo que tapa una manga de langostas que está comiendo.
-function broken(id){if(!BROKEN){BROKEN={};for(const o of obj)if(o&&o.bug&&BUILD[o.t])BROKEN[o.t]=(BROKEN[o.t]||0)+1;
-  if(swarms.length)for(const i of covered())BROKEN[obj[i].t]=(BROKEN[obj[i].t]||0)+1;
-  for(const g of goos)for(const i of g.cells){const o=obj[i];if(o&&BUILD[o.t]&&!o.bug)BROKEN[o.t]=(BROKEN[o.t]||0)+1;}}
+function broken(id){if(!BROKEN){BROKEN={};BROKEN_OLD={};for(const o of obj)if(o&&o.bug&&BUILD[o.t]){BROKEN[o.t]=(BROKEN[o.t]||0)+1;if(isOld(o))BROKEN_OLD[o.t]=(BROKEN_OLD[o.t]||0)+1-oldW(o);}
+  if(swarms.length)for(const i of covered()){BROKEN[obj[i].t]=(BROKEN[obj[i].t]||0)+1;if(isOld(obj[i]))BROKEN_OLD[obj[i].t]=(BROKEN_OLD[obj[i].t]||0)+1-oldW(obj[i]);}
+  for(const g of goos)for(const i of g.cells){const o=obj[i];if(o&&BUILD[o.t]&&!o.bug){BROKEN[o.t]=(BROKEN[o.t]||0)+1;if(isOld(o))BROKEN_OLD[o.t]=(BROKEN_OLD[o.t]||0)+1-oldW(o);}}}
   return BROKEN[id]||0;}
-function act(id){const b=BUILD[id];if(!b||!b.elec)return(counts[id]||0)-broken(id)*(ERA.plague&&ERA.plague.includes(id)?0.5:1);const g=grid();let n=0;for(const i of g.powered)if(obj[i].t===id&&!obj[i].bug)n++;return n*g.f;}
+// Los que vienen de otra era cuentan según su atraso (oldW), también los rotos o enfermos, que ya restan. Un edificio con ⚡ que
+// vino de otra era todavía no es eléctrico: anda sin luz, según su atraso, hasta que lo modernizás, y ahí necesita la red.
+function act(id){const b=BUILD[id];if(!b||!b.elec){const k=ERA.plague&&ERA.plague.includes(id)?0.5:1,br=broken(id);return(counts[id]||0)-br*k-(OLDC[id]||0)+(BROKEN_OLD[id]||0)*k;}
+  const g=grid();let n=0;for(const i of g.powered)if(obj[i].t===id&&!obj[i].bug)n++;n*=g.f;
+  if(OLDC[id])for(const o of obj)if(o&&o.t===id&&!o.bug&&isOld(o))n+=oldW(o);return n;}
 // Bichos (ERA.bugs): a cada máquina con `bug` que anda le sale uno cada ~90 s (el transistor y la depuración los hacen más raros).
 // Una máquina con bicho no produce; si nadie lo aplasta, se contagia a otra máquina a 5 casilleros.
 const bugRate=()=>(1/90)*(st.techs.transistor?0.6:1)*(st.techs.depuracion?0.6:1);
@@ -1082,8 +1135,15 @@ function modernHouseArt(){return mkA(64,64,a=>{const WL=P4('#b8b0a0','#d8d0c0','
   rect(a,8,54,26,6,WOOD[1]);for(const x of[11,18,25,31])ell(a,x,53,2.5,2,LEAF[2]);
   outlineAll(a,OUTL);});}
 // Arte de la era: la parte de abajo de src/mundo/<era>.js, con sus sprites, VILPAL2 (ropa de los aldeanos) y HS.
+// Monumento: un pedestal de piedra con una columna rota y una placa; lo que queda de un edificio de otra época.
+function monumentArt(){return mkA(64,64,a=>{rect(a,12,48,40,12,STONE2[2]);rect(a,12,48,40,2,STONE2[3]);rect(a,44,48,8,12,STONE2[1]);rect(a,16,40,32,8,STONE2[1]);rect(a,16,40,32,2,STONE2[3]);
+  rect(a,24,12,16,28,MARBLE[2]);rect(a,24,12,4,28,MARBLE[3]);rect(a,36,12,4,28,MARBLE[1]);for(let x=26;x<40;x+=4)rect(a,x,14,1,26,MARBLE[1]);
+  poly(a,[[22,12],[42,12],[40,6],[30,9],[24,4]],MARBLE[2]);rect(a,26,52,12,4,GOLD);outlineAll(a,OUTL);});}
 /*@arte*/
 // Dibuja un sprite en alta con el tamaño que tenía el de 16 px.
+// Los robots que vienen de la IA siguen en las eras siguientes; el monumento es para todas.
+if(!HS.robot){HS.robot=[robotArt(0,0),robotArt(1,0)];HS.robotBad=[robotArt(0,1),robotArt(1,1)];}
+if(!HS.monumento)HS.monumento=monumentArt();
 const hd=(c,x,y)=>ctx.drawImage(c,x,y,c.width/ART,c.height/ART);
 
 /* ---------- render ---------- */
@@ -1210,11 +1270,15 @@ function drawObj(o,x,y){
     // Lo demás: sombra, sprite, humo si anda (`smk` en el edificio), rayo tachado si le falta luz, lo propio de la era (ERA.deco) y el bicho.
     default:if(HS[o.t]){const sh=SHADOW[o.t]||[8,2],b=BUILD[o.t];shadow(px+8,py+15,sh[0],sh[1]);hd(HS[o.t],px,py);
       if(b&&b.smk&&runs(b))for(const[sx,sy]of b.smk)puffs(px+sx,py+sy,b.puffs||3);
-      const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit)noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug){if(ERA.hijack)drawClips(px,py);else if(ERA.meteors||ERA.luddites||ERA.storms)drawDamage(px,py);else if(sickable(o))drawPlague(px,py);else drawBug(px,py);}}
+      const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit&&!isOld(o))noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug){if(ERA.hijack)drawClips(px,py);else if(ERA.meteors||ERA.luddites||ERA.storms)drawDamage(px,py);else if(sickable(o))drawPlague(px,py);else drawBug(px,py);}}
   }
+  if(isOld(o))oldBadge(px,py,canModern(o));
   const cfg=RES[o.t];
   if(cfg&&o.hp>0&&o.hp<cfg.hp){ctx.fillStyle='#1b1a24';ctx.fillRect(px+2,top-3,12,3);ctx.fillStyle='#93d36c';ctx.fillRect(px+3,top-2,10*o.hp/cfg.hp,1);}
 }
+// Edificio que vino de otra era: una flechita para arriba en la esquina (late cuando ya se puede modernizar).
+function oldBadge(px,py,can){const t=performance.now()/1000,hi=can&&Math.sin(t*5)>-0.3;ctx.globalAlpha=can?1:0.6;ctx.fillStyle='#1b1a24';ctx.fillRect(px+8,py-1,8,8);
+  ctx.fillStyle=hi?'#b6f08a':can?'#93d36c':'#a39b88';ctx.fillRect(px+11,py,2,1);ctx.fillRect(px+10,py+1,4,1);ctx.fillRect(px+9,py+2,6,1);ctx.fillRect(px+11,py+3,2,3);ctx.globalAlpha=1;}
 function drawEnt(e,frames,isP){
   const px=Math.round(e.x*T),py=Math.round(e.y*T);shadow(px+8,py+15,5,1.5);
   const fr=e.moving?frames[Math.floor(st.time*8)%2]:frames[0];
@@ -1304,7 +1368,7 @@ const chipEl={};
   const res=$('res');
   for(const k of RK){const d=document.createElement('div');d.className='chip';d.innerHTML='<img class="px" alt="" src="'+ICON[k]+'"><b>0</b><small>'+RN[k]+'</small>';res.appendChild(d);chipEl[k]=d;}
   const bar=$('agiBar');for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=(i*10)+'%';bar.appendChild(t);}
-  document.title='Race to AGI · Mundo abierto · '+ERA.name;$('era').textContent=ERA.name;$('buildHint').textContent=BUILDS.length+' edificios';
+  document.title='Race to AGI · Mundo abierto · '+ERA.name;$('era').textContent=ERA.name;$('buildHint').textContent=BUILDS.filter(b=>!b.hidden).length+' edificios';
   // Las dos barras de abajo de la energía: humo o seguridad, y la red, los robots o el rival.
   const H=$('hud');if(BUILDS.some(b=>b.smoke)||ERA.grid||ERA.robots||ERA.rival||ERA.defense)H.classList.add('rows');
   $('sLbl').textContent=ERA.rival?'Seguridad':(ERA.cities||ERA.robots)&&ERA.defense?ERA.defense.label:'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.grid==='power'?'Luz':ERA.cities?'Red':ERA.robots?'Robots':ERA.defense?ERA.defense.label:'Red';
@@ -1327,6 +1391,7 @@ function goalText(){
   const full=['madera','piedra',ORE,'comida','monedas'].find(k=>st.res[k]>=cap(k));
   if(full)return[ERA.storage.name+' lleno:','no entra más '+RN[full].toLowerCase()+'.'];
   {const t=tips(ERA.tips2);if(t)return t;}
+  {const o=obj.find(canModern);if(o)return['Modernizá:','tocá un edificio con ↑ (viene de otra era): modernizado rinde como nuevo.'];}
   const next=TECHS.find(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r]));
   if(!next)return[ERA.done,'Seguí creciendo tu ciudad.'];
   const miss=Object.entries(next.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>Math.ceil(v-st.res[k])+' '+RN[k].toLowerCase());
@@ -1366,7 +1431,7 @@ function tips(list){for(const t of list||[]){const r=typeof t==='function'?t():s
 // Pistas de la red eléctrica, para ERA.tips1.
 function gridTip(){const g=grid();if(g.unlit)return['Sin luz:',g.unlit+(g.unlit===1?' edificio no está conectado.':' edificios no están conectados.')+' Poné postes.'];
   if(g.f<1)return['Red sobrecargada:','todo rinde '+Math.round(g.f*100)+'%. Construí otra usina o represa.'];return null;}
-let sheetMode=null,sheetSig='',sheetHeld=false,lastGoal='';
+let sheetMode=null,sheetSel=null,sheetSig='',sheetHeld=false,lastGoal='';
 function hud(){
   const{pr,us}=economy();
   for(const k of RK){
@@ -1382,13 +1447,13 @@ function hud(){
   const[g1,g2]=goalText(),gk=g1+g2;if(gk!==lastGoal){lastGoal=gk;const g=$('goal');g.innerHTML='';const s=document.createElement('span');s.className='gl';s.textContent=g1;g.append(s,' '+g2);}
   const nDone=TECHS.filter(t=>st.techs[t.id]).length;$('techHint').textContent=nDone+' de '+TECHS.length;
   $('techDot').classList.toggle('on',TECHS.some(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r])&&afford(t.cost)));
-  $('buildDot').classList.toggle('on',BUILDS.some(b=>(!b.req||st.techs[b.req])&&!counts[b.id]&&afford(buildCost(b))));
+  $('buildDot').classList.toggle('on',BUILDS.some(b=>!b.hidden&&(!b.req||st.techs[b.req])&&!counts[b.id]&&afford(buildCost(b))));
   const hungry=vil.filter(v=>v.hungry).length;$('tribeDot').classList.toggle('on',hungry>0);
   {const nh=vil.filter(v=>!v.bot).length;$('tribeHint').textContent=nh+(nh===1?' aldeano':' aldeanos');}
   $('eatHint').textContent=nearFire(P.x,P.y,4)?'+25 al fuego':'+12 energía';
   // La hoja se rehace solo si cambia algo que se ve: si un botón se reemplaza entre que apoyás el dedo y lo levantás, el toque se pierde.
   if(sheetMode&&!sheetHeld){const ok=c=>Object.entries(c).map(([k,v])=>st.res[k]>=v?1:0).join('');
-    const what=sheetMode==='tech'?TECHS.map(t=>ok(t.cost)).join():sheetMode==='build'?BUILDS.map(b=>ok(buildCost(b))).join():(()=>{const{pr,us}=economy();return vil.filter(v=>v.state!=='idle').length+':'+RK.map(k=>fmt((pr[k]-us[k])*60)).join();})();
+    const what=sheetMode==='tech'?TECHS.map(t=>ok(t.cost)).join():sheetMode==='build'?BUILDS.map(b=>ok(buildCost(b))).join():sheetMode==='bld'?(obj[sheetSel]&&BUILD[obj[sheetSel].t]?ok(modernCost(BUILD[obj[sheetSel].t]))+isOld(obj[sheetSel]):''):(()=>{const{pr,us}=economy();return vil.filter(v=>v.state!=='idle').length+':'+RK.map(k=>fmt((pr[k]-us[k])*60)).join();})();
     const sig=what+'|'+Object.keys(st.techs).length+'|'+Object.values(counts).join()+'|'+vil.length+'|'+hungry+'|'+st.prio;if(sig!==sheetSig){sheetSig=sig;renderSheet();}}
   measure();
 }
@@ -1438,8 +1503,16 @@ function renderSheet(){
       const right=open?'<button class="btn" data-build="'+b.id+'"'+(can?'':' disabled')+'>Ubicar</button>':'<span class="tag">Bloqueado</span>';
       const foot=open?costHTML(c):'<p>Requiere: '+TECH[b.req].name+'</p>';
       return'<div class="item'+(open?'':' locked')+'"><h3>'+b.name+(b.elec?' ⚡':'')+(counts[b.id]?' <span class="tag">tenés '+counts[b.id]+'</span>':'')+'</h3>'+right+'<p>'+b.desc+(open?prodLine(b):'')+'</p>'+foot+'</div>';};
-    const open=BUILDS.filter(b=>!b.req||st.techs[b.req]),locked=BUILDS.filter(b=>b.req&&!st.techs[b.req]);
+    const open=BUILDS.filter(b=>!b.hidden&&(!b.req||st.techs[b.req])),locked=BUILDS.filter(b=>!b.hidden&&b.req&&!st.techs[b.req]);
     body.innerHTML='<div class="group">Disponibles</div>'+open.map(card).join('')+(locked.length?'<div class="group">Se desbloquean con inventos</div>'+locked.map(card).join(''):'');
+  }else if(sheetMode==='bld'){
+    // Un edificio que vino de otra era: cuánto rinde y el botón para modernizarlo.
+    const i=sheetSel,o=obj[i],b=o&&BUILD[o.t];if(!b){closeSheet();return;}
+    const old=isOld(o),c=modernCost(b),open=!b.req||!!st.techs[b.req],can=old&&open&&afford(c);
+    $('sheetTitle').textContent=b.name;$('sheetSub').textContent=old?'Viene de '+(ERAS[o.era-1]||'otra era')+': rinde '+Math.round(oldW(o)*100)+'%':'Al día con la era';
+    body.innerHTML='<div class="item"><h3>'+b.name+'</h3>'+(old?(open?'<button class="btn" data-modern="'+i+'"'+(can?'':' disabled')+'>Modernizar</button>':'<span class="tag">Bloqueado</span>'):'<span class="tag ok">Modernizado</span>')+
+      '<p>'+b.desc+(old?' Modernizado rinde '+(oldW(o)<0.5?Math.round(1/oldW(o))+' veces más':'el doble')+'.':'')+'</p>'+(old?(open?costHTML(c):'<p>Requiere: '+TECH[b.req].name+'</p>'):'')+'</div>'+
+      '<p class="note">Lo que viene de otra era rinde la mitad por cada era de atraso hasta que lo modernizás.</p>';
   }else if(sheetMode==='tribe'){
     const{pr,us}=economy(),hungry=vil.filter(v=>v.hungry).length,working=vil.filter(v=>v.state!=='idle').length,sick=vil.filter(sickHome).length;
     $('sheetTitle').textContent='Tribu';$('sheetSub').textContent='Aldeanos, prioridades y economía';
@@ -1459,8 +1532,9 @@ $('sheet').addEventListener('click',e=>{if(e.target===$('sheet')&&performance.no
 // Mientras el dedo está apoyado en la hoja no se rehace, así el toque llega al botón que tocaste.
 $('sheetBody').addEventListener('pointerdown',()=>{sheetHeld=true;});document.addEventListener('pointerup',()=>{sheetHeld=false;});document.addEventListener('pointercancel',()=>{sheetHeld=false;});
 $('sheetBody').addEventListener('click',e=>{
-  const t=e.target.closest('[data-tech]'),b=e.target.closest('[data-build]'),p=e.target.closest('[data-prio]');
+  const t=e.target.closest('[data-tech]'),b=e.target.closest('[data-build]'),p=e.target.closest('[data-prio]'),m=e.target.closest('[data-modern]');
   if(t&&!t.disabled)research(t.dataset.tech);
+  if(m&&!m.disabled){modernize(+m.dataset.modern);renderSheet();hud();}
   if(b&&!b.disabled)startPlace(b.dataset.build);
   if(p){st.prio=p.dataset.prio;vil.forEach(v=>{if(v.state==='go'){v.state='idle';v.t=0.2;v.target=null;v.path=[];}});renderSheet();toast(st.prio==='auto'?'Aldeanos en automático':'Aldeanos priorizan '+RN[st.prio].toLowerCase());}
 });
@@ -1565,6 +1639,7 @@ function onTap(tx,ty){
     if(o.bug&&sickable(o)){o.bug=false;o.bugAge=0;o.heal=0;BROKEN=null;st.res.ideas+=2;float(tx,ty,'+2 ideas',RCOL.ideas);toast('¡Peste curada!');save();return;}
     if(o.bug&&(ERA.meteors||ERA.luddites||ERA.storms)){o.bug=false;BROKEN=null;GRID=null;float(tx,ty,'¡reparado!','#93d36c');o.fix=0;toast(ERA.luddites?'Máquinas arregladas: vuelve a producir.':ERA.storms?'Arreglado: vuelve la luz.':BUILD[o.t].name+' reparado.');save();return;}
     if(o.bug){o.bug=false;o.bugAge=0;st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);toast('¡Bicho aplastado!');save();return;}
+    if(isOld(o)){sheetSel=ty*MW+tx;openSheet('bld');return;}
     if(!RES[o.t]){const b=BUILD[o.t];toast(INFO[o.t]+(o.t==='rival'?' Va '+Math.floor(st.rival)+'%.':'')+(o.t==='ciudad'?(grid().on.has(ty*MW+tx)?' Ya está conectada.':' Todavía no está conectada.'):'')+(b&&b.prod?prodLine(b):'')+(b&&b.elec?(grid().powered.has(ty*MW+tx)?' Tiene luz.':' Sin luz: poné un poste cerca.'):''));return;}
     if(o.hp<=0){toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');P.act=null;P.task=null;const p=bfs(px,py,(x,y)=>x===tx&&y===ty);if(p)P.path=p;return;}
     P.act=null;P.retried=false;P.task={x:tx,y:ty};
@@ -1616,7 +1691,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),virusEvery:()=>virusEvery(),spies:()=>spies,spawnSpies:()=>spawnSpies(),spyEvery:()=>spyEvery(),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
-  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
+  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
 </body></html>
