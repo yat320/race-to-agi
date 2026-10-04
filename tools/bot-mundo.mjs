@@ -85,9 +85,12 @@ function antenas(){const g=D.grid();if(!cnt('servidor')||g.linked.length>=2)retu
 function nextTech(){return E.techs.find(t=>!has(t.id)&&t.req.every(r=>has(r)));}
 function gather(){const P=D.P;if(P.task||P.act||P.path.length)return;
   let k=null;if(R().comida<6)k='comida';
+  const hands=E.n<5;
   if(!k){const t=nextTech(),goals=[t&&t.cost].concat(wants().slice(0,3).map(([id])=>D.buildCost(id))).filter(Boolean);
     for(const c of goals){const miss=GATHER.filter(r=>(c[r]||0)>R()[r]).sort((a,b)=>(c[b]-R()[b])-(c[a]-R()[a]));if(miss.length){k=miss[0];break;}}}
   if(!k)k=GATHER.filter(r=>R()[r]<D.cap(r)).sort((a,b)=>R()[a]-R()[b])[0];if(!k)return;
+  // Desde la Industria no se junta a mano: como una persona, se les dice a los aldeanos qué priorizar.
+  if(!hands){D.st.prio=k;return;}
   const o=D.obj(),px=Math.round(P.x),py=Math.round(P.y);let best=-1,bd=1e9;
   for(let i=0;i<o.length;i++){const q=o[i];if(!q||q.t!==TYPE[k]||!(q.hp>0))continue;const d=Math.abs(i%MW-px)+Math.abs(((i/MW)|0)-py);if(d<bd){bd=d;best=i;}}
   if(best>=0)D.onTap(best%MW,(best/MW)|0);}

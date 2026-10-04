@@ -25,10 +25,10 @@ const ERA={
   builds:[
  {id:'casa',name:'Hábitat',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Hábitat listo: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
  {id:'granja',name:'Granja',req:null,base:{madera:12,comida:4},grow:1.25,done:'Granja lista',desc:'Produce comida sola.',prod:{comida:0.2},noSand:true},
- {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche. Comer cerca rinde el doble.',prod:{ideas:0.12}},
+ {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche.',prod:{ideas:0.12}},
  {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
  {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
- {id:'herreria',name:'Taller',req:'nanotec',base:{madera:25,piedra:20,iridio:10},grow:1.6,done:'Taller listo',desc:'Herramientas de nanotecnología: vos y los aldeanos juntan +30% por cada taller.'},
+ {id:'herreria',name:'Taller',req:'nanotec',base:{madera:25,piedra:20,iridio:10},grow:1.6,done:'Taller listo',desc:'Herramientas de nanotecnología: los aldeanos y los robots juntan +30% por cada taller.'},
  {id:'cantera',name:'Cantera',req:'nanotec',base:{madera:20,iridio:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
  {id:'centro',name:'Centro de la AGI',req:'nanotec',base:{piedra:40,iridio:10},grow:1.5,done:'Centro de la AGI encendido',desc:'La AGI piensa con vos: genera muchísimas ideas.',prod:{ideas:0.6}},
  {id:'escudo',name:'Escudo',req:'escudos',base:{madera:25,piedra:25,iridio:5},grow:1.4,done:'Escudo encendido',desc:'Desvía los meteoritos que apuntan a 5 casilleros o menos.'},
@@ -36,7 +36,7 @@ const ERA={
  {id:'sintetizador',name:'Sintetizador',req:'sintesis',base:{madera:35,piedra:30},grow:1.6,done:'Sintetizador listo',desc:'Cada sintetizador hace rendir +50% a todas las granjas.'},
  {id:'minero',name:'Mina de asteroides',req:'mineria',base:{madera:30,piedra:15,monedas:10},grow:1.4,done:'Mina de asteroides lista',desc:'Trae iridio de los asteroides.',prod:{iridio:0.12}},
  {id:'instituto',name:'Instituto del espacio',req:'cosmologia',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Instituto abierto',desc:'Ideas +30% por cada instituto.'}],
-  info:{casa:'Hábitat: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Taller: juntás más rápido.',cantera:'Cantera: produce piedra.',centro:'Centro de la AGI: genera ideas.',escudo:'Escudo: desvía los meteoritos que apuntan a 5 casilleros o menos.',puerto:'Puerto espacial: da monedas.',sintetizador:'Sintetizador: potencia las granjas.',minero:'Mina de asteroides: da iridio.',instituto:'Instituto del espacio: más ideas.'},
+  info:{casa:'Hábitat: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Taller: los aldeanos juntan más rápido.',cantera:'Cantera: produce piedra.',centro:'Centro de la AGI: genera ideas.',escudo:'Escudo: desvía los meteoritos que apuntan a 5 casilleros o menos.',puerto:'Puerto espacial: da monedas.',sintetizador:'Sintetizador: potencia las granjas.',minero:'Mina de asteroides: da iridio.',instituto:'Instituto del espacio: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
   tips1:[['escudos','escudo','un escudo: desvía los meteoritos que caen cerca.']],
   tips2:[['nanotec','centro','un centro de la AGI: genera muchísimas ideas.'],['cohetes','puerto','un puerto espacial para conseguir monedas.'],['sintesis','sintetizador','un sintetizador: potencia las granjas.']],
@@ -49,8 +49,8 @@ const ERA={
     intro:'Con una AGI segura de tu lado, la humanidad sale al espacio: cohetes que van y vienen, minas en los asteroides y piedras que se desvían de su camino. Tocá los meteoritos antes de que caigan sobre tus edificios, o dejalos caer en tierra libre y aprovechá el iridio del cráter. La meta: la esfera de Dyson, toda la energía del Sol.',
     news:'Novedades: iridio, puerto espacial, escudos y meteoritos. Un edificio dañado no produce hasta que lo reparás tocándolo o lo arreglan solos los drones, a los 3 minutos. Cuanto más avanzás, más seguido caen.',
     legacy:'Lo que trae tu ciudad de la era de la AGI',
-    noLegacy:'No hay una AGI terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Caen meteoritos: tocalos antes de que lleguen. Si caen sobre un edificio lo dañan: tocalo para repararlo, o los drones lo arreglan solos a los 3 minutos; en tierra libre dejan un cráter con iridio. Los escudos desvían los que apuntan cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
+    noLegacy:'No hay una AGI terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Caen meteoritos: tocalos antes de que lleguen. Si caen sobre un edificio lo dañan: tocalo para repararlo, o los drones lo arreglan solos a los 3 minutos; en tierra libre dejan un cráter con iridio. Los escudos desvían los que apuntan cerca. En la compu: flechas o WASD.',
     win:'La esfera de Dyson',winText:()=>'Terminaste la esfera de Dyson en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Toda la energía del Sol, para la humanidad y su AGI.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era interestelar.'}
 };
