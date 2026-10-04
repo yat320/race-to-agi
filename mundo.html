@@ -251,13 +251,13 @@ const TECHS=[
  {id:'almacen',name:'Almacenamiento',cost:{madera:25,piedra:15},ideas:35,req:['refugio'],desc:'Desbloquea el almacén: más capacidad para todo.'},
  {id:'vestimenta',name:'Vestimenta',cost:{pieles:8},ideas:35,req:['caza'],desc:'Ropa de piel: el invierno deja de castigar tu energía y el hambre. Permite sandalias.'},
  {id:'pedernal',name:'Trabajo del pedernal',cost:{piedra:20,pieles:4},ideas:45,req:['puentes'],desc:'Desbloquea el taller y las herramientas de nivel 2: pico de asta, hacha y lanza de pedernal.'},
- {id:'pinturas',name:'Pinturas rupestres',cost:{piedra:20,pieles:4},ideas:60,req:['lenguaje'],desc:'Desbloquea la cueva pintada, que genera muchas ideas.'},
- {id:'agricultura',name:'Agricultura',cost:{madera:30,comida:30},ideas:70,req:['almacen'],desc:'Desbloquea cultivos: comida que crece sola (menos en invierno).'},
- {id:'pulida',name:'Piedra pulida',cost:{piedra:30,pedernal:12},ideas:70,req:['pedernal','lenguaje'],desc:'Herramientas de nivel 3 (necesitan taller nivel 2).'},
- {id:'ceramica',name:'Cerámica',cost:{madera:20,arcilla:20},ideas:80,req:['agricultura','fuego'],desc:'Vasijas de barro cocido: +50% de capacidad de comida y cosechas más grandes.'},
- {id:'rueda',name:'Rueda',cost:{madera:50,piedra:35},ideas:110,req:['agricultura','pulida'],desc:'Te movés 30% más rápido y los aldeanos cargan el doble.'},
- {id:'contar',name:'Contar con piedras',cost:{piedra:45},ideas:140,req:['pinturas'],desc:'El primer cálculo. La investigación va 50% más rápido.'},
- {id:'abaco',name:'Ábaco',cost:{madera:40,piedra:40,pedernal:12,arcilla:10},ideas:200,req:['rueda','contar','ceramica'],desc:'Desbloquea la obra final: construir el ábaco cierra la Prehistoria.'}];
+ {id:'pinturas',name:'Pinturas rupestres',cost:{piedra:20,pieles:4},ideas:50,req:['lenguaje'],desc:'Desbloquea la cueva pintada, que genera muchas ideas.'},
+ {id:'agricultura',name:'Agricultura',cost:{madera:30,comida:30},ideas:55,req:['almacen'],desc:'Desbloquea cultivos: comida que crece sola (menos en invierno).'},
+ {id:'pulida',name:'Piedra pulida',cost:{piedra:30,pedernal:12},ideas:55,req:['pedernal','lenguaje'],desc:'Herramientas de nivel 3 (necesitan taller nivel 2).'},
+ {id:'ceramica',name:'Cerámica',cost:{madera:20,arcilla:20},ideas:60,req:['agricultura','fuego'],desc:'Vasijas de barro cocido: +50% de capacidad de comida y cosechas más grandes.'},
+ {id:'rueda',name:'Rueda',cost:{madera:50,piedra:35},ideas:75,req:['agricultura','pulida'],desc:'Te movés 30% más rápido y los aldeanos cargan el doble.'},
+ {id:'contar',name:'Contar con piedras',cost:{piedra:45},ideas:90,req:['pinturas'],desc:'El primer cálculo. La investigación va 50% más rápido.'},
+ {id:'abaco',name:'Ábaco',cost:{madera:40,piedra:40,pedernal:12,arcilla:10},ideas:110,req:['rueda','contar','ceramica'],desc:'Desbloquea la obra final: construir el ábaco cierra la Prehistoria.'}];
 const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=[
  {id:'fogata',name:'Fogata',req:'fuego',lv:[{c:{madera:6,piedra:4},w:6},{c:{madera:15,piedra:12},w:10},{c:{madera:30,piedra:25,pieles:4},w:16}],grow:1.5,
@@ -280,7 +280,7 @@ const BUILDS=[
    fx:lv=>['Ideas +'+fmt(FX.cueva.ideas[lv-1]*60)+'/min'],desc:'El conocimiento queda pintado en la pared.'},
  {id:'cultivo',name:'Cultivo',req:'agricultura',lv:[{c:{madera:3,comida:3},w:3}],grow:1.08,
    fx:()=>['Cosecha de '+(st&&st.techs.ceramica?8:5)+' comida cada '+CROP_T*3+' s','No crece en invierno'],desc:'Los aldeanos cosechan solos.'},
- {id:'monumento',name:'Ábaco',req:'abaco',lv:[{c:{madera:30,piedra:30,pedernal:10},w:60}],grow:9,unique:true,
+ {id:'monumento',name:'Ábaco',req:'abaco',lv:[{c:{madera:30,piedra:30,pedernal:10},w:45}],grow:9,unique:true,
    fx:()=>['Cierra la Prehistoria'],desc:'La primera máquina de calcular. Obra grande: ponete a trabajar con toda la tribu.'}];
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
 // Aldeanos pensando junto a una fogata (prioridad Ideas): cada uno suma ideas y velocidad de investigación.
@@ -437,7 +437,10 @@ const buildCost=b=>{const n=agg.count[b.id]||0,c={};for(const k in b.lv[0].c)c[k
 const buildWork=o=>BUILD[o.t].lv[o.lv]?BUILD[o.t].lv[o.lv].w:1;
 const workPow=()=>1+Math.max(st.upg.hacha,st.upg.pico)*0.5;
 const thinkers=()=>vil.filter(v=>v.state==='think').length;
-const ideaRate=()=>(agg.ideas+thinkers()*THINK.ideas)*(st.techs.lenguaje?1.3:1)*(1+0.05*vil.length);
+// La tribu piensa sola un poco (IDEA_BASE), aunque no haya fogata ni nadie pensando: en octubre de 2026 Juani dijo que la
+// investigación seguía lenta, sobre todo la del ábaco.
+const IDEA_BASE=0.1;
+const ideaRate=()=>(IDEA_BASE+agg.ideas+thinkers()*THINK.ideas)*(st.techs.lenguaje?1.3:1)*(1+0.05*vil.length);
 const rsSpeed=()=>(1.2+agg.rs+thinkers()*THINK.rs)*(st.techs.contar?1.5:1);
 const winterPenalty=()=>isWinter()&&!st.techs.vestimenta;
 function darkness(){const ph=(st.time%DAY)/DAY;if(ph<0.62)return 0;if(ph<0.72)return(ph-0.62)/0.1*0.62;if(ph<0.92)return 0.62;return(1-ph)/0.08*0.62;}
