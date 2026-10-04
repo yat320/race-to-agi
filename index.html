@@ -45,6 +45,9 @@ h2{margin:0;font:700 20px var(--f-display)}
 .btn{font:600 14px var(--f-display);background:var(--ochre);color:var(--ink);border:0;border-bottom:3px solid var(--ochre-deep);padding:8px 14px 6px;cursor:pointer;white-space:nowrap}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--bone)}
 .btn:disabled{opacity:.5;cursor:default}
+.btn.ghost.warn{border-color:var(--danger);color:var(--danger)}
+.btn.ghost.on{border-color:var(--signal);color:var(--signal)}
+.legacy h3{margin:18px 0 0;font:700 16px var(--f-display)}
 button:focus-visible,textarea:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 .tag{font:600 11px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .legacy{display:grid;gap:10px;padding:16px;background:var(--panel);border:1px solid var(--line)}
@@ -88,6 +91,12 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
     <p>¿Tenés un código de antes? Pegalo acá.</p>
     <textarea id="paste" aria-label="Pegar código de progreso" placeholder="RTAGI-…"></textarea>
     <div class="row"><button class="btn ghost" id="load">Cargar código</button><span class="msg" id="loadMsg"></span></div>
+    <!-- Para probar sin jugar todo: el modo prueba abre cualquier era y deja terminarla desde su menú; empezar de cero borra el mundo abierto. -->
+    <h3>Para probar</h3>
+    <p>Con el modo prueba abrís cualquier era sin terminar la anterior y, desde su menú, la terminás al toque para pasar a la siguiente con tu ciudad.</p>
+    <div class="row"><button class="btn ghost" id="test" aria-pressed="false">Modo prueba: no</button></div>
+    <p>Empezar de cero borra todas las eras del mundo abierto de este navegador; las misiones y la carrera quedan. Si querés poder volver, copiá antes el código.</p>
+    <div class="row"><button class="btn ghost" id="wipe">Empezar de cero</button><span class="msg" id="wipeMsg"></span></div>
   </section>
 
   <!-- Los modos que se probaron antes del mundo abierto: siguen jugables y con sus partidas, pero fuera del camino. -->
@@ -105,7 +114,7 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
 <script>
 (function(){
 'use strict';
-const LEG='rtagi-legacy-v1';
+const LEG='rtagi-legacy-v1',TEST='rtagi-prueba';
 // Misiones (otro modo, plegado abajo): las dos eras que tienen archivo.
 const ERAS=[
   {n:1,name:'Prehistoria',when:'200.000 – 3.000 a.C.',file:'era1.html',save:'rtagi-era1-misiones-v1'},
@@ -175,11 +184,14 @@ function render(){
   for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=i*10+'%';bar.appendChild(t);}
   // La era para jugar ahora: la más avanzada que abriste, o la siguiente si ya la terminaste.
   let cur=0;for(let i=MUNDO.length-1;i>=0;i--)if(ms[i]){cur=ms[i].won&&i<MUNDO.length-1?i+1:i;break;}
+  // Modo prueba: todas las eras se pueden abrir; las que no tienen la anterior terminada arrancan sin ciudad.
+  const test=get(TEST)==='1';$('test').textContent='Modo prueba: '+(test?'sí':'no');$('test').setAttribute('aria-pressed',String(test));$('test').classList.toggle('on',test);
   const ml=$('mundo');ml.innerHTML='';
   MUNDO.forEach((e,i)=>{
-    const s=ms[i],open=i===0||!!s||!!(ms[i-1]&&ms[i-1].won),main=i===cur?'btn':'btn ghost';
+    const s=ms[i],natural=i===0||!!s||!!(ms[i-1]&&ms[i-1].won),open=test||natural,main=i===cur?'btn':'btn ghost';
     let cls,state,action;
-    if(s&&s.won){cls='done';state=(e.n===10?'Carrera ganada':'Terminada')+' en el día '+s.dia;action='<button class="'+main+'" data-mundo="'+i+'">Jugar</button>';}
+    if(!natural&&open){cls='open';state='Modo prueba: arranca sin la ciudad de la era anterior';action='<button class="btn ghost" data-mundo="'+i+'">Probar</button>';}
+    else if(s&&s.won){cls='done';state=(e.n===10?'Carrera ganada':'Terminada')+' en el día '+s.dia;action='<button class="'+main+'" data-mundo="'+i+'">Jugar</button>';}
     else if(!open){cls='locked';state='Terminá la era anterior para desbloquearla';action='<span class="tag">Bloqueada</span>';}
     else if(s&&s.seen){cls='open';state=(s.lost?'Carrera perdida':'En curso')+' · día '+s.dia;action='<button class="'+main+'" data-mundo="'+i+'">Continuar</button>';}
     else{cls='open';state='Lista para empezar';action='<button class="'+main+'" data-mundo="'+i+'">Empezar</button>';}
@@ -228,6 +240,13 @@ $('copy').addEventListener('click',()=>{
   const fallback=()=>{$('code').focus();$('code').select();alertMsg('copyMsg','Seleccionado: copialo con el menú del teclado');};
   try{navigator.clipboard.writeText(v).then(ok,fallback);}catch(e){fallback();}
 });
+$('test').addEventListener('click',()=>{if(get(TEST)==='1')try{localStorage.removeItem(TEST);}catch(e){}else set(TEST,'1');render();});
+// Empezar de cero borra las partidas de todas las eras del mundo abierto (no las misiones ni la carrera), con un segundo toque para confirmar.
+let wipeArmed=false;
+$('wipe').addEventListener('click',()=>{const b=$('wipe');
+  if(!wipeArmed){wipeArmed=true;b.textContent='Tocá de nuevo para borrar todo';b.classList.add('warn');alertMsg('wipeMsg','Se borran las '+MUNDO.length+' eras del mundo abierto.',true);return;}
+  for(const e of MUNDO)try{localStorage.removeItem(e.save);}catch(x){}
+  wipeArmed=false;b.textContent='Empezar de cero';b.classList.remove('warn');alertMsg('wipeMsg','Listo: el mundo abierto empieza de cero.');render();});
 // Un código completo reemplaza el progreso de este navegador: se pide un segundo toque para confirmar.
 let loadArmed=false;
 $('paste').addEventListener('input',()=>{loadArmed=false;$('load').textContent='Cargar código';});
