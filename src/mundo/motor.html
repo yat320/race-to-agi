@@ -478,11 +478,12 @@ function updateMeteors(dt){
     zaps.push({x:m.x,y:m.y,t:0.6,boom:true});}
   meteors=meteors.filter(m=>!m.dead);}
 // Piratas (ERA.pirates, el invento desde el que llegan): cada tanto un barco desembarca piratas en la costa del mar más cercana
-// a un edificio. Caminan hasta él, roban monedas y mineral y vuelven al barco. Tocarlos los echa (+2 ideas) y devuelve lo que
-// llevaban. La defensa de la era (ERA.defense, la atalaya) echa sola a los que pasan a ERA.defense.r casilleros o menos.
+// a un edificio. Caminan hasta él, roban PIRATE_COINS monedas más el PIRATE_CUT de las que tenés y hasta PIRATE_ORE de mineral, y
+// vuelven al barco. Tocarlos los echa (+2 ideas) y devuelve lo que llevaban. En octubre de 2026 se suavizaron (antes cada 75 s,
+// 15 + 20% de las monedas y hasta 10 de mineral: sin tocarlos ni atalayas la era tardaba más del doble). La defensa de la era (ERA.defense, la atalaya) echa sola a los que pasan a ERA.defense.r casilleros o menos.
 // Llegan más seguido con cada invento (+10%) y con la navegación (+30%); desde 5 inventos bajan de a dos.
-const PIRATE_SPD=1.5;
-const pirateEvery=()=>75/((1+0.1*Object.keys(st.techs).length)*(st.techs.navegacion?1.3:1));
+const PIRATE_SPD=1.5,PIRATE_COINS=6,PIRATE_CUT=0.1,PIRATE_ORE=5;
+const pirateEvery=()=>90/((1+0.1*Object.keys(st.techs).length)*(st.techs.navegacion?1.3:1));
 // El mar: el agua unida al borde del mapa (los lagos no cuentan).
 function ocean(){if(OCEAN)return OCEAN;OCEAN=new Uint8Array(MW*MH);const q=[];
   for(let i=0;i<MW*MH;i++){const x=i%MW,y=(i/MW)|0;if((x===0||y===0||x===MW-1||y===MH-1)&&ground[i]===WATER){OCEAN[i]=1;q.push(i);}}
@@ -506,7 +507,7 @@ function updatePirates(dt){const D=ERA.defense,towers=[];if(D)obj.forEach((o,i)=
     if(p.blocked){p.blocked=false;const[x,y]=tileOf(p);if(p.state==='go')p.path=pathAdj(x,y,p.target[0],p.target[1])||[];else pirateFlee(p);}
     if(!p.scared&&towers.some(i=>Math.hypot(i%MW-p.x,((i/MW)|0)-p.y)<=D.r)){p.scared=true;float(p.x,p.y-1,'¡la atalaya!','#ffd35a');giveBack(p);pirateFlee(p);continue;}
     if(p.path.length)continue;
-    if(p.state==='go'){const m=Math.min(Math.floor(st.res.monedas),15+Math.floor(st.res.monedas*0.2)),c=Math.min(Math.floor(st.res[ORE]),10);
+    if(p.state==='go'){const m=Math.min(Math.floor(st.res.monedas),PIRATE_COINS+Math.floor(st.res.monedas*PIRATE_CUT)),c=Math.min(Math.floor(st.res[ORE]),PIRATE_ORE);
       if(m+c>0){st.res.monedas-=m;st.res[ORE]-=c;p.loot={monedas:m,[ORE]:c};p.carry=1;p.kind=m?'monedas':ORE;float(p.x,p.y-0.6,'−'+lootText(p.loot),'#e8654d');
         toast('¡Los piratas robaron '+lootText(p.loot)+'! Tocalos antes de que lleguen al barco.');}
       pirateFlee(p);}
