@@ -245,6 +245,7 @@ const TECHS=[
  {id:'cuerdas',name:'Cuerdas y nudos',cost:{madera:15},ideas:15,req:['tallada'],desc:'Fibras trenzadas. Permite hacer una canasta: más bayas por puñado.'},
  {id:'refugio',name:'Refugio',cost:{madera:18,piedra:10},ideas:18,req:['fuego'],desc:'Desbloquea la choza. Si hay lugar y comida, llega gente.'},
  {id:'caza',name:'Caza',cost:{madera:15,piedra:10},ideas:25,req:['cuerdas'],desc:'Lanza de madera para cazar ciervos y campamento de caza.'},
+ {id:'domesticacion',name:'Domesticación',cost:{comida:10,pieles:2},ideas:20,req:['caza','fuego'],desc:'Algunos lobos se acercan al fuego por las sobras y se quedan: desbloquea la cucha, con un perro que cuida a la tribu de noche y ayuda a cazar.'},
  {id:'lenguaje',name:'Lenguaje',cost:{comida:15},ideas:30,req:['refugio'],desc:'Le podés decir a la tribu qué priorizar. Ideas +30%.'},
  {id:'puentes',name:'Troncos y puentes',cost:{madera:30},ideas:30,req:['cuerdas','refugio'],desc:'Desbloquea el puente. Del otro lado del río hay robles, pedernal y jabalíes.'},
  {id:'almacen',name:'Almacenamiento',cost:{madera:25,piedra:15},ideas:35,req:['refugio'],desc:'Desbloquea el almacén: más capacidad para todo.'},
@@ -263,6 +264,8 @@ const BUILDS=[
    fx:lv=>['Ideas +'+fmt(FX.fogata.ideas[lv-1]*60)+'/min','Investigación +'+fmt(FX.fogata.rs[lv-1]*60)+'/min','Luz, calor de noche y comida cocinada'],desc:'El centro de la tribu.'},
  {id:'antorcha',name:'Antorcha',req:'fuego',lv:[{c:{madera:6,piedra:2},w:3}],grow:1.25,
    fx:()=>['Los lobos no se acercan a '+WOLF_R+' casilleros','Alumbra de noche'],desc:'Un palo con fuego en la punta: de noche se puede trabajar cerca sin que te acechen los lobos.'},
+ {id:'cucha',name:'Cucha',req:'domesticacion',lv:[{c:{madera:6,pieles:1},w:4}],grow:1.4,
+   fx:()=>['Un perro que de noche cuida a quien anda lejos del fuego','Corre a los lobos que se le acercan a '+DOG_R+' casilleros','Ayuda a cazar: +50% de carne y +1 de pieles (hasta '+DOG_HUNT+' perros)','Come 1 de comida cada '+DOG_EAT+' s si sobra'],desc:'Una cucha de ramas y pieles para un perro.'},
  {id:'choza',name:'Choza',req:'refugio',lv:[{c:{madera:14,piedra:6},w:12},{c:{madera:20,piedra:12,pieles:3},w:14},{c:{madera:30,piedra:20,pieles:6},w:18}],grow:1.45,
    fx:lv=>['Lugar para '+lv+(lv===1?' aldeano':' aldeanos')],desc:'Los aldeanos llegan si hay lugar y comida.'},
  {id:'taller',name:'Taller',req:'pedernal',lv:[{c:{madera:20,piedra:15},w:12},{c:{madera:35,piedra:25,pedernal:8},w:18},{c:{madera:50,pedernal:15,pieles:6},w:24}],grow:3,unique:true,
@@ -374,10 +377,10 @@ renderGround();
 /* ---------- estado ---------- */
 let st,agg={count:{},lvsum:{},maxlv:{}};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,hunt:null,face:1,moving:false,retried:false,hurt:0};
-const vil=[];let anim=[],wolves=[],wolfT=0,wolfDark=false,wolfPinT=0,wolfLost=0;
+const vil=[];let anim=[],wolves=[],dogs=[],wolfT=0,wolfDark=false,wolfPinT=0,wolfLost=0;
 let floats=[],parts=[],flakes=[],bugs=[],marker=null,placing=null,paused=false,last=performance.now(),shake=0,animTimer=5,hitoTimer=1;
 function freshState(){return{res:{madera:0,piedra:0,comida:6,pieles:0,pedernal:0,arcilla:0,ideas:3},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',
-  upg:{hacha:0,pico:0,lanza:0,canasta:0,sandalias:0},rs:null,nextEvent:170,arrive:0,party:0,lastSeason:0,lost:0,kills:0,boars:0,found:{madera:1,piedra:1,comida:1,ideas:1},hitos:{},vg:0};}
+  upg:{hacha:0,pico:0,lanza:0,canasta:0,sandalias:0},rs:null,nextEvent:170,arrive:0,party:0,lastSeason:0,lost:0,kills:0,boars:0,dogScares:0,found:{madera:1,piedra:1,comida:1,ideas:1},hitos:{},vg:0};}
 function recount(){
   agg={count:{},lvsum:{},maxlv:{},housing:0,cap:0,ideas:0,rs:0,comida:0,pieles:0,obras:0};
   BUILDS.forEach(b=>{agg.count[b.id]=0;agg.lvsum[b.id]=0;agg.maxlv[b.id]=0;});
@@ -389,7 +392,7 @@ function recount(){
     else if(o.t==='choza')agg.housing+=lv;}
 }
 function newGame(){
-  obj=genObjects();renderGround();st=freshState();vil.length=0;anim=[];wolves=[];wolfT=0;wolfDark=false;floats=[];parts=[];
+  obj=genObjects();renderGround();st=freshState();vil.length=0;anim=[];wolves=[];dogs=[];wolfT=0;wolfDark=false;floats=[];parts=[];
   Object.assign(P,{x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,hunt:null,face:1});recount();buildChips();
   for(let i=0;i<3;i++)spawnAnim('deer',true);for(let i=0;i<3;i++)spawnAnim('boar',true);
 }
@@ -405,7 +408,7 @@ function load(d){
   const f=freshState();st=Object.assign(f,d.st);st.res=Object.assign(f.res,d.st.res);st.upg=Object.assign(f.upg,d.st.upg);st.found=Object.assign(f.found,d.st.found);st.hitos=d.st.hitos||{};
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null,hunt:null});
   vil.length=0;(d.vil||[]).forEach(v=>{const m=mkVillager(v[0],v[1],v[2],v[3],v[4],v[5]);m.sick=v[6]||0;vil.push(m);});
-  anim=[];wolves=[];wolfT=0;wolfDark=false;floats=[];parts=[];recount();buildChips();for(let i=0;i<2;i++){spawnAnim('deer',true);spawnAnim('boar',true);}return true;
+  anim=[];wolves=[];dogs=[];wolfT=0;wolfDark=false;floats=[];parts=[];recount();syncDogs();buildChips();for(let i=0;i<2;i++){spawnAnim('deer',true);spawnAnim('boar',true);}return true;
 }
 function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
 
@@ -418,7 +421,7 @@ const nearBridge=i=>{const x=i%MW,y=(i/MW)|0;for(let dy=-1;dy<=1;dy++)for(let dx
 const spent=o=>!!(o&&RES[o.t]&&o.hp<=0);
 const passable=(x,y)=>{if(!inb(x,y))return false;const o=obj[y*MW+x];if(isBridge(o))return true;return ground[y*MW+x]!==WATER&&(!o||spent(o));};
 // Alguien parado en el casillero: ahí un recurso no vuelve a crecer hasta que quede libre.
-const occupied=(x,y)=>{const on=e=>Math.round(e.x)===x&&Math.round(e.y)===y;return on(P)||vil.some(on)||anim.some(on);};
+const occupied=(x,y)=>{const on=e=>Math.round(e.x)===x&&Math.round(e.y)===y;return on(P)||vil.some(on)||anim.some(on)||dogs.some(on);};
 const bushOk=o=>!(o.t==='bush'&&isWinter());
 const tallerLv=()=>agg.maxlv.taller||0;
 const vTier=tool=>tool?Math.min(st.upg[tool],1+tallerLv()):0;
@@ -552,8 +555,10 @@ function updateAnim(a,dt){
 }
 function killAnim(a){
   const A=ANIM[a.kind];anim=anim.filter(x=>x!==a);const[x,y]=tileOf(a);
-  add('comida',A.comida);add('pieles',A.pieles);st.gathers++;st.kills++;if(a.kind==='boar')st.boars++;
-  float(x,y,'+'+A.comida+' comida',RCOL.comida);float(x,y-0.5,'+'+A.pieles+' pieles',RCOL.pieles);
+  // Los perros ayudan a cazar: cada uno (hasta DOG_HUNT) suma la mitad de la carne y una piel más.
+  const k=Math.min(DOG_HUNT,dogs.length),cm=Math.round(A.comida*(1+0.5*k)),pl=A.pieles+k;
+  add('comida',cm);add('pieles',pl);st.gathers++;st.kills++;if(a.kind==='boar')st.boars++;
+  float(x,y,'+'+cm+' comida',RCOL.comida);float(x,y-0.5,'+'+pl+' pieles',RCOL.pieles);
   flashChip('comida');flashChip('pieles');burst(x,y,'#c8413b',6,50);SFX.hunt();shake=0.1;st.energy=Math.max(0,st.energy-(a.kind==='boar'?8:3));
 }
 
@@ -576,8 +581,8 @@ const fireSafe=o=>o.t==='antorcha'?WOLF_R:FX.fogata.light[o.lv-1]*0.7;
 function scaredAt(x,y){const r=7,x0=Math.max(0,Math.floor(x-r)),x1=Math.min(MW-1,Math.ceil(x+r)),y0=Math.max(0,Math.floor(y-r)),y1=Math.min(MH-1,Math.ceil(y+r));
   for(let j=y0;j<=y1;j++)for(let i=x0;i<=x1;i++){const o=obj[j*MW+i];if(!o||!o.lv||(o.t!=='antorcha'&&o.t!=='fogata'))continue;if(Math.hypot(i-x,j-y)<=fireSafe(o))return true;}return false;}
 const nearT=(px,py)=>(a,b)=>Math.max(Math.abs(a-px),Math.abs(b-py))<=1;
-// Presas: vos y los aldeanos que están lejos del fuego (si no hay ninguna, vienen por vos).
-const preys=()=>[P,...vil].filter(e=>!scaredAt(e.x,e.y)&&!wolves.some(w=>w.prey===e&&w.state!=='flee'));
+// Presas: vos y los aldeanos que están lejos del fuego y sin un perro al lado (si no hay ninguna, vienen por vos).
+const preys=()=>[P,...vil].filter(e=>!scaredAt(e.x,e.y)&&!guarded(e)&&!wolves.some(w=>w.prey===e&&w.state!=='flee'));
 function spawnWolves(){const active=wolves.filter(w=>w.state!=='flee').length;if(active>=WOLF_MAX)return;
   const ps=preys(),prey=ps.length?ps[Math.floor(rnd()*ps.length)]:P,[px,py]=tileOf(prey);
   // Desde el bosque a 11–14 casilleros de la presa, de este lado del río (sin dar la vuelta por un puente lejano).
@@ -608,6 +613,42 @@ function updateWolves(dt,d){
     w.rp-=dt;if(w.rp<=0||!w.path.length){w.rp=0.5;wolfChase(w);}
     stepEnt(w,dt,WOLF_SPD);if(w.blocked){w.blocked=false;w.rp=0;}}
   wolves=wolves.filter(w=>!w.dead);}
+// Perros (octubre de 2026, pedido de Juani: "un recurso como perros o guardianes para defenderse de los lobos"). Ayudan a
+// cazar (killAnim: cada uno, hasta DOG_HUNT, suma la mitad de la carne y una piel; sin eso, el invento y las cuchas costaban
+// más tiempo del que ahorraban). Con
+// Domesticación, cada cucha terminada trae un perro (no se guardan: al cargar vuelven a salir de sus cuchas, syncDogs). De día
+// da vueltas cerca de su cucha; de noche cuida a la persona más cercana que ande lejos del fuego y que no tenga otro perro
+// (dog.ward) y, si un lobo se le acerca a DOG_R casilleros, lo corre hasta espantarlo. Los lobos no van por quien tiene su
+// perro al lado (guarded). Cada perro come 1 de comida cada DOG_EAT segundos si sobra (al menos DOG_LEFT, lo de la gente
+// primero); si no, se arregla cazando. Se probó que sin comida no cuidara: en una mala racha los perros se comían lo de la
+// tribu, la gente se iba de hambre y el jugador, solo, quedaba acorralado todas las noches.
+const DOG_R=5,DOG_SPD=3.2,DOG_EAT=60,DOG_LEFT=5,DOG_HUNT=2,DOG_NEAR=3,DOG_NAMES=['Firulais','Canela','Manchita','Toby','Luna','Chispa','Tango','Coco'];
+const guarded=e=>dogs.some(g=>g.ward===e&&Math.hypot(g.x-e.x,g.y-e.y)<=DOG_NEAR);
+function syncDogs(){for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||o.t!=='cucha'||!o.lv||dogs.some(g=>g.hi===i))continue;
+  const hx=i%MW,hy=(i/MW)|0,sp=DIRS8.map(([a,b])=>[hx+a,hy+b]).find(([x,y])=>passable(x,y))||tileOf(P);
+  dogs.push({x:sp[0],y:sp[1],path:[],hi:i,home:[hx,hy],face:1,moving:false,t:1,rp:0,ward:null,wolf:null,eat:DOG_EAT,name:DOG_NAMES[dogs.length%DOG_NAMES.length]});}}
+function dogStatus(g){return g.wolf?['corre a un lobo','']:g.ward?['cuida a '+(g.ward===P?'vos':g.ward.name),'']:['descansa cerca de su cucha',''];}
+function pickWard(g){let best=null,bd=1e9;for(const e of[P,...vil]){if(scaredAt(e.x,e.y)||dogs.some(o=>o!==g&&o.ward===e))continue;const dd=Math.hypot(e.x-g.x,e.y-g.y);if(dd<bd){bd=dd;best=e;}}return best;}
+function dogGo(g,dt,e,spd,keep){g.rp-=dt;if(g.rp<=0||!g.path.length){g.rp=0.4;const[x,y]=tileOf(g);g.path=(bfs(x,y,nearT(...tileOf(e)))||[]).slice(0,keep);}
+  stepEnt(g,dt,spd);if(g.blocked){g.blocked=false;g.rp=0;}}
+function updateDogs(dt,d){
+  for(const g of dogs){
+    g.eat-=dt;if(g.eat<=0){g.eat=DOG_EAT;if(st.res.comida>=DOG_LEFT)st.res.comida-=1;}
+    // Un lobo cerca: lo corre hasta espantarlo.
+    if(g.wolf&&(!wolves.includes(g.wolf)||!wolfOut(g.wolf)))g.wolf=null;
+    if(!g.wolf){let bd=DOG_R,best=null;for(const w of wolves){if(!wolfOut(w))continue;const dd=Math.hypot(w.x-g.x,w.y-g.y);if(dd<bd){bd=dd;best=w;}}
+      if(best){g.wolf=best;g.rp=0;float(g.x,g.y-0.8,'¡guau!','#ffd35a');}}
+    if(g.wolf){const w=g.wolf;if(Math.hypot(w.x-g.x,w.y-g.y)<=1.3){wolfFlee(w);float(w.x,w.y-0.8,'¡espantado!','#93d36c');g.wolf=null;st.dogScares++;SFX.hunt();continue;}
+      dogGo(g,dt,w,DOG_SPD,8);continue;}
+    // De noche, cuida a alguien que anda lejos del fuego.
+    if(d>0.15){if(!g.ward||(g.ward!==P&&!vil.includes(g.ward))||scaredAt(g.ward.x,g.ward.y))g.ward=pickWard(g);
+      if(g.ward){const e=g.ward;if(Math.hypot(e.x-g.x,e.y-g.y)>1.5)dogGo(g,dt,e,DOG_SPD*0.85,10);else{g.moving=false;g.path=[];if(Math.abs(e.x-g.x)>0.2)g.face=e.x>g.x?1:-1;}continue;}}
+    else g.ward=null;
+    // De día, o sin nadie que cuidar: da vueltas cerca de su cucha.
+    g.t-=dt;if(!g.path.length&&g.t<=0){g.t=1.5+rnd()*2.5;const[x,y]=tileOf(g),dh=(u,w)=>Math.hypot(u-g.home[0],w-g.home[1]);
+      const opts=DIRS.map(([a,b])=>[x+a,y+b]).filter(([u,w])=>passable(u,w)&&!isBridge(obj[w*MW+u]));
+      if(opts.length){opts.sort((p,q)=>dh(...p)-dh(...q));g.path=[dh(x,y)>3?opts[0]:opts[Math.floor(rnd()*opts.length)]];}}
+    stepEnt(g,dt,1.6);g.blocked=false;}}
 
 /* ---------- aldeanos ---------- */
 function pickName(){const free=NAMES.filter(n=>!vil.some(v=>v.name===n));return free.length?free[Math.floor(rnd()*free.length)]:'Aldeano';}
@@ -752,7 +793,8 @@ function update(dt){
   animTimer-=dt;if(animTimer<=0){animTimer=22;spawnAnim('deer');spawnAnim('boar');}
   for(const a of anim)updateAnim(a,dt);
   updateWolves(dt,d);
-  hitoTimer-=dt;if(hitoTimer<=0){hitoTimer=1;checkHitos();}
+  updateDogs(dt,d);
+  hitoTimer-=dt;if(hitoTimer<=0){hitoTimer=1;checkHitos();syncDogs();}
   for(const f of floats){f.t-=dt;f.y-=dt*10;}floats=floats.filter(f=>f.t>0);
   for(const p of parts){p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=160*dt;}parts=parts.filter(p=>p.t>0);
   if(winter){if(flakes.length<60&&rnd()<0.5)flakes.push({x:rnd(),y:-0.02,v:0.03+rnd()*0.04,d:rnd()*6});}
@@ -947,6 +989,18 @@ function wolfArt(f){const B=P4('#34373f','#4c5059','#6f747d','#9a9fa8'),L=hx('#c
   blob(a,[[51,22,7]],B,null);poly(a,[[52,20],[63,24],[62,29],[52,29]],B[2]);rect(a,53,27,10,2,L);rect(a,61,23,3,3,OUTL);
   poly(a,[[45,18],[47,6],[51,16]],B[1]);poly(a,[[51,17],[54,7],[56,18]],B[2]);a.set(48,12,hx('#a0707a'));
   rect(a,53,21,2,2,hx('#ffd35a'));a.set(54,22,OUTL);line(a,55,29,61,29,OUTL,1);outlineAll(a,OUTL);});}
+// Cucha: una casita de ramas con techo de pieles y el plato del perro.
+function kennelArt(){return mkA(64,64,a=>{rect(a,12,36,40,22,WOOD[2]);for(let x=12;x<52;x+=5)rect(a,x,36,1,22,WOOD[1]);rect(a,40,36,12,22,WOOD[1]);
+  poly(a,[[8,38],[32,16],[56,38]],(x,y)=>x<32?HIDE[2]:HIDE[1]);for(let y=22;y<38;y+=5)line(a,32-(y-16)*1.05,y,32+(y-16)*1.05,y,HIDE[0],1);
+  ell(a,30,50,8,8,(i,j)=>j<=3?hx('#2a1a12'):null);rect(a,22,54,16,4,hx('#2a1a12'));ell(a,48,58,5,2,ROCK[2]);rect(a,45,56,6,1,hx('#a0703e'));outlineAll(a,OUTL);});}
+// Perro de perfil mirando a la derecha: más chico y claro que el lobo, con la cola enrulada, la lengua afuera y un collar de cuero.
+function dogArt(f){const B=P4('#7a4a22','#a8682f','#c98f55','#e3b27a'),W=hx('#f2e2c4');return mkA(64,52,a=>{
+  const lg=f?[[20,32,16,46],[26,32,28,46],[40,32,37,46],[46,32,49,46]]:[[20,32,20,46],[26,32,26,46],[40,32,40,46],[46,32,46,46]];for(const[x0,y0,x1,y1]of lg){line(a,x0,y0,x1,y1,B[1],3);rect(a,x1-1,y1-1,4,2,B[0]);}
+  line(a,17,26,13,f?18:19,B[2],4);ell(a,15,f?14:15,4,4,(i,j)=>Math.hypot(i,j)>1.6&&!(i>0&&j>0)?B[2]:null);
+  blob(a,[[25,28,8],[36,28,9],[44,25,7]],B,null);ell(a,34,34,9,2.5,(i,j)=>j>0?W:null);
+  blob(a,[[50,19,6]],B,null);poly(a,[[51,17],[61,20],[60,25],[51,25]],B[2]);rect(a,52,23,8,2,W);rect(a,59,19,3,3,OUTL);
+  poly(a,[[44,15],[46,6],[50,13]],B[0]);rect(a,52,17,2,2,OUTL);rect(a,54,25,3,5,hx('#e8907a'));rect(a,44,20,3,10,hx('#8a2a1e'));
+  outlineAll(a,OUTL);});}
 // Persona de frente; pal: c túnica, C sombra, y pelo, p piel, P sombra de piel.
 function personArt(pal,f){const c=hx(pal.c||'#8b5a2b'),C=hx(pal.C||'#63401f'),y=hx(pal.y||'#3a2418'),p=hx(pal.p||'#e3ab7d'),Ps=hx(pal.P||'#b97a55');return mkA(64,64,a=>{
   const lg=f?[[22,50,-2],[38,52,0]]:[[23,52,0],[37,50,-2]];for(const[x,y0,d]of lg){rect(a,x,y0,6,10+d,p);rect(a,x+4,y0,2,10+d,Ps);rect(a,x-1,y0+8+d,8,3,hx('#4f3522'));}
@@ -960,7 +1014,7 @@ const HS={tree:treeArt(LEAF,false,false),treeW:treeArt(LEAF,false,true),oak:tree
   stump:stumpArt(false),stumpBig:stumpArt(true),ramas:ramasArt(true),ramasE:ramasArt(false),pebbles:pebblesArt(true),pebblesE:pebblesArt(false),
   rock:rockArt(ROCK,false),rubble:rubbleArt(),flint:rockArt(FLINT,true),clay:clayArt(true),clayE:clayArt(false),bush:bushArt('B'),bushE:bushArt('E'),bushW:bushArt('W'),
   fogata:[fireArt(0),fireArt(1)],choza:hutArt(false),choza3:hutArt(true),almacen:storeArt(),campamento:campArt(),cueva:caveArt(),taller:workshopArt(),puente:bridgeArt(),abaco:abacusArt(),obra:scaffoldArt(),
-  soil:soilArt(),plant:[plantArt(0),plantArt(1),plantArt(2)],deer:[deerArt(0),deerArt(1)],boar:[boarArt(0),boarArt(1)],wolf:[wolfArt(0),wolfArt(1)],antorcha:[torchArt(0),torchArt(1)],
+  soil:soilArt(),plant:[plantArt(0),plantArt(1),plantArt(2)],deer:[deerArt(0),deerArt(1)],boar:[boarArt(0),boarArt(1)],wolf:[wolfArt(0),wolfArt(1)],dog:[dogArt(0),dogArt(1)],cucha:kennelArt(),antorcha:[torchArt(0),torchArt(1)],
   hero:[personArt({},0),personArt({},1)],vil:VILPAL.map(p=>[personArt(p,0),personArt(p,1)])};
 // Dibuja un sprite en alta con el tamaño que tenía el de 16 px.
 const hd=(c,x,y)=>ctx.drawImage(c,x,y,c.width/ART,c.height/ART);
@@ -1055,6 +1109,7 @@ function render(){
   list.push({k:P.y+1,z:1,e:P,f:HS.hero,kind:'p'});for(const v of vil)list.push({k:v.y+1,z:1,e:v,f:HS.vil[v.skin%4],kind:'v'});
   for(const a of anim)if(a.x>=x0-1&&a.x<=x1+1&&a.y>=y0-1&&a.y<=y1+1)list.push({k:a.y+1,z:1,e:a,f:HS[a.kind],kind:'a'});
   for(const w of wolves)if(!(w.wait>0))list.push({k:w.y+1,z:1,e:w,f:HS.wolf,kind:'w'});
+  for(const g of dogs)list.push({k:g.y+1,z:1,e:g,f:HS.dog,kind:'d'});
   list.sort((a,b)=>a.k-b.k||a.z-b.z);
   for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else drawEnt(it.e,it.f,it.kind);}
   const tg=P.act||P.task;if(tg)corners(tg.x,tg.y,'#5fe3d0');
@@ -1113,6 +1168,7 @@ function goalText(){
   if(st.techs.fuego&&!agg.count.fogata)return['Construir:','una fogata. Acelera todo.'];
   if(st.techs.refugio&&!agg.count.choza)return['Construir:','una choza para que llegue gente.'];
   if(st.techs.fuego&&!agg.count.antorcha&&st.time>DAY*1.6)return['Construir:','una antorcha donde se trabaja: de noche los lobos no se acercan al fuego.'];
+  if(st.techs.domesticacion&&!agg.count.cucha)return['Construir:','una cucha: el perro cuida de noche a quien anda lejos del fuego.'];
   if(seasonIdx()===2&&st.res.comida<30)return['Otoño:','juntá comida antes del invierno.'];
   if(st.techs.caza&&!st.upg.lanza)return['Tribu:','hacete una lanza para cazar ciervos.'];
   if(st.techs.puentes&&!agg.count.puente)return['Río:','construí un puente. Del otro lado hay pedernal.'];
@@ -1192,6 +1248,7 @@ function renderSheet(){
     html+='<div class="group">Qué priorizan</div><div class="seg" role="group" aria-label="Prioridad">'+prios.map(([id,n])=>'<button data-prio="'+id+'" aria-pressed="'+(st.prio===id)+'"'+(st.techs.lenguaje||id==='auto'?'':' disabled')+'>'+(ICON[id]?'<img class="px" alt="" src="'+ICON[id]+'">':'')+n+'</button>').join('')+'</div>';
     html+='<p class="note">'+(st.techs.lenguaje?'En automático: primero obras, después cosechas y lo que más falta. En Ideas: se sientan junto a una fogata y suman investigación ('+THINK.seats+' por fogata).':'Sin lenguaje no les podés dar órdenes: trabajan en automático.')+' Los aldeanos usan herramientas hasta nivel '+(1+tallerLv())+' (sube con el taller) y nunca mejores que las tuyas. Cada uno come 1 cada '+(winterPenalty()?20:30)+' s; si pasa hambre 3 veces seguidas, se va.</p>';
     if(vil.length)html+='<div class="group">Aldeanos</div><ul class="people">'+vil.map(v=>{const[s,c]=vStatus(v);return'<li><b>'+v.name+'</b><span class="'+c+'">'+s+'</span></li>';}).join('')+'</ul>';
+    if(dogs.length)html+='<div class="group">Perros</div><ul class="people">'+dogs.map(g=>{const[s,c]=dogStatus(g);return'<li><b>'+g.name+'</b><span class="'+c+'">'+s+'</span></li>';}).join('')+'</ul><p class="note">De noche cada perro cuida a alguien que anda lejos del fuego y corre a los lobos que se acercan. Ayudan a cazar: cada uno (hasta '+DOG_HUNT+') suma 50% de carne y 1 de pieles a tus cacerías. Come 1 de comida cada '+DOG_EAT+' s si sobra; si no, se arregla cazando.</p>';
     else html+='<p class="note">'+(st.techs.refugio?'Construí una choza: si hay lugar y al menos 8 de comida, llega gente.':'Todavía estás solo. Con Refugio vas a poder construir chozas.')+'</p>';
     const hk=HITOS.filter(h=>st.hitos[h.id]).length;
     html+='<div class="group">Hitos · '+hk+' de '+HITOS.length+'</div><ul class="people">'+HITOS.map(h=>'<li><b>'+(st.hitos[h.id]?h.n:'???')+'</b><span class="'+(st.hitos[h.id]?'pos':'')+'">'+(st.hitos[h.id]?'logrado':Object.entries(h.r).map(([k,v])=>'+'+v+' '+RN[k].toLowerCase()).join(', '))+'</span></li>').join('')+'</ul>';
@@ -1279,6 +1336,8 @@ function onTap(tx,ty,wx,wy){
   if(!inb(tx,ty))return;
   const wolf=wolves.find(w=>wolfOut(w)&&Math.abs(w.x*T+8-wx)<12&&Math.abs(w.y*T+8-wy)<12);
   if(wolf){wolfFlee(wolf);st.res.ideas+=1;float(wolf.x,wolf.y-0.8,'+1 idea',RCOL.ideas);toast('¡Lobo espantado!','good');SFX.hunt();return;}
+  const dog=dogs.find(g=>Math.abs(g.x*T+8-wx)<10&&Math.abs(g.y*T+8-wy)<10);
+  if(dog){float(dog.x,dog.y-0.8,'¡guau!','#ffd35a');toast(dog.name+': '+dogStatus(dog)[0]+'.');return;}
   const hit=anim.find(a=>Math.abs(a.x*T+8-wx)<11&&Math.abs(a.y*T+8-wy)<11);
   if(hit){const A=ANIM[hit.kind];
     if(st.upg.lanza<A.req){toast(hit.kind==='boar'?'Para cazar jabalíes necesitás lanza de pedernal. ¡Y cuidado que embisten!':st.techs.caza?'Necesitás una lanza: hacela en Tribu.':'Para cazar necesitás el invento Caza.');SFX.nope();return;}
@@ -1345,7 +1404,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,get anim(){return anim;},obj:()=>obj,recount,update:dt=>update(dt),P,riverX,bfs,passable,
   // Para el bot de la Prehistoria (tools/bot-prehistoria.mjs): las mismas acciones que los botones, sin abrir hojas.
-  get agg(){return agg;},ground,T,TECHS,BUILDS,UPG,RES,ANIM,onTap,startResearch,eat,get wolves(){return wolves;},get wolfPinT(){return wolfPinT;},get wolfLost(){return wolfLost;},spawnWolves,wolfEvery,scaredAt,HS,cam,get SC(){return SC;},get DPR(){return DPR;},canPlace,buildCost,afford,canGather,canWork,rsSpeed,ideaRate,cap,
+  get agg(){return agg;},ground,T,TECHS,BUILDS,UPG,RES,ANIM,onTap,startResearch,eat,get wolves(){return wolves;},get dogs(){return dogs;},syncDogs,get wolfPinT(){return wolfPinT;},get wolfLost(){return wolfLost;},spawnWolves,wolfEvery,scaredAt,HS,cam,get SC(){return SC;},get DPR(){return DPR;},canPlace,buildCost,afford,canGather,canWork,rsSpeed,ideaRate,cap,
   place:(id,x,y)=>{startPlace(id);tryPlace(x,y);if(placing)stopPlace();},
   tool:id=>{const u=UPG.find(x=>x.id===id),nx=upgNext(u);if(!upgOpen(nx)||!afford(nx.c))return false;pay(nx.c);st.upg[id]++;return true;},
   levelUp:i=>{const o=obj[i],nx=o&&BUILD[o.t]&&BUILD[o.t].lv[o.lv];if(!nx||!afford(nx.c)||o.need)return false;pay(nx.c);o.need=nx.w;o.work=0;recount();return true;}};
