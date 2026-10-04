@@ -2,7 +2,7 @@
 const ERA={
   n:5,name:'Industria',de:'de la Industria',next:{file:'mundo6.html',to:'a la Electricidad'},
   ore:{id:'carbon',name:'Carbón',col:'#a3a8b4',empty:'Veta de carbón agotada',gather:'carbón',icon:[['........','...kk...','..kvqk..','.kqqQkk.','kvqQkqqk','kqQQkqQk','.kkkkkk.','........'],{q:'#3e3848',Q:'#24202c',v:'#8a8f9c'}]},
-  storage:{id:'granero',name:'Granero'},ideaBuild:'palacio',ideaTechs:['quimica','exposiciones','gas'],boostTech:'tarjetas',farmBuild:'estacion',nightTech:'gas',
+  storage:{id:'granero'},ideaBuild:'palacio',ideaTechs:['quimica','exposiciones','gas'],boostTech:'tarjetas',farmBuild:'estacion',nightTech:'gas',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','laboratorio','fabrica','estacion','puerto','palacio','sindicato'],
   // Los ludditas salen de las casas a romper las máquinas de fábricas y minas; el sindicato los calma a 4 casilleros (reglas en motor.html).
@@ -13,7 +13,7 @@ const ERA={
     ['botanica','agri',1.25,'Botánica: granjas +25%']
   ]},
   techs:[
- {id:'vapor',name:'Máquina de vapor',cost:{carbon:15,ideas:30},req:[],desc:'Desbloquea la mina de carbón, la herrería y la cantera.'},
+ {id:'vapor',name:'Máquina de vapor',cost:{carbon:15,ideas:30},req:[],desc:'Desbloquea la mina de carbón, la herrería y la cantera a vapor.'},
  {id:'quimica',name:'Química',cost:{piedra:15,ideas:35},req:[],desc:'Desbloquea el laboratorio, que genera muchas ideas. Ideas +50%.'},
  {id:'telar',name:'Telar mecánico',cost:{carbon:20,ideas:50},req:['vapor'],desc:'Desbloquea la fábrica, que quema carbón, da muchas monedas y echa humo, y el sindicato, donde los obreros negocian.'},
  {id:'ferrocarril',name:'Ferrocarril',cost:{madera:40,piedra:20,ideas:65},req:['vapor'],desc:'Desbloquea la estación de tren, que potencia las granjas.'},
@@ -22,15 +22,16 @@ const ERA={
  {id:'gas',name:'Alumbrado a gas',cost:{monedas:45,ideas:270},req:['barcos','exposiciones'],desc:'Se lee de noche: ideas +50% y ves más lejos en la oscuridad.'},
  {id:'tarjetas',name:'Tarjetas perforadas',cost:{carbon:60,monedas:45,ideas:320},req:['vapor','exposiciones'],desc:'Máquinas que siguen instrucciones: todos los edificios producen +50%.'},
  {id:'analitica',name:'Máquina analítica',cost:{piedra:110,carbon:90,monedas:100,ideas:650},req:['gas','tarjetas'],desc:'Babbage y Ada Lovelace: la primera computadora programable. Cierra la Industria.'}],
+  // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
- {id:'granja',name:'Granja',req:null,base:{madera:12,comida:4},grow:1.25,done:'Granja lista',desc:'Produce comida sola.',prod:{comida:0.2},noSand:true},
- {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche.',prod:{ideas:0.12}},
- {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
- {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
+ {id:'granja',req:null,base:{madera:12,comida:4},grow:1.25,prod:{comida:0.2},noSand:true},
+ {id:'fogata',req:null,base:{madera:5,piedra:4},grow:1.6,prod:{ideas:0.12}},
+ {id:'aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,prod:{madera:0.12}},
+ {id:'granero',req:null,base:{madera:25,piedra:15},grow:1.4},
  {id:'parque',name:'Parque',req:null,base:{madera:15,piedra:10},grow:1.3,done:'Parque plantado: el aire se limpia',desc:'Árboles que limpian el humo. Cada parque compensa casi una fábrica.'},
  {id:'herreria',name:'Herrería',req:'vapor',base:{madera:25,piedra:20,carbon:10},grow:1.6,done:'Herrería lista',desc:'Herramientas de acero: los aldeanos juntan +30% por cada herrería.'},
- {id:'cantera',name:'Cantera',req:'vapor',base:{madera:20,carbon:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
+ {id:'cantera',req:'vapor',base:{madera:20,carbon:8},grow:1.35,prod:{piedra:0.12}},
  {id:'mina',name:'Mina de carbón',req:'vapor',base:{madera:30,piedra:15},grow:1.4,done:'Mina abierta',desc:'Una bomba de vapor saca carbón sola. Echa algo de humo.',prod:{carbon:0.12},smoke:0.03,smk:[[2.2,1.4]]},
  {id:'laboratorio',name:'Laboratorio',req:'quimica',base:{piedra:40,carbon:10},grow:1.5,done:'Laboratorio abierto',desc:'Químicos e inventores: genera muchas ideas.',prod:{ideas:0.35}},
  {id:'fabrica',name:'Fábrica',req:'telar',base:{madera:30,piedra:25,carbon:5},grow:1.4,done:'Fábrica en marcha',desc:'Quema carbón y da muchas monedas. Echa mucho humo. Sin carbón, se frena.',prod:{monedas:0.3},use:{carbon:0.1},smoke:0.06,smk:[[13,0]],puffs:4},
@@ -38,7 +39,7 @@ const ERA={
  {id:'estacion',name:'Estación de tren',req:'ferrocarril',base:{madera:35,piedra:30},grow:1.6,done:'Llegó el tren',desc:'El tren reparte la cosecha: cada estación hace rendir +50% a todas las granjas. Echa algo de humo.',smoke:0.02,smk:[[2.6,7]]},
  {id:'puerto',name:'Puerto',req:'barcos',base:{madera:40,carbon:20},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. Los barcos de vapor traen monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.',smoke:0.015,smk:[[6,2.5],[10,3]]},
  {id:'palacio',name:'Palacio de cristal',req:'exposiciones',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Exposición inaugurada',desc:'Los inventos se muestran al mundo: ideas +30% por cada palacio.'}],
-  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',parque:'Parque: limpia el humo.',herreria:'Herrería: los aldeanos juntan más rápido.',cantera:'Cantera: produce piedra.',mina:'Mina: saca carbón. Echa humo.',laboratorio:'Laboratorio: genera ideas.',sindicato:'Sindicato: calma a los ludditas a 4 casilleros.',fabrica:'Fábrica: quema carbón y da monedas. Echa mucho humo.',estacion:'Estación: potencia las granjas. Echa humo.',puerto:'Puerto: trae monedas e ideas.',palacio:'Palacio de cristal: más ideas.'},
+  info:{casa:'Casa: acá viven 2 aldeanos.',parque:'Parque: limpia el humo.',herreria:'Herrería: los aldeanos juntan más rápido.',mina:'Mina: saca carbón. Echa humo.',laboratorio:'Laboratorio: genera ideas.',sindicato:'Sindicato: calma a los ludditas a 4 casilleros.',fabrica:'Fábrica: quema carbón y da monedas. Echa mucho humo.',estacion:'Estación: potencia las granjas. Echa humo.',puerto:'Puerto: trae monedas e ideas.',palacio:'Palacio de cristal: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
   tips1:[['telar','sindicato','un sindicato cerca de las fábricas y minas: calma a los ludditas.']],
   tips2:[['quimica','laboratorio','un laboratorio: genera muchas ideas.'],['telar','fabrica','una fábrica para conseguir monedas.'],['barcos','puerto','un puerto pegado al agua.']],
@@ -49,7 +50,7 @@ const ERA={
     news:'Novedades: carbón, minas, fábricas, trenes, humo y ludditas. Con mucho humo tu gente junta y cosecha menos: los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos.',
     legacy:'Lo que trae tu ciudad del Renacimiento',
     noLegacy:'No hay un Renacimiento terminado en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Las fábricas, minas, trenes y barcos echan humo: con mucho humo se junta y se cosecha menos, y los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos, y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos. En la compu: flechas o WASD.',
+    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del depósito, lo que sobra se pierde. Las fábricas, minas, trenes y barcos echan humo: con mucho humo se junta y se cosecha menos, y los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos, y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos. En la compu: flechas o WASD.',
     win:'Industria superada',winText:()=>'Terminaste la máquina analítica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ada Lovelace ya escribió el primer programa.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Electricidad.'}
 };
@@ -126,6 +127,6 @@ function ludditeArt(f){const c=personArt({c:'#6b4f38',C:'#4f3a2a',j:'#2a2a3a',y:
   g.fillStyle='#4a4e5a';g.fillRect(19,4,26,7);g.fillRect(38,9,12,3);g.fillStyle='#33363f';g.fillRect(19,10,26,1);
   g.fillStyle='#7a5434';for(let k=0;k<14;k++)g.fillRect(50+Math.round(k*0.3),46-k*2,2,2);g.fillStyle='#34343e';g.fillRect(47,14,12,8);g.fillStyle='#6a6a78';g.fillRect(47,14,12,2);return c;}
 const VILPAL2=[{c:'#4a4e5a',C:'#33363f',j:'#7a5434',y:'#3a2418'},{c:'#6b4f38',C:'#4f3a2a',j:'#2a2a3a',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#2f4a6e',C:'#203450',j:'#d8d0bc',y:'#8a5a2a'}];
-const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:coalOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:brickHouseArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),parque:parkArt(),mina:mineArt(),laboratorio:labArt(),fabrica:factoryArt(),estacion:stationArt(),puerto:steamshipArt(),palacio:crystalArt(),sindicato:unionArt(),luddite:[ludditeArt(0),ludditeArt(1)],
+const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:coalOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:epArt('fogata'),
+  casa:brickHouseArt(),granja:epArt('granja'),aserradero:epArt('aserradero'),granero:epArt('granero'),herreria:epArt('herreria'),cantera:epArt('cantera'),parque:parkArt(),mina:mineArt(),laboratorio:labArt(),fabrica:factoryArt(),estacion:stationArt(),puerto:steamshipArt(),palacio:crystalArt(),sindicato:unionArt(),luddite:[ludditeArt(0),ludditeArt(1)],
   hero:[personArt({c:'#2f6b6b',C:'#1f4a4a',j:'#d4ae62'},0),personArt({c:'#2f6b6b',C:'#1f4a4a',j:'#d4ae62'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};

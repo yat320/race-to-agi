@@ -2,7 +2,7 @@
 const ERA={
   n:4,name:'Renacimiento',de:'del Renacimiento',next:{file:'mundo5.html',to:'a la Industria'},
   ore:{id:'plata',name:'Plata',col:'#e3e8f0',empty:'Veta de plata agotada',gather:'plata',icon:[['........','........','..kkkkkk','.kvvvvQk','kqqqqqQk','kQQQQQkk','kkkkkkk.','........'],{q:'#c9d1dc',Q:'#8a93a3',v:'#ffffff'}]},
-  storage:{id:'granero',name:'Granero'},ideaBuild:'academia',ideaTechs:['perspectiva','academias','telescopio'],boostTech:'mecanica',farmBuild:'jardin',nightTech:'telescopio',
+  storage:{id:'granero'},ideaBuild:'academia',ideaTechs:['perspectiva','academias','telescopio'],boostTech:'mecanica',farmBuild:'jardin',nightTech:'telescopio',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','taller','puerto','academia'],
   // Mangas de langostas que llegan volando a comerse las granjas; el palomar las espanta a 4 casilleros (reglas en motor.html).
@@ -22,21 +22,22 @@ const ERA={
  {id:'telescopio',name:'Telescopio',cost:{monedas:45,ideas:270},req:['carabelas','academias'],desc:'Mirar el cielo de cerca: ideas +50%. De noche ves más lejos.'},
  {id:'mecanica',name:'Mecánica de precisión',cost:{plata:60,monedas:45,ideas:320},req:['mineria','academias'],desc:'Engranajes finos: todos los edificios producen +50%.'},
  {id:'pascalina',name:'Pascalina',cost:{piedra:110,plata:90,monedas:100,ideas:650},req:['telescopio','mecanica'],desc:'La primera calculadora: engranajes que suman solos. Cierra el Renacimiento.'}],
+  // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
- {id:'granja',name:'Granja',req:null,base:{madera:12,comida:4},grow:1.25,done:'Granja lista',desc:'Produce comida sola.',prod:{comida:0.2},noSand:true},
- {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche. Comer cerca rinde el doble.',prod:{ideas:0.12}},
- {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
- {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
+ {id:'granja',req:null,base:{madera:12,comida:4},grow:1.25,prod:{comida:0.2},noSand:true},
+ {id:'fogata',req:null,base:{madera:5,piedra:4},grow:1.6,prod:{ideas:0.12}},
+ {id:'aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,prod:{madera:0.12}},
+ {id:'granero',req:null,base:{madera:25,piedra:15},grow:1.4},
  {id:'herreria',name:'Herrería',req:'mineria',base:{madera:25,piedra:20,plata:10},grow:1.6,done:'Herrería lista',desc:'Herramientas mejores: vos y los aldeanos juntan +30% por cada herrería.'},
- {id:'cantera',name:'Cantera',req:'mineria',base:{madera:20,plata:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
+ {id:'cantera',req:'mineria',base:{madera:20,plata:8},grow:1.35,prod:{piedra:0.12}},
  {id:'taller',name:'Taller de artistas',req:'perspectiva',base:{piedra:40,plata:10},grow:1.5,done:'Taller abierto',desc:'Pintores e inventores trabajan juntos: genera muchas ideas.',prod:{ideas:0.35}},
  {id:'banco',name:'Banco',req:'banca',base:{madera:30,piedra:15,plata:5},grow:1.4,done:'Banco abierto',desc:'Cambia plata por monedas. Si no hay plata, se frena.',prod:{monedas:0.2},use:{plata:0.1}},
  {id:'jardin',name:'Jardín botánico',req:'botanica',base:{madera:35,piedra:30},grow:1.6,done:'Jardín plantado',desc:'Papa y maíz de América: cada jardín hace producir +50% a todas las granjas.'},
  {id:'palomar',name:'Palomar',req:'botanica',base:{madera:20,piedra:25,plata:5},grow:1.4,done:'Palomar listo',desc:'Las palomas espantan las langostas que pasan a 4 casilleros.'},
  {id:'puerto',name:'Puerto',req:'carabelas',base:{madera:40,plata:20},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. Las carabelas traen monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.'},
  {id:'academia',name:'Academia',req:'academias',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Academia abierta',desc:'Ideas +30% por cada academia.'}],
-  info:{casa:'Casa: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas. Comer cerca rinde el doble.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Herrería: juntás más rápido.',cantera:'Cantera: produce piedra.',taller:'Taller de artistas: genera ideas.',banco:'Banco: cambia plata por monedas.',palomar:'Palomar: espanta las langostas a 4 casilleros.',jardin:'Jardín botánico: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',academia:'Academia: más ideas.'},
+  info:{casa:'Casa: acá viven 2 aldeanos.',herreria:'Herrería: juntás más rápido.',taller:'Taller de artistas: genera ideas.',banco:'Banco: cambia plata por monedas.',palomar:'Palomar: espanta las langostas a 4 casilleros.',jardin:'Jardín botánico: potencia las granjas.',puerto:'Puerto: trae monedas e ideas.',academia:'Academia: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
   tips1:[['botanica','palomar','un palomar cerca de las granjas: espanta las langostas.']],
   tips2:[['perspectiva','taller','un taller de artistas: genera muchas ideas.'],['banca','banco','un banco para conseguir monedas.'],['carabelas','puerto','un puerto pegado al agua.']],
@@ -134,6 +135,6 @@ function dovecoteArt(){return mkA(64,64,a=>{for(let y=22;y<60;y++)for(let x=16;x
   dove(20,34);dove(43,34);dove(24,19);
   outlineAll(a,OUTL);});}
 const VILPAL2=[{c:'#7a2a3a',C:'#541c28',j:'#d4ae62',y:'#3a2418'},{c:'#2f5a4a',C:'#1f4034',j:'#e3ddcc',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#b5823b',C:'#8a5f28',j:'#4a2e6a',y:'#8a5a2a'}];
-const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:silverOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:palazzoArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),taller:workshopArt(),banco:bankArt(),jardin:gardenArt(),puerto:caravelArt(),academia:domeArt(),palomar:dovecoteArt(),
+const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:silverOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:epArt('fogata'),
+  casa:palazzoArt(),granja:epArt('granja'),aserradero:epArt('aserradero'),granero:epArt('granero'),herreria:epArt('herreria'),cantera:epArt('cantera'),taller:workshopArt(),banco:bankArt(),jardin:gardenArt(),puerto:caravelArt(),academia:domeArt(),palomar:dovecoteArt(),
   hero:[personArt({c:'#a8322e',C:'#7a2220',j:'#e8c05a'},0),personArt({c:'#a8322e',C:'#7a2220',j:'#e8c05a'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};

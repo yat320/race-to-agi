@@ -2,7 +2,7 @@
 const ERA={
   n:12,name:'Era interestelar',de:'de la era interestelar',next:null,
   ore:{id:'exotica',name:'Materia exótica',col:'#c49cff',empty:'Cristal exótico agotado',gather:'materia exótica',icon:[['....k...','...kvk..','..kvqk.k','.kvqqkkv','.kvqQkvq','kvqQQkqQ','kqQQQkQk','.kkkkkk.'],{q:'#8a5ad0',Q:'#5a3a8a',v:'#e0c8ff'}]},
-  storage:{id:'granero',name:'Granero'},ideaBuild:'academia',ideaTechs:['exotica','xenologia'],boostTech:'cuantica',farmBuild:'terraformador',nightTech:'xenologia',
+  storage:{id:'granero'},ideaBuild:'academia',ideaTechs:['exotica','xenologia'],boostTech:'cuantica',farmBuild:'terraformador',nightTech:'xenologia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','nucleo','contencion','astillero','terraformador','colector','academia'],
   goo:true,defense:{id:'contencion',r:4,label:'Contención'},
@@ -13,7 +13,7 @@ const ERA={
     ['cohetes','speed',1.2,'Cohetes reutilizables: te movés 20% más rápido']
   ]},
   techs:[
- {id:'exotica',name:'Física exótica',cost:{exotica:15,ideas:30},req:[],desc:'Desbloquea el núcleo cuántico, el nanotaller y la cantera. Ideas +50%.'},
+ {id:'exotica',name:'Física exótica',cost:{exotica:15,ideas:30},req:[],desc:'Desbloquea el núcleo cuántico, el nanotaller y la perforadora láser. Ideas +50%.'},
  {id:'campos',name:'Campos de contención',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea el campo de contención: los nanobots no crecen cerca.'},
  {id:'naves',name:'Naves de colonización',cost:{exotica:20,ideas:50},req:['exotica'],desc:'Desbloquea el astillero estelar, que da monedas.'},
  {id:'terraformacion',name:'Terraformación',cost:{madera:40,piedra:20,ideas:65},req:['exotica'],desc:'Desbloquea el terraformador, que potencia las granjas.'},
@@ -22,21 +22,22 @@ const ERA={
  {id:'xenologia',name:'Xenobiología',cost:{monedas:55,ideas:340},req:['sensores','antimateria'],desc:'Desbloquea la academia galáctica. Ideas +50% y de noche ves más lejos.'},
  {id:'cuantica',name:'Computación cuántica',cost:{exotica:70,monedas:55,ideas:450},req:['naves','sensores'],desc:'Todo produce +50%.'},
  {id:'curvatura',name:'Motor de curvatura',cost:{piedra:130,exotica:110,monedas:130,ideas:1000},req:['xenologia','cuantica'],desc:'Doblar el espacio para viajar más rápido que la luz: la primera nave hacia otra estrella. Cierra la era interestelar.'}],
+  // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Arcología',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Arcología lista: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
- {id:'granja',name:'Granja',req:null,base:{madera:12,comida:4},grow:1.25,done:'Granja lista',desc:'Produce comida sola.',prod:{comida:0.2},noSand:true},
- {id:'fogata',name:'Fogata',req:null,base:{madera:5,piedra:4},grow:1.6,done:'Fogata encendida',desc:'Genera ideas y alumbra de noche.',prod:{ideas:0.12}},
- {id:'aserradero',name:'Aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,done:'Aserradero listo',desc:'Produce madera solo.',prod:{madera:0.12}},
- {id:'granero',name:'Granero',req:null,base:{madera:25,piedra:15},grow:1.4,done:'Granero construido',desc:'+150 de capacidad para cada recurso. Las ideas no tienen límite.'},
+ {id:'granja',req:null,base:{madera:12,comida:4},grow:1.25,prod:{comida:0.2},noSand:true},
+ {id:'fogata',req:null,base:{madera:5,piedra:4},grow:1.6,prod:{ideas:0.12}},
+ {id:'aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,prod:{madera:0.12}},
+ {id:'granero',req:null,base:{madera:25,piedra:15},grow:1.4},
  {id:'herreria',name:'Nanotaller',req:'exotica',base:{madera:25,piedra:20,exotica:10},grow:1.6,done:'Nanotaller listo',desc:'Herramientas que se arman solas: los aldeanos y los robots juntan +30% por cada nanotaller.'},
- {id:'cantera',name:'Cantera',req:'exotica',base:{madera:20,exotica:8},grow:1.35,done:'Cantera lista',desc:'Produce piedra sola.',prod:{piedra:0.12}},
+ {id:'cantera',req:'exotica',base:{madera:20,exotica:8},grow:1.35,prod:{piedra:0.12}},
  {id:'nucleo',name:'Núcleo cuántico',req:'exotica',base:{piedra:40,exotica:10},grow:1.5,done:'Núcleo cuántico encendido',desc:'Calcula en muchos mundos a la vez: genera muchísimas ideas.',prod:{ideas:0.6}},
  {id:'contencion',name:'Campo de contención',req:'campos',base:{madera:25,piedra:25,exotica:5},grow:1.4,done:'Campo de contención encendido',desc:'Los nanobots no crecen a 4 casilleros o menos, y lo que quedó adentro se apaga.'},
  {id:'astillero',name:'Astillero estelar',req:'naves',base:{madera:30,piedra:25,exotica:5},grow:1.4,done:'Astillero abierto',desc:'Arma naves que comercian con las colonias: da muchas monedas.',prod:{monedas:0.45}},
  {id:'terraformador',name:'Terraformador',req:'terraformacion',base:{madera:35,piedra:30},grow:1.6,done:'Terraformador listo',desc:'Cada terraformador hace rendir +50% a todas las granjas.'},
  {id:'colector',name:'Colector exótico',req:'antimateria',base:{madera:30,piedra:15,monedas:10},grow:1.4,done:'Colector listo',desc:'Junta materia exótica solo.',prod:{exotica:0.12}},
  {id:'academia',name:'Academia galáctica',req:'xenologia',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Academia abierta',desc:'Ideas +30% por cada academia.'}],
-  info:{casa:'Arcología: acá viven 2 aldeanos.',granja:'Granja: produce comida.',fogata:'Fogata: genera ideas.',aserradero:'Aserradero: produce madera.',granero:'Granero: más capacidad.',herreria:'Nanotaller: los aldeanos juntan más rápido.',cantera:'Cantera: produce piedra.',nucleo:'Núcleo cuántico: genera ideas.',contencion:'Campo de contención: los nanobots no crecen a 4 casilleros o menos.',astillero:'Astillero estelar: da monedas.',terraformador:'Terraformador: potencia las granjas.',colector:'Colector exótico: da materia exótica.',academia:'Academia galáctica: más ideas.'},
+  info:{casa:'Arcología: acá viven 2 aldeanos.',herreria:'Nanotaller: los aldeanos juntan más rápido.',nucleo:'Núcleo cuántico: genera ideas.',contencion:'Campo de contención: los nanobots no crecen a 4 casilleros o menos.',astillero:'Astillero estelar: da monedas.',terraformador:'Terraformador: potencia las granjas.',colector:'Colector exótico: da materia exótica.',academia:'Academia galáctica: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
   tips1:[['campos','contencion','un campo de contención: los nanobots no crecen cerca.']],
   tips2:[['exotica','nucleo','un núcleo cuántico: genera muchísimas ideas.'],['naves','astillero','un astillero estelar para conseguir monedas.'],['terraformacion','terraformador','un terraformador: potencia las granjas.']],
@@ -50,7 +51,7 @@ const ERA={
     news:'Novedades: materia exótica, campos de contención y nanobots grises. Lo que tapa una nube no produce y lo que se puede juntar, se lo come. Si nadie la apaga, se queda sin energía a los 100 s. Cuanto más avanzás, más seguido se escapan.',
     legacy:'Lo que trae tu ciudad de la era estelar',
     noLegacy:'No hay una era estelar terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Se escapan nubes de nanobots: crecen hacia tus edificios y lo que tapan no produce. Tocá cualquier parte de la nube para apagarla; si no, se apaga sola a los 100 s. Los campos de contención no las dejan crecer cerca. En la compu: flechas o WASD.',
+    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Se escapan nubes de nanobots: crecen hacia tus edificios y lo que tapan no produce. Tocá cualquier parte de la nube para apagarla; si no, se apaga sola a los 100 s. Los campos de contención no las dejan crecer cerca. En la compu: flechas o WASD.',
     win:'El motor de curvatura',winText:()=>'Terminaste el motor de curvatura en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. La primera nave de la humanidad sale hacia otra estrella.',
     winNote:'Por ahora es la última era.'}
 };
@@ -96,7 +97,7 @@ function galacticAcademyArt(){return mkA(64,64,a=>{rect(a,4,34,56,26,WHITE[2]);r
   ell(a,32,15,16,11,(i,j)=>{const d=Math.hypot(i/16,j/11),an=Math.atan2(j/11,i/16);if(d>1)return null;const arm=Math.sin(an*2+d*7);return d<0.25?hx('#ffffff'):arm>0.3?EXO[3]:arm>-0.2?EXO[1]:hx('#1e1a34');});
   outlineAll(a,OUTL);});}
 const VILPAL2=[{c:'#e8eef4',C:'#b8c2cc',j:'#c49cff',y:'#3a2418'},{c:'#3a2a5a',C:'#281c40',j:'#5fe3d0',y:'#23160f',p:'#c98a5e',P:'#9a6440'},{c:'#2a6a6a',C:'#1c4c4c',j:'#e8eef4',y:'#8a5a2a'}];
-const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:exoticOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:[fireArt(0),fireArt(1)],
-  casa:arcologyArt(),granja:granjaArt(),aserradero:sawmillArt(),granero:barnArt(),herreria:forgeArt(),cantera:quarryArt(),nucleo:quantumCoreArt(),contencion:containmentArt(),astillero:shipyardArt(),
+const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:exoticOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:epArt('fogata'),
+  casa:arcologyArt(),granja:epArt('granja'),aserradero:epArt('aserradero'),granero:epArt('granero'),herreria:epArt('herreria'),cantera:epArt('cantera'),nucleo:quantumCoreArt(),contencion:containmentArt(),astillero:shipyardArt(),
   terraformador:terraformerArt(),colector:collectorArt(),academia:galacticAcademyArt(),ship:[shipArt(0),shipArt(1)],
   hero:[personArt({c:'#c49cff',C:'#8a5ad0',j:'#2a2a3a'},0),personArt({c:'#c49cff',C:'#8a5ad0',j:'#2a2a3a'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
