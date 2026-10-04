@@ -234,6 +234,11 @@ for(const id in BASIC){const b=BUILDS.find(b=>b.id===id),e=BASIC[id][EPOCH];if(!
 const BUILD={};BUILDS.forEach(b=>BUILD[b.id]=b);
 // Lo que queda de un edificio de otra era que esta no tiene (ver importCity): no se construye y da algunas ideas.
 if(!BUILD.monumento){const m={id:'monumento',name:'Monumento',req:null,base:{},grow:1,hidden:true,desc:'Un edificio de otra época que ya no se usa: la gente lo visita y da algunas ideas.',prod:{ideas:0.05}};BUILDS.push(m);BUILD.monumento=m;}
+// Guardianes (octubre de 2026, pedido de Juani: "el mecanismo de defensa, tipo perro o soldado/guardián, para todas las eras";
+// eligió un edificio nuevo). ERA.guard le da a cada era su cuartel (con el mismo invento y costo que su defensa) y su guardián.
+const GUARD_R=8,GUARD_SPD=3,GUARD_FLY=3.6;
+if(ERA.guard&&ERA.defense&&BUILD[ERA.defense.id]){const d=BUILD[ERA.defense.id],G=ERA.guard;
+  const b={id:'cuartel',name:G.building,req:d.req,base:Object.assign({},d.base),grow:1.6,done:G.done,desc:G.desc};BUILDS.push(b);BUILD.cuartel=b;ERA.info.cuartel=G.info;}
 if(!ERA.info.monumento)ERA.info.monumento='Monumento: un edificio de otra época. La gente lo visita y da algunas ideas.';
 const ERAS=['Prehistoria','Antigüedad','Edad Media','Renacimiento','Industria','Electricidad','Computación','Internet','IA','AGI','Estelar','Interestelar','Galáctica'];
 const PRIOS=[['auto','Automático'],['madera','Madera'],['piedra','Piedra'],[ORE,ERA.ore.name],['comida','Comida']];
@@ -310,7 +315,7 @@ function renderGround(){
 let st,counts={},OLDC={},OLDN={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
-let GRID=null,BROKEN=null,BROKEN_OLD={},OCEAN=null,bugT=0,viruses=[],meteors=[],goos=[],ufos=[],pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
+let GRID=null,BROKEN=null,BROKEN_OLD={},OCEAN=null,bugT=0,viruses=[],meteors=[],goos=[],ufos=[],guards=[],quiet=false,pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
   const L=ERA.legacy,e=prevEra(),out=L.monedas?{has:!!e,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]}:{has:!!e,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e){
@@ -325,7 +330,7 @@ function readLegacy(){
   return out;
 }
 function freshState(){return{res:{madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
-function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;if(isOld(o)){OLDC[o.t]=(OLDC[o.t]||0)+1-oldW(o);OLDN[o.t]=(OLDN[o.t]||0)+1;}}}
+function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;if(isOld(o)){OLDC[o.t]=(OLDC[o.t]||0)+1-oldW(o);OLDN[o.t]=(OLDN[o.t]||0)+1;}}if(BUILD.cuartel)syncGuards();}
 // Edificios que vienen de otra era (importCity): rinden la mitad por cada era de atraso (oldW: la mitad si es de la anterior,
 // un cuarto si es de dos eras atrás) hasta que se modernizan pagando lo mismo que uno nuevo: el primero al precio base y cada
 // uno más caro, contando los que ya están al día (y con el invento que lo desbloquea, si tiene). OLDC suma, por tipo, lo que
@@ -343,7 +348,7 @@ function modernize(i){const o=obj[i],b=o&&BUILD[o.t];if(!isOld(o))return false;
   const was=nameOf(o);pay(c);o.era=ERA.n;recount();float(i%MW,(i/MW)|0,'¡modernizado!','#5fe3d0');toast((was!==b.name?was+' → ':'')+b.name+': rinde como nuevo.');save();return true;}
 function newGame(){
   const city=prevCity();setMap(city?city.map:ERA.n);mapChanged();
-  obj=city?importCity(city):genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];spies=[];goos=[];ufos=[];
+  obj=city?importCity(city):genObjects();renderGround();st=freshState();st.res.ideas=st.legacy.ideas;st.res.monedas=st.legacy.monedas||0;st.safety=st.legacy.safety||0;vil.length=0;floats=[];spies=[];goos=[];ufos=[];guards=[];
   Object.assign(P,{x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1});
   recount();
   if(city){for(const v of city.vil){const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];vil.push(m);}if(city.p)Object.assign(P,{x:city.p[0],y:city.p[1]});
@@ -397,7 +402,7 @@ function load(d){
   st=Object.assign(f,{res:Object.assign(f.res,d.res),energy:d.energy,techs:d.techs||{},time:d.time||0,gathers:d.gathers||0,won:!!d.won,seen:!!d.seen,prio:d.prio||'auto',smog:clamp(+d.smog||0,0,100),rival:clamp(+d.rival||0,0,100),safety:clamp(+d.safety||0,0,100),lost:!!d.lost,legacy:d.legacy||f.legacy});
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null});
   vil.length=0;(d.vil||[]).forEach(v=>{const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];m.bad=!!v[6];vil.push(m);});
-  floats=[];recount();return true;
+  floats=[];guards=[];recount();return true;
 }
 function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
 
@@ -652,6 +657,42 @@ function updateUfos(dt){const T=towersXY();
   // Los que se llevaron vuelven, mareados, al lado de su casa.
   for(const v of vil)if(v.away>0){v.away-=dt;if(v.away<=0){v.away=0;const[hx,hy]=v.home;const sp=[[0,1],[1,0],[-1,0],[0,-1],[1,1],[-1,1]].map(([a,b])=>[hx+a,hy+b]).find(([x,y])=>passable(x,y))||tileOf(P);
     v.x=sp[0];v.y=sp[1];v.t=1;float(v.x,v.y-0.8,'¡volvió!','#93d36c');}}}
+// Guardianes: cada cuartel terminado trae uno (syncGuards; no se guardan, al cargar salen de sus cuarteles). Patrulla cerca de
+// su cuartel y va solo a la amenaza más cercana que esté a GUARD_R casilleros del cuartel: camina hasta ella (los drones vuelan)
+// y la resuelve como un toque tuyo (tapThreat, con las mismas ideas), sin los avisos (quiet).
+function syncGuards(){if(!BUILD.cuartel)return;for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||o.t!=='cuartel'||guards.some(g=>g.hi===i))continue;
+    const hx=i%MW,hy=(i/MW)|0,sp=DIRS8.map(([a,b])=>[hx+a,hy+b]).find(([x,y])=>passable(x,y))||[hx,hy];
+    guards.push({x:sp[0],y:sp[1],path:[],hi:i,home:[hx,hy],face:1,moving:false,t:1,rp:0,goal:null,lift:ERA.guard.fly?0.6:0});}
+  guards=guards.filter(g=>obj[g.hi]&&obj[g.hi].t==='cuartel');}
+// Las amenazas que puede frenar un guardián: dónde está cada una (x,y), dónde se la toca (tx,ty) y si es un edificio (b).
+function threatTargets(){const T=[],add=(x,y,tx,ty,b)=>T.push({x,y,tx,ty,b});
+  for(const v of viruses)add(v.x,v.y,Math.round(v.x),Math.round(v.y));
+  for(const m of meteors)add(m.x,m.y,m.x,m.y);
+  for(const p of pirates)if(!(p.wait>0))add(p.x,p.y,Math.round(p.x),Math.round(p.y));
+  for(const w of swarms)add(w.x,w.y,Math.round(w.x),Math.round(w.y));
+  for(const l of ludds)if(angry(l))add(l.x,l.y,Math.round(l.x),Math.round(l.y));
+  for(const w of storms)add(w.x,w.y,Math.round(w.x),Math.round(w.y-0.6));
+  for(const m of moths)if(loose(m))add(m.x,m.y,Math.round(m.x),Math.round(m.y-0.4));
+  for(const g of goos)add(g.core%MW,(g.core/MW)|0,g.core%MW,(g.core/MW)|0);
+  for(const s of spies)if(spyOut(s))add(s.x,s.y,Math.round(s.x),Math.round(s.y));
+  for(const u of ufos)if(ufoOut(u))add(u.x,u.y,Math.round(u.x),Math.round(u.y-1));
+  for(const v of vil)if(v.bad)add(v.x,v.y,Math.round(v.x),Math.round(v.y));
+  for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&o.bug&&BUILD[o.t])add(i%MW,(i/MW)|0,i%MW,(i/MW)|0,true);}
+  return T;}
+function guardStatus(g){return g.goal?'va a frenar una amenaza':'patrulla cerca de '+(BUILD.cuartel?BUILD.cuartel.name.toLowerCase():'su cuartel');}
+function updateGuards(dt){if(!guards.length)return;const fly=!!ERA.guard.fly;let T=null;
+  for(const g of guards){g.rp-=dt;
+    if(g.rp<=0){g.rp=0.5;T=T||threatTargets();let best=null,bd=1e9;
+      for(const q of T){if(Math.hypot(q.x-g.home[0],q.y-g.home[1])>GUARD_R)continue;const d=Math.hypot(q.x-g.x,q.y-g.y);if(d<bd){bd=d;best=q;}}
+      g.goal=best;
+      if(!fly){const[x,y]=tileOf(g);if(best)g.path=pathAdj(x,y,Math.round(best.x),Math.round(best.y))||[];
+        else if(Math.hypot(g.x-g.home[0],g.y-g.home[1])>2.5)g.path=pathAdj(x,y,g.home[0],g.home[1])||[];
+        else if(!g.path.length&&Math.random()<0.3){const d=DIRS8[Math.floor(Math.random()*8)];if(passable(x+d[0],y+d[1]))g.path=[[x+d[0],y+d[1]]];}}}
+    const q=g.goal;
+    if(q&&Math.hypot(q.x-g.x,q.y-g.y)<=(q.b?1.6:1.2)){quiet=true;let r;try{r=tapThreat(q.tx,q.ty);}finally{quiet=false;}if(r)st.guardHits=(st.guardHits||0)+1;g.goal=null;g.rp=0.3;g.path=[];g.moving=false;continue;}
+    if(fly){const tx=q?q.x:g.home[0],ty=q?q.y+(q.b?0.9:0):g.home[1]+0.9,dx=tx-g.x,dy=ty-g.y,d=Math.hypot(dx,dy),s=GUARD_FLY*dt;
+      if(d>0.05){const k=Math.min(1,s/d);g.x+=dx*k;g.y+=dy*k;if(Math.abs(dx)>0.05)g.face=dx>0?1:-1;}g.moving=true;}
+    else{stepEnt(g,dt,GUARD_SPD);if(g.blocked){g.blocked=false;g.rp=0;}}}}
 // Piratas (ERA.pirates, el invento desde el que llegan): cada tanto un barco desembarca piratas en la costa del mar más cercana
 // a un edificio. Caminan hasta él, roban PIRATE_COINS monedas más el PIRATE_CUT de las que tenés y hasta PIRATE_ORE de mineral, y
 // vuelven al barco. Tocarlos los echa (+2 ideas) y devuelve lo que llevaban. En octubre de 2026 se suavizaron (antes cada 75 s,
@@ -1022,6 +1063,7 @@ function update(dt){
   if(ERA.meteors)updateMeteors(dt);
   if(ERA.goo)updateGoo(dt);
   if(ERA.ufos)updateUfos(dt);
+  if(BUILD.cuartel)updateGuards(dt);
   if(ERA.pirates)updatePirates(dt);
   if(ERA.locusts)updateLocusts(dt);
   if(ERA.luddites)updateLuddites(dt);
@@ -1146,13 +1188,14 @@ function fireArt(f){return mkA(64,56,a=>{line(a,14,48,50,40,WOOD[1],4);line(a,14
   const fl=f?[[20,46],[24,26],[29,34],[32,8],[37,30],[41,20],[44,46]]:[[20,46],[22,30],[27,36],[31,12],[35,24],[39,32],[43,18],[44,46]];poly(a,fl,FIRE[0]);
   const s=(p,k,dy)=>p.map(([x,y])=>[32+(x-32)*k,y+(46-y)*(1-k)+dy]);poly(a,s(fl,0.72,1),FIRE[1]);poly(a,s(fl,0.45,3),FIRE[2]);poly(a,s(fl,0.22,5),FIRE[3]);
   for(const[x,y]of[[10,48],[18,52],[28,54],[38,54],[48,52],[55,47]])blob(a,[[x,y,4]],ROCK,null);outlineAll(a,OUTL);});}
-function personArt(pal,f){const c=hx(pal.c||'#8b5a2b'),C=hx(pal.C||'#63401f'),y=hx(pal.y||'#3a2418'),p=hx(pal.p||'#e3ab7d'),Ps=hx(pal.P||'#b97a55');return mkA(64,64,a=>{
+// Persona de frente sin contorno: la usan personArt y los guardianes (que le agregan casco, gorra o lo que lleven).
+function personBody(a,pal,f){const c=hx(pal.c||'#8b5a2b'),C=hx(pal.C||'#63401f'),y=hx(pal.y||'#3a2418'),p=hx(pal.p||'#e3ab7d'),Ps=hx(pal.P||'#b97a55');
   const lg=f?[[22,50,-2],[38,52,0]]:[[23,52,0],[37,50,-2]];for(const[x,y0,d]of lg){rect(a,x,y0,6,10+d,p);rect(a,x+4,y0,2,10+d,Ps);rect(a,x-1,y0+8+d,8,3,hx('#4f3522'));}
   poly(a,[[20,30],[44,30],[48,54],[16,54]],(X,Y)=>X>38?C:c);for(let x=16;x<48;x+=4)poly(a,[[x,53],[x+4,53],[x+2,57]],(X)=>X>38?C:c);rect(a,19,44,26,2,hx(pal.j||'#4f3522'));rect(a,30,44,4,2,hx('#d4ae62'));
   for(const x of[13,45]){rect(a,x,31,6,14,p);rect(a,x+(x<30?0:4),31,2,14,Ps);ell(a,x+3,46,3.5,3,p);}
   ell(a,32,19,12,12,(i,j)=>i>6?Ps:p);ell(a,32,12,13,7,(i,j)=>j<-2||(j<3&&Math.abs(i)>6)||(j<1&&(i+40)%5<2)?y:null);
-  for(const x of[19,44])rect(a,x-1,14,3,10,y);rect(a,26,20,3,4,hx('#1b1a24'));rect(a,35,20,3,4,hx('#1b1a24'));a.set(26,20,hx('#ffffff'));a.set(35,20,hx('#ffffff'));rect(a,23,25,3,2,hx('#e8907a'));rect(a,38,25,3,2,hx('#e8907a'));rect(a,30,27,4,1,Ps);
-  outlineAll(a,OUTL);});}
+  for(const x of[19,44])rect(a,x-1,14,3,10,y);rect(a,26,20,3,4,hx('#1b1a24'));rect(a,35,20,3,4,hx('#1b1a24'));a.set(26,20,hx('#ffffff'));a.set(35,20,hx('#ffffff'));rect(a,23,25,3,2,hx('#e8907a'));rect(a,38,25,3,2,hx('#e8907a'));rect(a,30,27,4,1,Ps);}
+function personArt(pal,f){return mkA(64,64,a=>{personBody(a,pal,f);outlineAll(a,OUTL);});}
 const MARBLE=P4('#a39b88','#bdb5a2','#e3ddcc','#f6f1e4'),PLAST=P4('#b3a98f','#d8d0bc','#ece6d6','#faf6ec'),TERRA=P4('#8f3a26','#b5523b','#d8744f','#f08a7c'),
   BLUER=P4('#24406e','#2f5a96','#4a78b8','#7ea6dc'),COPPER=P4('#8a4a1e','#c97a3a','#e09a58'),MALA=P4('#1f7a62','#3fae8f');
 // Techo a dos aguas visto de frente: triángulo con tejas en franjas.
@@ -1355,12 +1398,65 @@ function stasisVaultArt(){return mkA(64,64,a=>{rect(a,6,26,52,34,EPW[2]);rect(a,
 function nanoShopArt(){return mkA(64,64,a=>{poly(a,[[6,60],[10,24],[54,24],[58,60]],(x,y)=>x>46?EPW[1]:EPW[2]);ell(a,32,24,22,8,(i,j)=>j<=0?EPW[3]:null);
   rect(a,15,34,28,26,hx('#1a2a3a'));rect(a,17,55,24,3,NEON[2]);rect(a,25,45,8,8,NEON[1]);rect(a,25,45,8,2,NEON[3]);rect(a,49,30,2,24,NEON[2]);
   line(a,41,36,34,43,EPW[1],2);ell(a,41,36,2,2,EPW[0]);outlineAll(a,OUTL);a.set(33,44,YEL);a.set(34,45,YEL);});}
+// Guardianes (ERA.guard.kind): una persona con lo que la distingue arriba, o un dron que vuela.
+const GUARD_PAL={soldado:{c:'#a83a2a',C:'#7a2a1e',j:'#d4ae62'},medico:{c:'#2a2a34',C:'#1a1a22'},campo:{c:'#5d7a3a',C:'#435a28',j:'#8a6a2e'},
+  policia:{c:'#24406e',C:'#182c4e',j:'#d4ae62'},electricista:{c:'#e07a2a',C:'#b05a1a',j:'#2a2a3a'},exterminador:{c:'#3f6a3a',C:'#2c4c28',j:'#2a2a3a'},
+  tecnico:{c:'#2f5a96',C:'#24406e',j:'#2a2a3a'},ingeniero:{c:'#e6ecf2',C:'#b8c2cc',j:'#4a78b8'},seguridad:{c:'#2a2a34',C:'#1a1a22',j:'#5d6270'},agente:{c:'#1a1a22',C:'#101016',j:'#1a1a22'}};
+function guardArt(kind,f){if(kind==='dron')return droneArt(f);return mkA(64,64,a=>{personBody(a,GUARD_PAL[kind]||{},f);const K=hx('#1b1a24');
+  switch(kind){
+    // Soldado: casco de bronce con cresta roja y escudo redondo.
+    case'soldado':{const BR=P4('#7a5a1e','#a8782a','#d4a040','#f0c860');ell(a,32,11,14,9,(i,j)=>j<=3?(i<-3?BR[3]:i>6?BR[1]:BR[2]):null);rect(a,18,13,28,2,BR[1]);
+      rect(a,30,0,4,6,hx('#c8413b'));rect(a,26,1,12,3,hx('#c8413b'));ell(a,12,40,8,9,(i,j)=>Math.hypot(i/8,j/9)<0.45?hx('#c8413b'):i<0?BR[3]:BR[2]);break;}
+    // Médico de la peste: sombrero negro de ala ancha y máscara de pico con anteojos.
+    case'medico':{rect(a,12,6,40,3,K);rect(a,20,0,24,7,K);rect(a,20,5,24,1,hx('#4f4f5a'));poly(a,[[30,19],[54,25],[30,29]],(x,y)=>y<24?hx('#f0e2c4'):hx('#c8b898'));
+      ell(a,27,20,3,3,K);ell(a,37,20,3,3,K);a.set(26,19,hx('#a8c8e8'));a.set(36,19,hx('#a8c8e8'));break;}
+    // Guardián del campo: sombrero de paja y una antorcha que humea.
+    case'campo':{ell(a,32,9,20,3,hx('#d4ae62'));ell(a,32,6,10,6,(i,j)=>j<=1?hx('#ecd67e'):null);rect(a,22,8,20,1,hx('#8a6a2e'));line(a,50,46,56,26,hx('#7a5434'),2);
+      ell(a,57,22,3,4,hx('#f08a24'));ell(a,57,21,1.5,2.5,hx('#ffd35a'));break;}
+    // Policía: casco alto azul con la chapa.
+    case'policia':{ell(a,32,8,11,11,(i,j)=>j<=4?(i<-3?hx('#3a5a8e'):hx('#24406e')):null);rect(a,19,12,26,2,hx('#182c4e'));ell(a,32,6,2,2.5,hx('#e8eef4'));rect(a,31,0,2,2,hx('#e8eef4'));break;}
+    // Electricista: casco amarillo y franja reflectiva.
+    case'electricista':{ell(a,32,11,15,9,(i,j)=>j<=2?(i<-4?hx('#ffe680'):hx('#f0c838')):null);rect(a,16,12,32,2,hx('#c8a020'));rect(a,20,38,24,3,hx('#e8eef4'));break;}
+    // Exterminador: gorra verde y una red para atrapar polillas.
+    case'exterminador':{ell(a,32,10,13,6,(i,j)=>j<=1?hx('#3f6a3a'):null);rect(a,32,11,16,2,hx('#2c4c28'));line(a,50,46,56,18,hx('#8a8f9c'),2);
+      ell(a,57,12,6,6,(i,j)=>Math.hypot(i,j)>4.6?hx('#e8eef4'):((i+j)&1)?hx('#c8d2dc'):null);break;}
+    // Técnico: gorra y auriculares con micrófono.
+    case'tecnico':{ell(a,32,10,13,6,(i,j)=>j<=1?hx('#2f5a96'):null);rect(a,32,11,15,2,hx('#24406e'));rect(a,18,14,3,9,K);rect(a,43,14,3,9,K);line(a,44,22,38,27,K,1);rect(a,36,26,3,2,K);break;}
+    // Ingeniero: anteojos y una tableta.
+    case'ingeniero':{for(const x of[24,33]){rect(a,x,18,7,1,K);rect(a,x,22,7,1,K);rect(a,x,18,1,5,K);rect(a,x+6,18,1,5,K);}rect(a,31,19,2,1,K);
+      rect(a,44,36,10,14,hx('#2a2a3a'));rect(a,45,37,8,12,hx('#5fe3d0'));break;}
+    // Guardia de seguridad: gorra negra con chapa y auricular.
+    case'seguridad':{ell(a,32,10,13,6,(i,j)=>j<=1?K:null);rect(a,32,11,15,2,hx('#2a2a34'));rect(a,30,6,4,3,hx('#d4ae62'));rect(a,44,16,2,8,K);break;}
+    // Agente: anteojos negros y corbata.
+    case'agente':{rect(a,23,18,8,4,K);rect(a,33,18,8,4,K);rect(a,30,19,4,1,K);a.set(25,19,hx('#5a6270'));a.set(35,19,hx('#5a6270'));rect(a,30,30,4,13,hx('#f6f1e4'));rect(a,31,31,2,11,K);break;}
+  }
+  outlineAll(a,OUTL);});}
+// Dron: un cuerpo plateado con un ojo cian y dos hélices que giran (el segundo cuadro las muestra de canto).
+function droneArt(f){return mkA(64,48,a=>{const M=P4('#5a6270','#8a93a3','#b8c0cc','#dfe4ea');
+  for(const[x,y]of[[10,14],[54,14]]){line(a,32,24,x,y,M[1],3);ell(a,x,y-3,f?3:11,1.6,M[3]);rect(a,x-1,y-3,3,4,M[0]);}
+  ell(a,32,26,14,9,(i,j)=>j<-3?M[3]:j<3?M[2]:M[1]);ell(a,32,27,5,4,hx('#5fe3d0'));ell(a,31,26,2,2,hx('#e8fff8'));rect(a,22,34,3,6,M[0]);rect(a,39,34,3,6,M[0]);outlineAll(a,OUTL);});}
+// Cuartel de los guardianes, por época: de piedra con estandarte, de ladrillo con farol, de hormigón con escudo y hangar.
+function barracksArt(){return mkA(64,64,a=>{stoneWall(a,6,26,52,34);rect(a,6,26,52,2,STONE2[3]);poly(a,[[2,27],[32,12],[62,27]],(x)=>x<32?TERRA[2]:TERRA[1]);
+  rect(a,24,40,16,20,WOOD[2]);rect(a,24,40,16,2,WOOD[3]);rect(a,31,40,2,20,WOOD[0]);rect(a,46,2,2,24,WOOD[1]);poly(a,[[48,3],[60,7],[48,11]],hx('#c8413b'));
+  line(a,10,58,18,34,WOOD[1],1);line(a,18,58,10,34,WOOD[1],1);rect(a,9,32,3,3,IRON[3]);rect(a,17,32,3,3,IRON[3]);outlineAll(a,OUTL);});}
+function stationHQArt(){return mkA(64,64,a=>{brickWall(a,6,22,52,38);brickWall(a,44,22,14,38,true);rect(a,4,18,56,5,SLATE[1]);rect(a,4,18,56,1,SLATE[3]);
+  rect(a,24,38,16,22,hx('#24406e'));rect(a,31,38,2,22,hx('#182c4e'));for(const x of[10,46])rect(a,x,30,8,10,GLASS[1]);rect(a,22,24,20,7,hx('#f6f1e4'));rect(a,24,26,16,1,hx('#24406e'));rect(a,24,28,10,1,hx('#24406e'));
+  rect(a,31,8,2,10,IRON[1]);ell(a,32,8,4,4,hx('#4a78b8'));ell(a,31,7,1.5,1.5,hx('#b8d4f0'));outlineAll(a,OUTL);});}
+function modernHQArt(){return mkA(64,64,a=>{const CN=P4('#6a6a70','#8a8a90','#a8a8ae','#c8c8cc');rect(a,4,22,56,38,CN[2]);rect(a,44,22,16,38,CN[1]);rect(a,2,18,60,5,CN[0]);rect(a,2,18,60,1,CN[3]);
+  rect(a,22,36,20,24,GLASS[1]);rect(a,31,36,2,24,CN[0]);for(const x of[8,46])rect(a,x,30,10,8,GLASS[2]);
+  poly(a,[[26,24],[38,24],[38,30],[32,34],[26,30]],hx('#2f5a96'));rect(a,30,26,4,4,hx('#f0c838'));outlineAll(a,OUTL);});}
+function hangarArt(){return mkA(64,64,a=>{const W=P4('#a8b4c0','#c8d2dc','#e6ecf2','#ffffff');rect(a,2,50,60,10,W[1]);rect(a,2,50,60,2,W[3]);
+  ell(a,32,50,28,30,(i,j)=>j<=0?(i>14?W[1]:W[2]):null);ell(a,32,50,14,18,(i,j)=>j<=0?hx('#2a3440'):null);for(let x=6;x<60;x+=8)rect(a,x,55,4,2,hx('#5fe3d0'));
+  rect(a,28,24,8,3,hx('#5fe3d0'));outlineAll(a,OUTL);});}
 // La fogata va en dos cuadros; lo demás, en uno.
 const EP_ART={granja:[granjaArt,steamFarmArt,pivotFarmArt,domeFarmArt],fogata:[fireArt,cafeArt,culturalArt,holoplazaArt],aserradero:[sawmillArt,steamSawArt,lumberYardArt,bioreactorArt],
-  cantera:[quarryArt,steamQuarryArt,pitQuarryArt,laserDrillArt],granero:[barnArt,depotArt,logisticsArt,stasisVaultArt],herreria:[forgeArt,forgeArt,garageArt,nanoShopArt]};
+  cantera:[quarryArt,steamQuarryArt,pitQuarryArt,laserDrillArt],granero:[barnArt,depotArt,logisticsArt,stasisVaultArt],herreria:[forgeArt,forgeArt,garageArt,nanoShopArt],
+  cuartel:[barracksArt,stationHQArt,modernHQArt,hangarArt]};
 const EPCACHE={};
 function epArt(id,e=EPOCH){const k=id+e;if(!EPCACHE[k]){const fn=EP_ART[id][e];EPCACHE[k]=id==='fogata'?[fn(0),fn(1)]:fn();}return EPCACHE[k];}
 /*@arte*/
+// El cuartel y su guardián, en las eras que tienen (ERA.guard).
+if(BUILD.cuartel){HS.cuartel=epArt('cuartel');HS.guard=[guardArt(ERA.guard.kind,0),guardArt(ERA.guard.kind,1)];}
 // Dibuja un sprite en alta con el tamaño que tenía el de 16 px.
 // Los robots que vienen de la IA siguen en las eras siguientes; el monumento es para todas.
 if(!HS.robot){HS.robot=[robotArt(0,0),robotArt(1,0)];HS.robotBad=[robotArt(0,1),robotArt(1,1)];}
@@ -1541,6 +1637,7 @@ function render(){
   const list=[];
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*MW+x];if(o)list.push({k:y+1,z:0,o,x,y});}
   list.push({k:P.y+1,z:1,e:P,f:HS.hero,p:true});for(const v of vil)if(!v.away)list.push({k:v.y+1,z:1,e:v,f:v.bot?(v.bad?HS.robotBad:HS.robot):HS.vil[v.skin%3]});
+  for(const g of guards)list.push({k:g.y+1,z:1,e:g,f:HS.guard});
   // Piratas y sus barcos (un barco por desembarco, en el agua junto a la costa).
   {const seen=new Set();for(const p of pirates){const k=p.boat&&p.boat.join();if(k&&!seen.has(k)){seen.add(k);hd(HS.boat,p.boat[0]*T,p.boat[1]*T);}if(!(p.wait>0))list.push({k:p.y+1,z:1,e:p,f:HS.pirate});}}
   for(const l of ludds)if(!(l.wait>0))list.push({k:l.y+1,z:1,e:l,f:HS.luddite});
@@ -1621,6 +1718,8 @@ function goalText(){
   const full=['madera','piedra',ORE,'comida','monedas'].find(k=>st.res[k]>=cap(k));
   if(full)return[ERA.storage.name+(ERA.storage.fem?' llena:':' lleno:'),'no entra más '+RN[full].toLowerCase()+'.'];
   {const t=tips(ERA.tips2);if(t)return t;}
+  // El cuartel, después de las pistas de la era: es otra manera de defenderse, no la primera.
+  {const b=BUILD.cuartel;if(b&&(!b.req||st.techs[b.req])&&!counts.cuartel&&st.time>=150)return['Construí',ERA.guard.tip];}
   {const o=obj.find(canModern);if(o)return['Modernizá:','tocá un edificio con ↑ (viene de otra era): modernizado rinde como nuevo.'];}
   const next=TECHS.find(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r]));
   if(!next)return[ERA.done,'Seguí creciendo tu ciudad.'];
@@ -1803,7 +1902,7 @@ function tryPlace(x,y){
   if(!afford(c)){toast('Te faltan recursos.');stopPlace();return;}
   // `water` en un edificio es el aviso de que tiene que ir pegado al agua.
   if(!canPlace(placing,x,y)){toast(b.water&&inb(x,y)&&!nextToWater(x,y)?b.water:'Ahí no se puede construir.');return;}
-  pay(c);obj[y*MW+x]={t:placing};counts[placing]++;GRID=null;
+  pay(c);obj[y*MW+x]={t:placing};counts[placing]++;GRID=null;if(placing==='cuartel')syncGuards();
   if(placing==='casa'){addVillager(x,y);addVillager(x,y);}
   for(let k=0;k<(b.bots||0);k++)addRobot(x,y);
   toast(b.done);
@@ -1813,7 +1912,7 @@ function tryPlace(x,y){
 }
 
 /* ---------- avisos y modales ---------- */
-function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;const box=$('toasts');box.appendChild(t);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>t.remove(),2600);}
+function toast(msg){if(quiet)return;const t=document.createElement('div');t.className='toast';t.textContent=msg;const box=$('toasts');box.appendChild(t);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>t.remove(),2600);}
 let resetArmed=false;
 function showModal(html,cls){if($('modal').hidden&&!skipPush)navPush();skipPush=false;modalKind=cls||'';paused=true;resetArmed=false;$('modalCard').innerHTML=html;$('modal').hidden=false;const b=$('modalCard').querySelector('button');if(b)b.focus({preventScroll:true});}
 const showModalI=h=>showModal(h,'intro');
@@ -1847,41 +1946,50 @@ $('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tec
 
 /* ---------- entrada ---------- */
 const INFO=ERA.info;
-function onTap(tx,ty){
-  if(placing){tryPlace(tx,ty);return;}
-  {const hit=viruses.find(v=>Math.hypot(v.x-tx,v.y-ty)<=1.2);if(hit){hit.dead=true;viruses=viruses.filter(v=>!v.dead);st.res.ideas+=2;float(hit.x,hit.y,'+2 ideas',RCOL.ideas);return;}}
+// Lo que resuelve un toque sobre una amenaza (o sobre un edificio que dejó una amenaza): lo usan tus toques y los guardianes.
+function tapThreat(tx,ty){
+  {const hit=viruses.find(v=>Math.hypot(v.x-tx,v.y-ty)<=1.2);if(hit){hit.dead=true;viruses=viruses.filter(v=>!v.dead);st.res.ideas+=2;float(hit.x,hit.y,'+2 ideas',RCOL.ideas);return true;}}
   // Un ovni se toca donde se lo ve, arriba, o en el rayo mientras levanta a alguien.
   {const hit=ufos.find(u=>ufoOut(u)&&(Math.hypot(u.x-tx,u.y-1-ty)<=1.5||(u.state==='beam'&&Math.hypot(u.x-tx,u.y-ty)<=1.2)));
-    if(hit){const held=hit.state==='beam';scareUfo(hit,'¡espantado!');st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast(held?'¡Ovni espantado! Soltó a '+(hit.prey&&hit.prey.bot?'tu robot.':'tu aldeano.'):'¡Ovni espantado!');return;}}
+    if(hit){const held=hit.state==='beam';scareUfo(hit,'¡espantado!');st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast(held?'¡Ovni espantado! Soltó a '+(hit.prey&&hit.prey.bot?'tu robot.':'tu aldeano.'):'¡Ovni espantado!');return true;}}
   // Una nube de nanobots se apaga tocando cualquiera de sus casilleros.
-  if(goos.length){const g=gooAt(ty*MW+tx);if(g){killGoo(g,'¡apagada!');st.res.ideas+=2;float(tx,ty-0.6,'+2 ideas',RCOL.ideas);toast('¡Nanobots apagados!');return;}}
+  if(goos.length){const g=gooAt(ty*MW+tx);if(g){killGoo(g,'¡apagada!');st.res.ideas+=2;float(tx,ty-0.6,'+2 ideas',RCOL.ideas);toast('¡Nanobots apagados!');return true;}}
   // Un meteorito se toca donde se lo ve, o en la marca del suelo.
   {const hit=meteors.find(m=>{const p=meteorPos(m);return Math.hypot(p.x-tx,p.y-ty)<=1.6||Math.hypot(m.x-tx,m.y-ty)<=1.2;});
-    if(hit){hit.dead=true;meteors=meteors.filter(m=>!m.dead);const p=meteorPos(hit);zaps.push({x:p.x,y:p.y,t:0.5});st.res.ideas+=2;float(p.x,p.y,'+2 ideas',RCOL.ideas);return;}}
+    if(hit){hit.dead=true;meteors=meteors.filter(m=>!m.dead);const p=meteorPos(hit);zaps.push({x:p.x,y:p.y,t:0.5});st.res.ideas+=2;float(p.x,p.y,'+2 ideas',RCOL.ideas);return true;}}
   {const hit=pirates.find(p=>!(p.wait>0)&&Math.hypot(p.x-tx,p.y-ty)<=1.3);
-    if(hit){giveBack(hit);hit.dead=true;pirates=pirates.filter(p=>!p.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Pirata ahuyentado!');return;}}
+    if(hit){giveBack(hit);hit.dead=true;pirates=pirates.filter(p=>!p.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Pirata ahuyentado!');return true;}}
   {const hit=moths.find(m=>loose(m)&&Math.hypot(m.x-tx,m.y-0.4-ty)<=1.4);
-    if(hit){hit.dead=true;moths=moths.filter(m=>!m.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Polilla atrapada!');return;}}
+    if(hit){hit.dead=true;moths=moths.filter(m=>!m.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Polilla atrapada!');return true;}}
   {const hit=storms.find(w=>Math.hypot(w.x-tx,w.y-0.6-ty)<=1.8);
-    if(hit){hit.dead=true;storms=storms.filter(w=>!w.dead);zaps.push({x:hit.x,y:hit.y-0.6,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-1,'+2 ideas',RCOL.ideas);toast('¡Tormenta disipada!');return;}}
+    if(hit){hit.dead=true;storms=storms.filter(w=>!w.dead);zaps.push({x:hit.x,y:hit.y-0.6,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-1,'+2 ideas',RCOL.ideas);toast('¡Tormenta disipada!');return true;}}
   {const hit=spies.find(s=>spyOut(s)&&Math.hypot(s.x-tx,s.y-ty)<=1.3);
-    if(hit){catchSpy(hit,'+2 ideas');spies=spies.filter(s=>!s.dead);st.res.ideas+=2;toast(hit.loot?'¡Espía atrapado! Recuperaste los planos.':'¡Espía atrapado!');return;}}
+    if(hit){catchSpy(hit,'+2 ideas');spies=spies.filter(s=>!s.dead);st.res.ideas+=2;toast(hit.loot?'¡Espía atrapado! Recuperaste los planos.':'¡Espía atrapado!');return true;}}
   {const hit=ludds.find(l=>angry(l)&&Math.hypot(l.x-tx,l.y-ty)<=1.3);
-    if(hit){luddHome(hit);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('Luddita calmado: vuelve a su casa.');return;}}
+    if(hit){luddHome(hit);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('Luddita calmado: vuelve a su casa.');return true;}}
   {const hit=swarms.find(w=>Math.hypot(w.x-tx,w.y-ty)<=1.5);
-    if(hit){scatter(hit);swarms=swarms.filter(w=>!w.dead);st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Langostas espantadas!');return;}}
-  {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){realign(hit);st.res.ideas+=3;float(hit.x,hit.y-0.6,'+3 ideas',RCOL.ideas);toast('Robot realineado');save();return;}}
+    if(hit){scatter(hit);swarms=swarms.filter(w=>!w.dead);st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Langostas espantadas!');return true;}}
+  {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){realign(hit);st.res.ideas+=3;float(hit.x,hit.y-0.6,'+3 ideas',RCOL.ideas);toast('Robot realineado');save();return true;}}
+  if(!inb(tx,ty))return false;
+  const o=obj[ty*MW+tx];if(!o||!o.bug||!BUILD[o.t])return false;
+    if(o.bug&&o.t==='servidor'){o.bug=false;o.bugAge=0;GRID=null;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Servidor limpio! La red vuelve a andar.');save();return 'b';}
+    if(o.bug&&hijackable(o)){const r=vil.find(v=>v.at===ty*MW+tx);if(r){realign(r);st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);}else{o.bug=false;BROKEN=null;}toast('Robot realineado: el edificio vuelve a producir.');save();return 'b';}
+    if(o.bug&&infectable(o)){o.bug=false;o.bugAge=0;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Virus borrado! Vuelve a producir.');save();return 'b';}
+    if(o.bug&&sickable(o)){o.bug=false;o.bugAge=0;o.heal=0;BROKEN=null;st.res.ideas+=2;float(tx,ty,'+2 ideas',RCOL.ideas);toast('¡Peste curada!');save();return 'b';}
+    if(o.bug&&(ERA.meteors||ERA.luddites||ERA.storms)){o.bug=false;BROKEN=null;GRID=null;float(tx,ty,'¡reparado!','#93d36c');o.fix=0;toast(ERA.luddites?'Máquinas arregladas: vuelve a producir.':ERA.storms?'Arreglado: vuelve la luz.':BUILD[o.t].name+' reparado.');save();return 'b';}
+    if(o.bug){o.bug=false;o.bugAge=0;st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);toast('¡Bicho aplastado!');save();return 'b';}
+  return false;
+}
+function onTap(tx,ty){
+  if(placing){tryPlace(tx,ty);return;}
+  // Un edificio con una amenaza (enfermo, roto, con virus…) muestra la marca del toque, como cualquier edificio.
+  {const r=tapThreat(tx,ty);if(r){if(r==='b')marker={x:tx,y:ty,t:0.6};return;}}
+  {const g=guards.find(g=>Math.hypot(g.x-tx,g.y-g.lift-ty)<0.9);if(g){toast(ERA.guard.unit+': '+guardStatus(g)+'.');return;}}
   if(!inb(tx,ty))return;
   let o=obj[ty*MW+tx];
   if(!o&&inb(tx,ty+1)){const b=obj[(ty+1)*MW+tx];if(b&&b.t==='tree'&&b.hp>0){ty++;o=b;}}
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
   if(o){
-    if(o.bug&&o.t==='servidor'){o.bug=false;o.bugAge=0;GRID=null;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Servidor limpio! La red vuelve a andar.');save();return;}
-    if(o.bug&&hijackable(o)){const r=vil.find(v=>v.at===ty*MW+tx);if(r){realign(r);st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);}else{o.bug=false;BROKEN=null;}toast('Robot realineado: el edificio vuelve a producir.');save();return;}
-    if(o.bug&&infectable(o)){o.bug=false;o.bugAge=0;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Virus borrado! Vuelve a producir.');save();return;}
-    if(o.bug&&sickable(o)){o.bug=false;o.bugAge=0;o.heal=0;BROKEN=null;st.res.ideas+=2;float(tx,ty,'+2 ideas',RCOL.ideas);toast('¡Peste curada!');save();return;}
-    if(o.bug&&(ERA.meteors||ERA.luddites||ERA.storms)){o.bug=false;BROKEN=null;GRID=null;float(tx,ty,'¡reparado!','#93d36c');o.fix=0;toast(ERA.luddites?'Máquinas arregladas: vuelve a producir.':ERA.storms?'Arreglado: vuelve la luz.':BUILD[o.t].name+' reparado.');save();return;}
-    if(o.bug){o.bug=false;o.bugAge=0;st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);toast('¡Bicho aplastado!');save();return;}
     if(isOld(o)){sheetSel=ty*MW+tx;openSheet('bld');return;}
     if(!RES[o.t]){const b=BUILD[o.t];toast(INFO[o.t]+(o.t==='rival'?' Va '+Math.floor(st.rival)+'%.':'')+(o.t==='ciudad'?(grid().on.has(ty*MW+tx)?' Ya está conectada.':' Todavía no está conectada.'):'')+(b&&b.prod?prodLine(b):'')+(b&&b.elec?(grid().powered.has(ty*MW+tx)?' Tiene luz.':' Sin luz: poné un poste cerca.'):''));return;}
     if(!HANDS){if(o.hp<=0)toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');else sendWorker(tx,ty);return;}
@@ -1935,7 +2043,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),virusEvery:()=>virusEvery(),spies:()=>spies,spawnSpies:()=>spawnSpies(),spyEvery:()=>spyEvery(),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
-  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
+  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),guards:()=>guards,threatTargets:()=>threatTargets(),guardArt:(k,f)=>guardArt(k,f),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k)};
 })();
 </script>
 </body></html>

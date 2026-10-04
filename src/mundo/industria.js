@@ -7,6 +7,8 @@ const ERA={
   lights:['herreria','laboratorio','fabrica','estacion','puerto','palacio','sindicato'],
   // Los ludditas salen de las casas a romper las máquinas de fábricas y minas; el sindicato los calma a 4 casilleros (reglas en motor.html).
   luddites:['fabrica','mina'],defense:{id:'sindicato',r:4,label:'Sindicatos',of:['fabrica','mina']},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'policia',building:'Comisaría',unit:'Policía',done:'Comisaría lista: llegó un policía',desc:'Trae un policía que sale solo a calmar a los ludditas y a arreglar las máquinas rotas, a 8 casilleros o menos.',info:'Comisaría: su policía calma a los ludditas cerca.',tip:'una comisaría: el policía sale solo a calmar a los ludditas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo4-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'del Renacimiento',perks:[
     ['pascalina','ideaMult',1.25,'Pascalina: ideas +25% durante toda la era'],

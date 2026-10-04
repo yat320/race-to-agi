@@ -9,6 +9,8 @@ const ERA={
   // Los desalineados toman uno de estos edificios (con su nombre para los avisos); el centro de supervisión corrige a los que pasan
   // a 4 casilleros (reglas en motor.html).
   hijack:{datacenter:'un centro de datos',startup:'una empresa de software',labia:'un laboratorio de IA'},defense:{id:'supervision',r:4,label:'Supervisión',of:['datacenter','startup','labia']},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'ingeniero',building:'Oficina de ingenieros',unit:'Ingeniero',done:'Oficina de ingenieros lista: llegó un ingeniero',desc:'Trae un ingeniero que sale solo a corregir robots desalineados, a 8 casilleros o menos.',info:'Oficina de ingenieros: su ingeniero corrige robots cerca.',tip:'una oficina de ingenieros: el ingeniero sale solo a corregir robots.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo8-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la era de Internet',perks:[
     ['smartphone','ideaMult',1.25,'Teléfono inteligente: ideas +25% durante toda la era'],

@@ -7,6 +7,8 @@ const ERA={
   lights:['herreria','taller','puerto','academia'],
   // Mangas de langostas que llegan volando a comerse las granjas; el palomar las espanta a 4 casilleros (reglas en motor.html).
   locusts:true,defense:{id:'palomar',r:4,label:'Palomares',of:['granja']},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'campo',building:'Puesto del campo',unit:'Guardián del campo',done:'Puesto del campo listo: llegó un guardián',desc:'Trae un guardián con una antorcha que sale solo a espantar las langostas a 8 casilleros o menos.',info:'Puesto del campo: su guardián espanta las langostas.',tip:'un puesto del campo: el guardián sale solo a espantar las langostas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo3-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la Edad Media',perks:[
     ['imprenta','ideaMult',1.25,'Imprenta: ideas +25% durante toda la era'],

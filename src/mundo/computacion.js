@@ -8,6 +8,8 @@ const ERA={
   grid:'power',bugs:true,
   // Los bichos llegan volando: polillas atraídas por las máquinas; la trampa de luz atrapa las que pasan a 4 casilleros (reglas en motor.html).
   moths:true,defense:{id:'trampa',r:4,label:'Trampas'},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'exterminador',building:'Control de plagas',unit:'Exterminador',done:'Control de plagas listo: llegó un exterminador',desc:'Trae un exterminador con una red que sale solo a atrapar polillas y aplastar bichos, a 8 casilleros o menos.',info:'Control de plagas: su exterminador atrapa polillas cerca.',tip:'un control de plagas: el exterminador sale solo a atrapar polillas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo6-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la Electricidad',perks:[
     ['tabuladora','ideaMult',1.25,'Tabuladora eléctrica: ideas +25% durante toda la era'],

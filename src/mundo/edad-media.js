@@ -7,6 +7,8 @@ const ERA={
   lights:['herreria','monasterio','hospital','puerto','universidad'],
   // La peste enferma los edificios donde se junta gente y se contagia; el hospital los cuida a 4 casilleros (reglas en motor.html).
   plague:['casa','monasterio','feria','puerto','universidad'],defense:{id:'hospital',r:4,label:'Hospitales',of:['casa','monasterio','feria','puerto','universidad']},
+  // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
+  guard:{kind:'medico',building:'Casa del médico',unit:'Médico',done:'Casa del médico lista: llegó un médico',desc:'Trae un médico que sale solo a curar los edificios con peste a 8 casilleros o menos.',info:'Casa del médico: su médico cura la peste cerca.',tip:'una casa del médico: el médico sale solo a curar la peste.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
   legacy:{key:'rtagi-mundo2-v1',aldeanos:8,ideas:200,monedas:80,mudan:' aldeanos de tu ciudad se mudan con vos',de:'de la Antigüedad',perks:[
     ['anticitera','ideaMult',1.25,'Mecanismo de Anticitera: ideas +25% durante toda la era'],
