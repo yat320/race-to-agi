@@ -1146,7 +1146,8 @@ function updateVillager(v,dt){
     v.clip=(v.clip||0)+dt;if(v.clip>=2){v.clip=0;const k=['madera','piedra','comida',ORE,'monedas'].sort((a,b)=>st.res[b]-st.res[a])[0];if(st.res[k]>=1){st.res[k]-=1;float(v.x,v.y-0.6,'−1 '+RN[k].toLowerCase()+' → clips','#e8654d');}}
     return;}
   if(!v.bot){v.eat-=dt;if(v.eat<=0){v.eat=30;if(st.res.comida>=1){st.res.comida-=1;v.hungry=false;}else v.hungry=true;}}
-  const sk=sickHome(v);stepEnt(v,dt,(v.bot?3.6:2.6)*(st.legacy.speed||1)*(v.hungry?0.5:1)*(sk?0.5:1));
+  // Enfermo (peste en su casa) o lento por una amenaza en archivo propio (v.slow, el frío): anda y trabaja a la mitad.
+  const sk=sickHome(v)||v.slow;stepEnt(v,dt,(v.bot?3.6:2.6)*(st.legacy.speed||1)*(v.hungry?0.5:1)*(sk?0.5:1));
   if(v.blocked){v.blocked=false;if(v.state==='go'){v.state='idle';v.t=0.4;v.target=null;}}
   switch(v.state){
     case'idle':v.t-=dt;if(v.t<=0&&!pickTarget(v))v.t=3;break;
