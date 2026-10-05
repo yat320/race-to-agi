@@ -1802,6 +1802,14 @@ function pastArt(id,n){const k=id+n;if(!PASTC[k]){const c=Array.isArray(HS[id])?
 // Edificio que vino de otra era: una flechita para arriba en la esquina (late cuando ya se puede modernizar).
 function oldBadge(px,py,can){const t=performance.now()/1000,hi=can&&Math.sin(t*5)>-0.3;ctx.globalAlpha=can?1:0.6;ctx.fillStyle='#1b1a24';ctx.fillRect(px+8,py-1,8,8);
   ctx.fillStyle=hi?'#b6f08a':can?'#93d36c':'#a39b88';ctx.fillRect(px+11,py,2,1);ctx.fillRect(px+10,py+1,4,1);ctx.fillRect(px+9,py+2,6,1);ctx.fillRect(px+11,py+3,2,3);ctx.globalAlpha=1;}
+// Gente transparente (octubre de 2026, Juani: desde la era estelar los aldeanos y los robots molestaban): la gente, los robots
+// y los guardianes que pasan por delante de un edificio se dibujan transparentes, así no tapan los edificios ni sus flechas. Desde
+// la era estelar viene prendido; el menú lo prende o lo apaga para todas las eras (rtagi-gente: '1' o '0'). Pasa de a poco
+// (GHOST_NOW, aparte de la gente para no tocar lo que se guarda), así no titila al cruzar.
+const GHOST_A=0.4,GHOST_NOW=new WeakMap();
+let ghostOn=(()=>{try{const v=localStorage.getItem('rtagi-gente');return v==null?ERA.n>=11:v==='1';}catch(e){return ERA.n>=11;}})();
+function ghostAlpha(e){if(!ghostOn)return 1;const x0=Math.floor(e.x),x1=Math.ceil(e.x),y0=Math.floor(e.y-(e.lift||0))-1,y1=Math.floor(e.y);
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(!inb(x,y))continue;const o=obj[y*MW+x];if(o&&!RES[o.t])return GHOST_A;}return 1;}
 function drawEnt(e,frames,isP){
   const px=Math.round(e.x*T),py=Math.round(e.y*T);shadow(px+8,py+15,5,1.5);
   const fr=e.moving?frames[Math.floor(st.time*8)%2]:frames[0];
@@ -1854,8 +1862,8 @@ function render(){
     for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(Math.abs(x-px)+Math.abs(y-py)>rad||!canPlace(placing,x,y))continue;ctx.fillStyle=g&&nearNode(g,x,y)<=reach?'rgba(255,211,90,.32)':'rgba(95,227,208,.16)';ctx.fillRect(x*T+1,y*T+1,T-2,T-2);}}
   const list=[];
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*MW+x];if(o)list.push({k:y+1,z:0,o,x,y});}
-  list.push({k:P.y+1,z:1,e:P,f:HS.hero,p:true});for(const v of vil)if(!v.away)list.push({k:v.y+1,z:1,e:v,f:v.bot?(v.bad?HS.robotBad:HS.robot):HS.vil[v.skin%3]});
-  for(const g of guards)list.push({k:g.y+1,z:1,e:g,f:HS.guard});
+  list.push({k:P.y+1,z:1,e:P,f:HS.hero,p:true});for(const v of vil)if(!v.away)list.push({k:v.y+1,z:1,e:v,f:v.bot?(v.bad?HS.robotBad:HS.robot):HS.vil[v.skin%3],ghost:!v.bad});
+  for(const g of guards)list.push({k:g.y+1,z:1,e:g,f:HS.guard,ghost:true});
   for(const m of AM)if(m.ents)m.ents(list);
   // Piratas y sus barcos (un barco por desembarco, en el agua junto a la costa).
   {const seen=new Set();for(const p of pirates){const k=p.boat&&p.boat.join();if(k&&!seen.has(k)){seen.add(k);hd(HS.boat,p.boat[0]*T,p.boat[1]*T);}if(!(p.wait>0))list.push({k:p.y+1,z:1,e:p,f:HS.pirate});}}
@@ -1864,7 +1872,7 @@ function render(){
   drawBadBots();
   list.sort((a,b)=>a.k-b.k||a.z-b.z);
   amEach('drawUnder');
-  for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else{drawEnt(it.e,it.f,it.p);if(it.post)it.post(it.e);}}
+  for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else{let a=1;if(it.ghost){const g=GHOST_NOW.has(it.e)?GHOST_NOW.get(it.e):1;a=g+(ghostAlpha(it.e)-g)*0.2;GHOST_NOW.set(it.e,a);}ctx.globalAlpha=a;drawEnt(it.e,it.f,it.p);if(it.post)it.post(it.e);ctx.globalAlpha=1;}}
   drawGoo(x0,y0,x1,y1);
   drawWires(x0,y0,x1,y1);
   drawViruses();
@@ -2171,7 +2179,7 @@ function showIntro(){
   showModalI('<div class="kicker">Mundo abierto · '+E.when+'</div><h1>'+E.title+'</h1><p>'+E.intro+'</p>'+erasHTML(ERA.n-1)+leg+'<p class="muted">'+E.news+'</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
 }
 const nextBtn=cls=>ERA.next?'<button class="'+cls+'" data-m="next">Pasar '+ERA.next.to+'</button>':'';
-function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+pctText()+'</div><h2>Menú</h2><p class="muted">'+ERA.text.menu+'</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?nextBtn('btn ghost'):'')+(TEST&&!st.won?'<button class="btn ghost" data-m="win">Terminar la era ya (prueba)</button>':'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button></div>');}
+function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+pctText()+'</div><h2>Menú</h2><p class="muted">'+ERA.text.menu+'</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?nextBtn('btn ghost'):'')+(TEST&&!st.won?'<button class="btn ghost" data-m="win">Terminar la era ya (prueba)</button>':'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button><button class="btn ghost" data-m="gente">Gente transparente frente a los edificios: '+(ghostOn?'sí':'no')+'</button></div>');}
 function showWin(){const E=ERA.text;showModal('<div class="kicker">Mundo abierto · '+ERA.name+'</div><h1>'+E.win+'</h1><p>'+E.winText()+'</p>'+erasHTML(ERA.n)+'<p class="muted">'+(E.winNote||(ERA.next?'Tu ciudad, tus ideas y tus monedas pasan '+ERA.next.to+'.':'Por ahora es la última era.'))+'</p><div class="row">'+nextBtn('btn')+'<button class="'+(ERA.next?'btn ghost':'btn')+'" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
 // El rival llegó primero: se puede reintentar la era (con doble toque, como en el menú) o seguir mirando.
 function showLose(){const E=ERA.text;showModal('<div class="kicker">Mundo abierto · '+ERA.name+'</div><h1>'+E.lose+'</h1><p>'+E.loseText+'</p><div class="row"><button class="btn" data-m="reset">Intentar de nuevo</button><button class="btn ghost" data-m="close">Seguir mirando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
@@ -2183,6 +2191,7 @@ $('modalCard').addEventListener('click',e=>{
   const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
   if(m==='start'){st.seen=true;save();hideModal();}
   else if(m==='close')hideModal();
+  else if(m==='gente'){ghostOn=!ghostOn;try{localStorage.setItem('rtagi-gente',ghostOn?'1':'0');}catch(e){}showMenu();}
   // Modo prueba: la era queda terminada como si se hubiera hecho la obra, con todos los inventos.
   else if(m==='win'){for(const t of TECHS)st.techs[t.id]=true;st.won=true;st.lost=false;recount();save();hideModal();showWin();}
   else if(m==='next'){goPage(ERA.next.file);return;}
@@ -2246,7 +2255,9 @@ function onTap(tx,ty){
   if(placing){tryPlace(tx,ty);return;}
   // Un edificio con una amenaza (enfermo, roto, con virus…) muestra la marca del toque, como cualquier edificio.
   {const r=tapThreat(tx,ty);if(r){if(r==='b')marker={x:tx,y:ty,t:0.6};return;}}
-  {const g=guards.find(g=>Math.hypot(g.x-tx,g.y-g.lift-ty)<0.9);if(g){toast(ERA.guard.unit+': '+guardStatus(g)+'.');return;}}
+  // Un guardián dice qué hace si lo tocás, salvo que el toque caiga en un edificio: el dron que vuela sobre su hangar no lo
+  // tapa (Juani no podía modernizar el hangar de drones).
+  {const ob=inb(tx,ty)&&obj[ty*MW+tx];const g=!(ob&&!RES[ob.t])&&guards.find(g=>Math.hypot(g.x-tx,g.y-g.lift-ty)<0.9);if(g){toast(ERA.guard.unit+': '+guardStatus(g)+'.');return;}}
   if(!inb(tx,ty))return;
   let o=obj[ty*MW+tx];
   if(!o&&inb(tx,ty+1)){const b=obj[(ty+1)*MW+tx];if(b&&b.t==='tree'&&b.hp>0){ty++;o=b;}}
