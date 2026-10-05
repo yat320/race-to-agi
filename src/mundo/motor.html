@@ -1163,6 +1163,7 @@ function updateVillager(v,dt){
 /* ---------- actualización ---------- */
 function update(dt){
   st.time+=dt;
+  trapT-=dt;if(trapT<=0){trapT=1;unstick();}
   st.energy=HANDS?Math.max(0,st.energy-dt/4):100;
   for(const b of BUILDS){
     if(!counts[b.id]||!b.prod)continue;
@@ -1819,6 +1820,25 @@ function canPlace(id,x,y){
   for(const v of vil){const[vx,vy]=tileOf(v);if(vx===x&&vy===y)return false;}
   return true;
 }
+// Encerrados (octubre de 2026, Juani construyó un edificio y quedó encerrado sin poder salir): no se puede construir donde vos o
+// alguien de tu gente quedaría sin salida, y si igual alguien queda encerrado (lo rodeó lo que vuelve a crecer, un edificio
+// que vino de otra era), cada segundo se lo saca al lugar libre más cercano que tenga salida.
+// reachCount: cuántos casilleros se pisan desde (sx,sy), hasta `cap`, como si en `skip` hubiera un edificio.
+function reachCount(sx,sy,cap,skip){if(!inb(sx,sy))return 0;const s=sy*MW+sx,seen=new Set([s]),q=[s];
+  for(let h=0;h<q.length&&q.length<cap;h++){const c=q[h],cx=c%MW,cy=(c/MW)|0;
+    for(const[dx,dy]of DIRS){const nx=cx+dx,ny=cy+dy;if(!inb(nx,ny))continue;const n=ny*MW+nx;if(n===skip||seen.has(n)||!passable(nx,ny))continue;seen.add(n);q.push(n);}}
+  return Math.min(q.length,cap);}
+const ENCLOSE_CAP=150,TRAP_MIN=12,FREE_MIN=40;
+const freeWho=()=>[P].concat(vil.filter(v=>!v.away&&!v.abd&&!v.orb&&!v.held));
+function wouldEnclose(x,y){const skip=y*MW+x;
+  for(const e of freeWho()){const[ex,ey]=tileOf(e);const a=reachCount(ex,ey,ENCLOSE_CAP,-1);if(reachCount(ex,ey,ENCLOSE_CAP,skip)<a-1)return e;}return null;}
+const TRAP_NEAR=[];for(let dy=-20;dy<=20;dy++)for(let dx=-20;dx<=20;dx++)if(dx||dy)TRAP_NEAR.push([dx,dy]);TRAP_NEAR.sort((a,b)=>Math.hypot(a[0],a[1])-Math.hypot(b[0],b[1]));
+let trapT=1;
+function unstick(){for(const e of freeWho()){const[ex,ey]=tileOf(e);if(reachCount(ex,ey,TRAP_MIN,-1)>=TRAP_MIN)continue;
+    const to=TRAP_NEAR.map(([dx,dy])=>[ex+dx,ey+dy]).find(([x,y])=>passable(x,y)&&reachCount(x,y,FREE_MIN,-1)>=FREE_MIN);if(!to)continue;
+    e.x=to[0];e.y=to[1];e.path=[];zaps.push({x:to[0],y:to[1],t:0.5});
+    if(e===P){P.task=null;P.act=null;float(to[0],to[1]-1,'¡afuera!','#5fe3d0');toast('Quedaste encerrado: te saqué al lugar libre más cercano.');}
+    else{e.state='idle';e.target=null;e.t=0.5;float(to[0],to[1]-1,'¡afuera!','#5fe3d0');}}}
 const LIGHT={casa:[8,10,1.8,0.6],parque:[10,7,1.6,0.7],ciudad:[8,8,5,0.9],rival:[8,6,4,0.9]};
 function render(){
   const s=SC;ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;ctx.fillStyle='#2c6a98';ctx.fillRect(0,0,W,H);
@@ -2128,6 +2148,7 @@ function tryPlace(x,y){
   if(!afford(c)){toast('Te faltan recursos.');stopPlace();return;}
   // `water` en un edificio es el aviso de que tiene que ir pegado al agua.
   if(!canPlace(placing,x,y)){toast(b.water&&inb(x,y)&&!nextToWater(x,y)?b.water:'Ahí no se puede construir.');return;}
+  {const w=wouldEnclose(x,y);if(w){toast(w===P?'Ahí te quedarías encerrado: elegí otro lugar.':'Ahí alguien de tu gente quedaría encerrado: elegí otro lugar.');return;}}
   pay(c);obj[y*MW+x]={t:placing};counts[placing]++;GRID=null;if(placing==='cuartel')syncGuards();
   if(placing==='casa'){addVillager(x,y);addVillager(x,y);}
   for(let k=0;k<(b.bots||0);k++)addRobot(x,y);
