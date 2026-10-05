@@ -37,7 +37,7 @@ Copiá la estructura de `src/mundo/multiversal.js`, que es la más nueva.
 - **Ids de edificios nuevos:** que no se repitan con los de otras eras, salvo que cumplan el mismo papel (mirá `ROLE` en el motor).
 - **Papeles:** el build los deduce de `ideaBuild`, `farmBuild`, `defense`, `storage` y de lo que produce cada uno. Si querés otro, poné `role:'ideas'` (o `'monedas'`, `'ideaBuild'`, `'farmBuild'`, `'defense'`, `'storage'`, `'ore'`, `'drop'`) en el edificio.
 - **Objetos (opcional):** una era puede tener objetos que se fabrican (`ERA.items` y edificios con `craft:true`, `use` y `prod`), como el acero y los engranajes de la Industria. Ver CLAUDE.md.
-- **Adentro (opcional):** un edificio con `puestos:true` se abre al tocarlo y lleva máquinas (rápida, limpia, ahorradora) con un obrero, como las industrias de la Industria. La era dice cuánto cuesta cada nivel (`machine`) y dibuja el corazón de cada uno en `HS['in_'+id]` (176×200, dos cuadros). Ver el doc de la Industria.
+- **Adentro (opcional):** un edificio con `puestos:true` se abre al tocarlo y lleva máquinas (rápida, limpia, ahorradora) con un obrero, como las industrias de la Industria. La era dice cuánto cuesta cada nivel (`machine`) y dibuja el corazón de cada uno en `HS['in_'+id]` (176×200, dos cuadros). Lo que no produce puede ir en `niveles` (lista de ids) y se mejora hasta el nivel 3 con su efecto según su papel (casa, depósito, parque, herrería, defensa, cuartel, el que potencia granjas o ideas); lo que suma cada nivel se dibuja en `HS['inp_'+id]`. Ver el doc de la Industria.
 - **Edificios rotos:** si tu amenaza los rompe (`o.bug`), dibujalos con el gancho `drawBug` de la amenaza (si no, el motor dibuja un bicho con `HS.bug`).
 
 ## 2. El archivo de la amenaza

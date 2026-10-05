@@ -12,6 +12,8 @@ const ERA={
     {id:'engranajes',name:'Engranajes',col:'#e0b060',icon:[['.k.kk.k.','kgkGGkgk','.kgGGgk.','kgGkkGgk','kgGkkGgk','.kgGGgk.','kgkGGkgk','.k.kk.k.'],{g:'#c8a050',G:'#f0d080'}]}],
   // Adentro de la mina, la fundición, el taller mecánico, la fábrica y el laboratorio (`puestos`) van máquinas: lo que cuesta cada nivel.
   machine:[{madera:20,piedra:20},{acero:8,piedra:20},{acero:12,engranajes:8,monedas:30}],
+  // Lo que no produce se mejora hasta el nivel 3 (cada uno con su efecto, en motor.html); el nivel 3 pide además acero y monedas.
+  niveles:['casa','granero','parque','herreria','sindicato','estacion','palacio','cuartel'],levelExtra:[{},{acero:6,monedas:20}],
   luddites:['fabrica','mina'],defense:{id:'sindicato',r:4,label:'Sindicatos',of:['fabrica','mina']},
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'policia',building:'Comisaría',unit:'Policía',done:'Comisaría lista: llegó un policía',desc:'Trae un policía que sale solo a calmar a los ludditas y a arreglar las máquinas rotas, a 8 casilleros o menos.',info:'Comisaría: su policía calma a los ludditas cerca.',tip:'una comisaría: el policía sale solo a calmar a los ludditas.'},
@@ -33,13 +35,13 @@ const ERA={
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
- {id:'granja',req:null,base:{madera:12,comida:4},grow:1.25,prod:{comida:0.2},noSand:true},
- {id:'fogata',req:null,base:{madera:5,piedra:4},grow:1.6,prod:{ideas:0.12}},
- {id:'aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,prod:{madera:0.12}},
+ {id:'granja',req:null,base:{madera:12,comida:4},grow:1.25,prod:{comida:0.2},noSand:true,puestos:true},
+ {id:'fogata',req:null,base:{madera:5,piedra:4},grow:1.6,prod:{ideas:0.12},puestos:true},
+ {id:'aserradero',req:null,base:{madera:10,piedra:12},grow:1.35,prod:{madera:0.12},puestos:true},
  {id:'granero',req:null,base:{madera:25,piedra:15},grow:1.4},
  {id:'parque',name:'Parque',req:null,base:{madera:15,piedra:10},grow:1.3,done:'Parque plantado: el aire se limpia',desc:'Árboles que limpian el humo. Cada parque compensa casi una fábrica.'},
  {id:'herreria',name:'Herrería',req:'vapor',base:{madera:25,piedra:20,carbon:10},grow:1.6,done:'Herrería lista',desc:'Herramientas de acero: los aldeanos juntan +30% por cada herrería.'},
- {id:'cantera',req:'vapor',base:{madera:20,carbon:8},grow:1.35,prod:{piedra:0.12}},
+ {id:'cantera',req:'vapor',base:{madera:20,carbon:8},grow:1.35,prod:{piedra:0.12},puestos:true},
  {id:'mina',name:'Mina de carbón',req:'vapor',base:{madera:30,piedra:15},grow:1.4,done:'Mina abierta',desc:'Una bomba de vapor saca carbón sola. Echa algo de humo.',prod:{carbon:0.12},smoke:0.03,smk:[[2.2,1.4]],puestos:true},
  {id:'laboratorio',name:'Laboratorio',req:'quimica',base:{piedra:40,carbon:10},grow:1.5,done:'Laboratorio abierto',desc:'Químicos e inventores: genera muchas ideas.',prod:{ideas:0.35},puestos:true},
  {id:'fundicion',name:'Fundición',req:'vapor',base:{madera:25,piedra:30},grow:1.5,craft:true,done:'Fundición encendida',desc:'Funde carbón y piedra en acero: gasta 9 de carbón y 6 de piedra por minuto y hace 15 de acero. Se frena si falta alguno o si ya no entra.',prod:{acero:0.25},use:{carbon:0.15,piedra:0.1},puestos:true},
@@ -47,7 +49,7 @@ const ERA={
  {id:'fabrica',name:'Fábrica',req:'telar',base:{madera:30,piedra:25,carbon:5},grow:1.4,done:'Fábrica en marcha',desc:'Quema carbón y da muchas monedas. Echa mucho humo. Sin carbón, se frena.',prod:{monedas:0.3},use:{carbon:0.1},smoke:0.06,smk:[[13,0]],puffs:4,puestos:true},
  {id:'sindicato',name:'Sindicato',req:'telar',base:{madera:25,piedra:20,carbon:5},grow:1.4,done:'Sindicato abierto',desc:'Los obreros negocian en vez de romper: los ludditas que pasan a 4 casilleros se calman solos.'},
  {id:'estacion',name:'Estación de tren',req:'ferrocarril',base:{madera:35,piedra:30,acero:8},grow:1.6,done:'Llegó el tren',desc:'El tren reparte la cosecha: cada estación hace rendir +50% a todas las granjas. Echa algo de humo.',smoke:0.02,smk:[[2.6,7]]},
- {id:'puerto',name:'Puerto',req:'barcos',base:{madera:40,carbon:20,acero:8},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. Los barcos de vapor traen monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.',smoke:0.015,smk:[[6,2.5],[10,3]]},
+ {id:'puerto',name:'Puerto',req:'barcos',base:{madera:40,carbon:20,acero:8},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. Los barcos de vapor traen monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.',smoke:0.015,smk:[[6,2.5],[10,3]],puestos:true},
  {id:'palacio',name:'Palacio de cristal',req:'exposiciones',base:{madera:30,piedra:35,monedas:25,acero:12},grow:1.6,done:'Exposición inaugurada',desc:'Los inventos se muestran al mundo: ideas +30% por cada palacio.'}],
   info:{casa:'Casa: acá viven 2 aldeanos.',fundicion:'Fundición: hace acero con carbón y piedra.',torneria:'Taller mecánico: hace engranajes con acero y madera.',parque:'Parque: limpia el humo.',herreria:'Herrería: los aldeanos juntan más rápido.',mina:'Mina: saca carbón. Echa humo.',laboratorio:'Laboratorio: genera ideas.',sindicato:'Sindicato: calma a los ludditas a 4 casilleros.',fabrica:'Fábrica: quema carbón y da monedas. Echa mucho humo.',estacion:'Estación: potencia las granjas. Echa humo.',puerto:'Puerto: trae monedas e ideas.',palacio:'Palacio de cristal: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
@@ -57,10 +59,10 @@ const ERA={
   text:{
     when:'1780 d.C.',title:'La Revolución Industrial',
     intro:'Tu ciudad descubre el carbón y el vapor. Las fábricas producen como nunca, pero llenan el aire de humo, y no todos están contentos: los ludditas salen a romper las máquinas. La meta: construir la máquina analítica, la primera computadora programable.',
-    news:'Novedades: carbón, minas, fábricas, trenes, humo y ludditas, y cosas que se fabrican: la fundición hace acero y el taller mecánico, engranajes. Y se puede entrar a las industrias: tocá una mina, la fundición, el taller, una fábrica o el laboratorio y ponele máquinas; un obrero las maneja. Con mucho humo tu gente junta y cosecha menos: los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos.',
+    news:'Novedades: carbón, minas, fábricas, trenes, humo y ludditas, y cosas que se fabrican: la fundición hace acero y el taller mecánico, engranajes. Y se puede entrar a todo lo que construís: en lo que produce van máquinas, que maneja un obrero, y lo demás se mejora hasta el nivel 3. Con mucho humo tu gente junta y cosecha menos: los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos.',
     legacy:'Lo que trae tu ciudad del Renacimiento',
     noLegacy:'No hay un Renacimiento terminado en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; adentro de la mina, la fundición, el taller mecánico, la fábrica y el laboratorio van máquinas (tocalos). Las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del depósito, lo que sobra se pierde. Las fábricas, minas, trenes y barcos echan humo: con mucho humo se junta y se cosecha menos, y los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos, y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos. En la compu: flechas o WASD.',
+    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; tocá lo que construiste para entrar: en lo que produce van máquinas y lo demás se mejora. Las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del depósito, lo que sobra se pierde. Las fábricas, minas, trenes y barcos echan humo: con mucho humo se junta y se cosecha menos, y los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos, y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos. En la compu: flechas o WASD.',
     win:'Industria superada',winText:()=>'Terminaste la máquina analítica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ada Lovelace ya escribió el primer programa.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Electricidad.'}
 };
@@ -202,3 +204,114 @@ function inLabArt(f){return mkA(176,200,a=>{const GL=[hx('#5fe3d0'),hx('#e8654d'
   line(a,66,114,104,108,IRON[2],2);rect(a,58,146,16,4,IRON[1]);rect(a,62,142,8,4,f?hx('#ffb24a'):hx('#ffe680'));
   outlineAll(a,OUTL);});}
 HS.in_laboratorio=[inLabArt(0),inLabArt(1)];HS.in_mina=[inMineArt(0),inMineArt(1)];HS.in_fundicion=[inFoundryArt(0),inFoundryArt(1)];HS.in_torneria=[inLatheArt(0),inLatheArt(1)];HS.in_fabrica=[inLoomArt(0),inLoomArt(1)];
+// Adentro de todo lo que se construye (octubre de 2026): lo que produce tiene puestos para máquinas y lo demás, niveles.
+// Corazones (HS.in_<id>, 176×200, dos cuadros) y lo que suma cada nivel (HS.inp_<id>, en los lugares de la derecha).
+const INK=hx('#1b1a24'),HAY=P4('#8a6a2e','#b8923f','#d4ae62','#ecd67e'),SACK=P4('#7a6a50','#a08a68','#c2ad88','#e0d0b0'),INFIRE=f=>f?[hx('#ff7a1a'),hx('#ffb24a'),hx('#ffe680')]:[hx('#ff8a2a'),hx('#ffd35a'),hx('#fff2b0')];
+const sack=(a,x,y)=>{ell(a,x,y,9,11,SACK[2]);ell(a,x-3,y-3,4,5,SACK[3]);rect(a,x-3,y-12,6,3,SACK[0]);};
+const crate=(a,x,y,w,h)=>{rect(a,x,y,w,h,WOOD[2]);rect(a,x,y,w,2,WOOD[3]);rect(a,x,y+h-2,w,2,WOOD[1]);line(a,x+1,y+1,x+w-2,y+h-2,WOOD[1],2);rect(a,x,y,2,h,WOOD[1]);rect(a,x+w-2,y,2,h,WOOD[1]);};
+// Granja a vapor: fardos de heno, bolsas de grano y la trilladora, con su rueda que gira.
+function inFarmArt(f){return mkA(176,200,a=>{for(const[x,y]of[[8,150],[8,118],[44,150],[26,86]])blob(a,[[x+18,y+16,17]],HAY,null);
+  for(const[x,y]of[[8,150],[8,118],[44,150],[26,86]]){rect(a,x+2,y+14,32,2,HAY[0]);}
+  rect(a,92,128,74,52,hx('#b5523b'));rect(a,92,128,74,5,hx('#d0785a'));rect(a,100,112,26,16,IRON[1]);rect(a,104,96,8,16,IRON[2]);rect(a,128,140,30,20,hx('#8a3a1e'));
+  const cx=110,cy=176,R=16;ell(a,cx,cy,R,R,IRON[2]);ell(a,cx,cy,R-4,R-4,0);for(let k=0;k<4;k++){const an=k*Math.PI/2+f*0.78;line(a,cx,cy,cx+Math.cos(an)*(R-3),cy+Math.sin(an)*(R-3),IRON[3],2);}
+  ell(a,150,184,10,10,IRON[1]);ell(a,150,184,3,3,GOLD);for(const x of[60,76])sack(a,x,186);
+  if(f)for(const[x,y]of[[116,94],[110,88],[120,84]])rect(a,x,y,3,3,hx('#e8e0c0'));
+  outlineAll(a,INK);});}
+// Café: la barra con la cafetera que humea, una mesa redonda con tazas y el pizarrón con el menú.
+function inCafeArt(f){return mkA(176,200,a=>{rect(a,10,30,64,44,hx('#2f4a3a'));rect(a,10,30,64,3,WOOD[2]);for(const y of[42,52,62])rect(a,18,y,40-(y%20),2,hx('#e8eef4'));
+  rect(a,4,130,100,70,WOOD[2]);rect(a,4,130,100,5,WOOD[3]);for(let x=10;x<100;x+=18)rect(a,x,140,2,56,WOOD[1]);
+  rect(a,30,96,24,34,hx('#c8a050'));ell(a,42,96,12,5,hx('#f0d080'));rect(a,38,84,8,8,hx('#a8782e'));rect(a,54,110,8,4,IRON[2]);
+  for(let k=0;k<3;k++)a.set(40+(k+f)%2*4,78-k*5,hx('#e8eef4'));
+  ell(a,142,150,28,6,WOOD[3]);rect(a,140,154,4,40,WOOD[1]);rect(a,128,192,28,4,WOOD[1]);for(const x of[132,152]){rect(a,x-4,140,8,8,hx('#e8eef4'));rect(a,x-3,142,6,4,hx('#5a3a20'));}
+  for(const x of[112,170]){rect(a,x-6,160,12,4,WOOD[2]);rect(a,x-5,164,3,32,WOOD[1]);rect(a,x+2,164,3,32,WOOD[1]);rect(a,x-6,136,3,24,WOOD[1]);}
+  outlineAll(a,INK);});}
+// Aserradero a vapor: la sierra circular que gira, un tronco en el carro, aserrín y tablas apiladas.
+function inSawArt(f){return mkA(176,200,a=>{rect(a,4,150,120,10,IRON[2]);rect(a,4,160,8,40,IRON[1]);rect(a,116,160,8,40,IRON[1]);
+  blob(a,[[40,138,12],[70,138,12],[100,138,12]],WOOD,null);ell(a,116,138,10,12,RING[2]);ell(a,116,138,6,7,RING[1]);
+  const cx=70,cy=150,R=22;ell(a,cx,cy,R,R,(i,j)=>j<0?(Math.cos(Math.atan2(j,i)*16+f)>0.2?IRON[3]:IRON[2]):null);ell(a,cx,cy,4,4,GOLD);
+  for(let k=0;k<4;k++)rect(a,132,100+k*22,40,8,WOOD[2-(k%2)]);for(let k=0;k<4;k++)rect(a,132,104+k*22,40,2,WOOD[3]);
+  blob(a,[[30,194,12],[52,196,9]],HAY,null);if(f)for(const[x,y]of[[58,124],[50,118],[64,116]])rect(a,x,y,2,2,HAY[3]);
+  outlineAll(a,INK);});}
+// Cantera a vapor: la pared de roca con bloques cortados, la grúa con un bloque colgando y la pila de bloques.
+function inQuarryArt(f){return mkA(176,200,a=>{blob(a,[[50,90,58],[120,70,50],[30,160,40]],ROCK,null);for(let y=60;y<170;y+=22)for(let x=10;x<110;x+=30)rect(a,x+(y%44?0:12),y,26,2,ROCK[0]);
+  rect(a,150,20,8,180,IRON[1]);rect(a,96,20,62,8,IRON[2]);line(a,150,40,104,24,IRON[1],2);const sw=f?2:-2;line(a,108,28,108+sw,96,IRON[3],1);rect(a,96+sw,96,26,20,ROCK[2]);rect(a,96+sw,96,26,3,ROCK[3]);
+  for(const[x,y]of[[96,176],[124,176],[110,156]]){rect(a,x,y,26,20,ROCK[2]);rect(a,x,y,26,3,ROCK[3]);rect(a,x+24,y,2,20,ROCK[0]);}
+  line(a,64,196,80,170,WOOD[2],3);rect(a,74,164,14,6,IRON[2]);
+  outlineAll(a,INK);});}
+// Puerto: el muelle con el agua, la proa de un barco de vapor y cajas y barriles listos para cargar.
+function inPortArt(f){return mkA(176,200,a=>{for(let y=150;y<200;y++)for(let x=0;x<120;x++)a.set(x,y,(y+((x+f*4)>>3))%6?WA[1]:WA[3]);
+  poly(a,[[0,110],[90,110],[70,160],[0,160]],hx('#3a3a48'));rect(a,0,110,90,4,hx('#c8413b'));rect(a,20,70,18,40,hx('#c8413b'));rect(a,20,70,18,6,INK);for(const x of[50,70])ell(a,x,130,5,5,hx('#e8f4ff'));
+  rect(a,118,150,58,50,WOOD[2]);for(let x=118;x<176;x+=10)rect(a,x,150,2,50,WOOD[1]);for(const[x,y,w]of[[124,126,22],[148,126,22],[136,102,22]])crate(a,x,y,w,24);
+  for(const x of[96,108]){ell(a,x,188,7,10,WOOD[2]);rect(a,x-7,182,14,2,IRON[2]);rect(a,x-7,192,14,2,IRON[2]);}
+  rect(a,160,0,4,90,WOOD[1]);line(a,162,10,120,10,WOOD[1],3);line(a,124,10,124,80,hx('#a08a68'));rect(a,118,80,12,8,IRON[2]);
+  outlineAll(a,INK);});}
+// Casa: la chimenea con el fuego, la mesa con la olla; cada nivel suma una cama con alguien que duerme.
+function inHomeArt(f){return mkA(176,200,a=>{brickWall(a,10,60,70,140);rect(a,6,56,78,8,STONE2[2]);const F=INFIRE(f);rect(a,24,140,42,60,INK);ell(a,45,186,16,14,(i,j)=>j<4?(i*i+j*j<60?F[2]:i*i+j*j<140?F[1]:F[0]):null);
+  for(const x of[34,46,56])rect(a,x,190,8,6,WOOD[1]);rect(a,20,136,50,6,STONE2[3]);
+  rect(a,100,150,70,8,WOOD[3]);rect(a,100,158,70,4,WOOD[1]);for(const x of[104,162])rect(a,x,162,4,38,WOOD[1]);ell(a,134,142,14,10,IRON[1]);rect(a,120,138,28,4,IRON[2]);
+  if(f)for(const[x,y]of[[130,126],[136,120],[132,114]])rect(a,x,y,3,3,hx('#e8eef4'));
+  outlineAll(a,INK);});}
+function inBedArt(f){return mkA(112,96,a=>{rect(a,8,52,96,22,WOOD[2]);rect(a,8,52,96,3,WOOD[3]);rect(a,4,30,10,64,WOOD[1]);rect(a,98,44,10,50,WOOD[1]);
+  rect(a,14,46,84,12,hx('#4a78b8'));rect(a,14,46,84,3,hx('#7ea6dc'));for(let x=20;x<96;x+=12)rect(a,x,49,6,6,hx('#c8413b'));rect(a,16,38,22,12,hx('#e8eef4'));
+  ell(a,28,38,8,7,hx('#e3ab7d'));rect(a,20,31,16,5,hx('#5a3a20'));if(f){rect(a,40,22,6,2,INK);rect(a,44,24,2,4,INK);rect(a,40,28,6,2,INK);}
+  outlineAll(a,INK);});}
+// Depósito: el portón, una carretilla; cada nivel suma una estantería llena.
+function inStoreArt(f){return mkA(176,200,a=>{rect(a,10,40,120,160,WOOD[1]);rect(a,16,46,108,154,WOOD[2]);for(let x=16;x<124;x+=12)rect(a,x,46,2,154,WOOD[1]);line(a,16,46,124,200,WOOD[1],4);line(a,124,46,16,200,WOOD[1],4);
+  rect(a,4,34,132,8,IRON[2]);rect(a,132,160,40,16,WOOD[2]);ell(a,144,184,9,9,IRON[1]);ell(a,144,184,3,3,GOLD);line(a,170,160,176,140,WOOD[1],3);for(const x of[140,156])sack(a,x,156);
+  outlineAll(a,INK);});}
+function inShelfArt(f){return mkA(112,128,a=>{for(const x of[6,100])rect(a,x,8,6,120,WOOD[1]);for(const y of[38,76,114])rect(a,6,y,100,5,WOOD[2]);
+  crate(a,14,14,22,24);crate(a,40,18,20,20);sack(a,74,26);crate(a,14,54,20,22);sack(a,46,64);crate(a,62,52,30,24);
+  for(let k=0;k<4;k++){ell(a,22+k*20,102,8,10,WOOD[2]);rect(a,14+k*20,94,16,2,IRON[2]);rect(a,14+k*20,108,16,2,IRON[2]);}
+  outlineAll(a,INK);});}
+// Parque: una fuente que salta; cada nivel suma un árbol con su banco.
+function inParkArt(f){return mkA(176,200,a=>{blob(a,[[88,190,90],[30,180,40]],GR,null);ell(a,88,176,50,12,STONE2[2]);ell(a,88,174,44,9,WA[2]);rect(a,82,128,12,48,STONE2[3]);ell(a,88,128,16,6,STONE2[2]);
+  for(let k=0;k<5;k++){const x=88+(k-2)*7,h=f?24+k%2*6:20+(k+1)%2*6;line(a,88,124,x,124-h,hx('#b8d4f0'),2);}for(const x of[30,146])ell(a,x,190,10,4,hx('#93d36c'));
+  outlineAll(a,INK);});}
+function inTreeArt(f){return mkA(112,136,a=>{rect(a,50,72,12,56,WOOD[1]);blob(a,[[56,48,30],[36,60,20],[78,60,20],[56,30,18]],f?LEAF:OAKL,null);
+  rect(a,12,118,40,6,WOOD[2]);rect(a,14,124,4,10,WOOD[1]);rect(a,46,124,4,10,WOOD[1]);rect(a,12,104,4,14,WOOD[1]);
+  outlineAll(a,INK);});}
+// Herrería: la fragua con fuego y el yunque; cada nivel suma un estante de herramientas.
+function inSmithArt(f){return mkA(176,200,a=>{const F=INFIRE(f);brickWall(a,10,90,90,110);rect(a,40,10,30,80,BRICK[1]);rect(a,30,84,50,8,STONE2[2]);ell(a,55,150,26,18,(i,j)=>j<6?(i*i+j*j<120?F[2]:i*i+j*j<300?F[1]:F[0]):null);rect(a,24,160,62,40,INK);rect(a,30,166,50,10,F[0]);
+  rect(a,122,160,40,10,IRON[2]);rect(a,116,156,20,8,IRON[2]);rect(a,134,170,12,22,IRON[1]);rect(a,124,190,32,10,IRON[1]);
+  line(a,146,150,166,130,WOOD[2],3);rect(a,160,124,12,10,IRON[2]);if(f)for(const[x,y]of[[130,150],[124,144],[138,140]])rect(a,x,y,2,2,F[2]);
+  outlineAll(a,INK);});}
+function inToolsArt(f){return mkA(112,128,a=>{rect(a,10,10,92,90,WOOD[2]);rect(a,10,10,92,4,WOOD[3]);for(let k=0;k<5;k++){const x=20+k*17;rect(a,x,20,3,44,WOOD[1]);rect(a,x-5,20,13,9,k%2?IRON[2]:hx('#8a93a3'));}
+  for(let k=0;k<4;k++){const x=22+k*20;line(a,x,74,x+8,94,hx('#8a93a3'),3);ell(a,x,72,5,5,hx('#8a93a3'));ell(a,x,72,2,2,WOOD[2]);}
+  rect(a,30,100,50,24,IRON[1]);rect(a,30,100,50,4,IRON[2]);
+  outlineAll(a,INK);});}
+// Sindicato: el estrado con la bandera roja; cada nivel suma una mesa de delegados con su estandarte.
+function inUnionArt(f){return mkA(176,200,a=>{rect(a,20,140,110,60,WOOD[2]);rect(a,20,140,110,5,WOOD[3]);rect(a,60,108,40,36,WOOD[1]);rect(a,60,108,40,4,WOOD[3]);
+  rect(a,140,20,4,180,WOOD[1]);poly(a,[[144,24],[174,30-(f?4:0)],[170,46],[144,52]],hx('#c8413b'));ell(a,158,38,5,5,hx('#ffd35a'));
+  rect(a,10,30,110,60,hx('#c8413b'));rect(a,10,30,110,4,hx('#f08a7c'));for(let k=0;k<5;k++)rect(a,22+k*20,50,12,22,hx('#e8e0c0'));
+  outlineAll(a,INK);});}
+function inDelegArt(f){return mkA(112,128,a=>{rect(a,8,80,96,8,WOOD[3]);rect(a,12,88,6,40,WOOD[1]);rect(a,94,88,6,40,WOOD[1]);rect(a,30,70,20,10,hx('#e8eef4'));rect(a,62,72,16,8,hx('#e8eef4'));
+  rect(a,98,6,3,74,WOOD[1]);poly(a,[[101,8],[100+(f?10:12),12],[101+(f?8:10),24],[101,28]],hx('#c8413b'));
+  for(const x of[30,72]){ell(a,x,56,8,8,hx('#e3ab7d'));rect(a,x-8,48,16,5,hx('#2f4a6e'));rect(a,x-10,64,20,16,hx('#5d6270'));}
+  outlineAll(a,INK);});}
+// Estación: la boletería con el reloj y un banco; cada nivel suma un vagón cargado de cosecha.
+function inStationArt(f){return mkA(176,200,a=>{rect(a,10,60,100,140,BRICK[2]);rect(a,10,60,100,6,STONE2[3]);rect(a,30,110,60,40,INK);rect(a,34,114,52,32,hx('#c8a050'));for(let x=34;x<86;x+=8)rect(a,x,114,2,32,IRON[1]);
+  ell(a,60,84,16,16,hx('#f4f1e8'));ell(a,60,84,16,16,(i,j)=>i*i+j*j>13*13?IRON[1]:null);line(a,60,84,60,74,INK,2);line(a,60,84,f?68:52,88,INK,2);
+  rect(a,118,170,54,6,WOOD[2]);for(const x of[122,166])rect(a,x,176,4,24,WOOD[1]);rect(a,118,150,54,4,WOOD[1]);
+  outlineAll(a,INK);});}
+function inWagonArt(f){return mkA(112,96,a=>{rect(a,8,40,96,36,hx('#7a3026'));rect(a,8,40,96,4,hx('#b5604a'));for(let x=16;x<100;x+=20)rect(a,x,44,2,32,hx('#5a2018'));
+  for(const x of[28,84]){ell(a,x,82,10,10,IRON[1]);ell(a,x,82,3,3,GOLD);}for(const[x,y]of[[26,34],[46,30],[66,34],[86,32]])sack(a,x,y);
+  outlineAll(a,INK);});}
+// Palacio de cristal: la cúpula de vidrio con una palmera; cada nivel suma una vitrina con un invento.
+function inGlassArt(f){return mkA(176,200,a=>{ell(a,88,140,84,120,(i,j)=>j<0&&(i*i)/(84*84)+(j*j)/(120*120)>0.9?IRON[2]:j<0?((i+j)%14===0||i%20===0?IRON[1]:GLASS[f?3:2]):null);
+  rect(a,4,140,168,6,IRON[2]);rect(a,80,90,10,94,WOOD[1]);blob(a,[[70,86,14],[100,84,14],[86,74,12]],LEAF,null);ell(a,85,190,26,10,STONE2[2]);
+  outlineAll(a,INK);});}
+function inExhibitArt(f){return mkA(112,136,a=>{rect(a,30,96,52,40,STONE2[2]);rect(a,26,92,60,6,STONE2[3]);rect(a,30,30,52,62,GLASS[2]);rect(a,30,30,52,3,GLASS[3]);
+  ell(a,56,64,16,16,(i,j)=>{const d=Math.hypot(i,j),an=Math.atan2(j,i)+f*0.4;return d<4?DKW:d<10?hx('#c8a050'):d<12||(Math.cos(an*8)>0.35&&d<15)?hx('#a8782e'):null;});
+  rect(a,40,110,32,6,hx('#c8a050'));
+  outlineAll(a,INK);});}
+// Comisaría: el escritorio con la lámpara y los carteles de buscados; cada nivel suma un policía (el guardián de la era).
+function inPoliceArt(f){return mkA(176,200,a=>{rect(a,10,40,50,60,hx('#e8e0c0'));rect(a,70,40,50,60,hx('#e8e0c0'));for(const x of[22,82]){ell(a,x+13,62,9,10,hx('#5d6270'));rect(a,x+2,82,22,4,INK);}
+  rect(a,20,150,120,10,WOOD[3]);rect(a,20,160,120,40,WOOD[2]);rect(a,26,166,48,30,WOOD[1]);rect(a,90,166,44,30,WOOD[1]);rect(a,40,134,24,16,hx('#e8eef4'));
+  rect(a,110,120,4,30,IRON[1]);poly(a,[[100,120],[124,120],[118,110],[106,110]],hx('#2f6b3a'));ell(a,112,124,8,3,f?hx('#ffe680'):hx('#ffd35a'));
+  for(let x=140;x<176;x+=8)rect(a,x,20,3,180,IRON[2]);rect(a,138,20,38,4,IRON[2]);
+  outlineAll(a,INK);});}
+HS.in_granja=[inFarmArt(0),inFarmArt(1)];HS.in_fogata=[inCafeArt(0),inCafeArt(1)];HS.in_aserradero=[inSawArt(0),inSawArt(1)];HS.in_cantera=[inQuarryArt(0),inQuarryArt(1)];HS.in_puerto=[inPortArt(0),inPortArt(1)];
+HS.in_casa=[inHomeArt(0),inHomeArt(1)];HS.inp_casa=[inBedArt(0),inBedArt(1)];HS.in_granero=[inStoreArt(0),inStoreArt(0)];HS.inp_granero=[inShelfArt(0)];
+HS.in_parque=[inParkArt(0),inParkArt(1)];HS.inp_parque=[inTreeArt(0),inTreeArt(1)];HS.in_herreria=[inSmithArt(0),inSmithArt(1)];HS.inp_herreria=[inToolsArt(0)];
+HS.in_sindicato=[inUnionArt(0),inUnionArt(1)];HS.inp_sindicato=[inDelegArt(0),inDelegArt(1)];HS.in_estacion=[inStationArt(0),inStationArt(1)];HS.inp_estacion=[inWagonArt(0)];
+HS.in_palacio=[inGlassArt(0),inGlassArt(1)];HS.inp_palacio=[inExhibitArt(0),inExhibitArt(1)];HS.in_cuartel=[inPoliceArt(0),inPoliceArt(1)];

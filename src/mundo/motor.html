@@ -349,7 +349,7 @@ function readLegacy(){
   return out;
 }
 function freshState(){return{res:Object.assign({madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},Object.fromEntries(ITEMS.map(i=>[i.id,0]))),energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
-function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;const w=wOf(o);if(w<1)OLDC[o.t]=(OLDC[o.t]||0)+1-w;if(isOld(o))OLDN[o.t]=(OLDN[o.t]||0)+1;}if(BUILD.cuartel)syncGuards();inList();}
+function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;const w=wOf(o);if(w<1)OLDC[o.t]=(OLDC[o.t]||0)+1-w;if(isOld(o))OLDN[o.t]=(OLDN[o.t]||0)+1;}LVX={};if(ERA.niveles)for(const o of obj)if(o&&o.lv>1&&counts[o.t]!==undefined)LVX[o.t]=(LVX[o.t]||0)+LVW[o.lv-1]-1;if(BUILD.cuartel)syncGuards();inList();}
 // Edificios que vienen de otra era (importCity): rinden la mitad por cada era de atraso (oldW: la mitad si es de la anterior,
 // un cuarto si es de dos eras atrás) hasta que se modernizan pagando lo mismo que uno nuevo: el primero al precio base y cada
 // uno más caro, contando los que ya están al día (y con el invento que lo desbloquea, si tiene). OLDC suma, por tipo, lo que
@@ -408,21 +408,21 @@ function mapId(t){if(BUILD[t])return t;const r=ROLE[t];if(r==='drop')return null
 // vienen de otra era quedan con `era` y rinden la mitad hasta modernizarlos) y los hitos de esta era en la tierra libre más cercana.
 function importCity(c){genObjects();/* el suelo junto al inicio, como en un mapa nuevo */
   const o=new Array(MW*MH).fill(null);
-  for(const[i,t,hp,regen,,era,,mm]of c.obj){if(i<0||i>=MW*MH)continue;if(RES[t]){o[i]={t,hp,regen};continue;}const id=mapId(t);if(id)o[i]=id==='monumento'?{t:id}:{t:id,era:era||c.n};
-    if(id===t&&Array.isArray(mm)&&hasIn(o[i])){const m=inParse(mm);if(m)o[i].m=m;}}
+  for(const[i,t,hp,regen,,era,,mm,lv]of c.obj){if(i<0||i>=MW*MH)continue;if(RES[t]){o[i]={t,hp,regen};continue;}const id=mapId(t);if(id)o[i]=id==='monumento'?{t:id}:{t:id,era:era||c.n};
+    if(id===t&&Array.isArray(mm)&&hasIn(o[i])){const m=inParse(mm);if(m)o[i].m=m;}if(id===t&&lv>1&&hasLv(o[i]))o[i].lv=Math.min(3,lv|0);}
   for(const[dx,dy,t]of ERA.landmarks||[]){let best=null,bd=1e9;
     for(let y=2;y<MH-2;y++)for(let x=2;x<MW-2;x++){if(ground[y*MW+x]===WATER||o[y*MW+x])continue;const d=Math.hypot(x-SPAWN[0]-dx,y-SPAWN[1]-dy);if(d<bd){bd=d;best=[x,y];}}
     if(best)o[best[1]*MW+best[0]]={t};}
   return o;}
 function mapChanged(){OCEAN=null;chunks.clear();pending.clear();}
 function serialize(){
-  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b)||b.past)e.push(isOld(b)?b.era:0);if(b.past)e.push(b.past);if(b.m&&b.m.some(Boolean)){while(e.length<7)e.push(0);e.push(b.m.map(m=>m?m.k+m.lv:''));}o.push(e);}}
+  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b)||b.past)e.push(isOld(b)?b.era:0);if(b.past)e.push(b.past);if(b.m&&b.m.some(Boolean)){while(e.length<7)e.push(0);e.push(b.m.map(m=>m?m.k+m.lv:''));}if(b.lv>1){while(e.length<8)e.push(0);e.push(b.lv);}o.push(e);}}
   return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[...(v.orb?landTile(v):[Math.round(v.x),Math.round(v.y)]),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0,...(v.job!=null?[v.job,v.slot]:[])]),obj:o,...(MAPN!==ERA.n?{map:MAPN}:{})};
 }
 function load(d){
   if(!d||d.v!==1||!Array.isArray(d.obj))return false;
   setMap(d.map||ERA.n);mapChanged();genObjects();/* restaura el suelo modificado junto al inicio */renderGround();
-  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug,era,past,mm]of d.obj){obj[i]={t,hp,regen,bug:!!bug};if(era)obj[i].era=era;if(past>0)obj[i].past=Math.min(3,past|0);if(Array.isArray(mm)&&hasIn(obj[i])){const m=inParse(mm);if(m)obj[i].m=m;}}
+  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug,era,past,mm,lv]of d.obj){obj[i]={t,hp,regen,bug:!!bug};if(era)obj[i].era=era;if(past>0)obj[i].past=Math.min(3,past|0);if(Array.isArray(mm)&&hasIn(obj[i])){const m=inParse(mm);if(m)obj[i].m=m;}if(lv>1&&hasLv(obj[i]))obj[i].lv=Math.min(3,lv|0);}
   const f=freshState();
   st=Object.assign(f,{res:Object.assign(f.res,d.res),energy:d.energy,techs:d.techs||{},time:d.time||0,gathers:d.gathers||0,won:!!d.won,seen:!!d.seen,prio:d.prio||'auto',smog:clamp(+d.smog||0,0,100),rival:clamp(+d.rival||0,0,100),safety:clamp(+d.safety||0,0,100),lost:!!d.lost,legacy:d.legacy||f.legacy});
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null});
@@ -443,27 +443,27 @@ const occupied=(x,y)=>{const on=e=>Math.round(e.x)===x&&Math.round(e.y)===y;retu
 const canGather=o=>!!o&&!!RES[o.t]&&o.hp>0;
 // Los objetos se guardan en menos lugar (40 y 40 más por depósito): la fabricación se frena antes y no se come los recursos.
 const ITEM_ID=new Set(ITEMS.map(i=>i.id));
-const cap=k=>k==='ideas'?Infinity:ITEM_ID.has(k)?40+40*(counts[ERA.storage.id]||0):150+150*(counts[ERA.storage.id]||0);
+const cap=k=>k==='ideas'?Infinity:ITEM_ID.has(k)?40+40*((counts[ERA.storage.id]||0)+lvx(ERA.storage.id)):150+150*((counts[ERA.storage.id]||0)+lvx(ERA.storage.id));
 const add=(k,v)=>{st.res[k]=Math.min(cap(k),st.res[k]+v);};
 const afford=c=>Object.entries(c).every(([k,v])=>st.res[k]>=v);
 const pay=c=>{for(const k in c)st.res[k]-=c[k];};
 const buildCost=b=>{const n=counts[b.id]||0,c={};for(const k in b.base)c[k]=Math.ceil(b.base[k]*Math.pow(b.grow,n));return c;};
 // El humo enferma: con el aire todo sucio se junta y se cosecha la mitad.
 const smogPen=()=>1-0.5*st.smog/100;
-const gatherMult=()=>(1+0.3*(counts.herreria||0))*smogPen();
+const gatherMult=()=>(1+0.3*((counts.herreria||0)+lvx('herreria')))*smogPen();
 // Cada edificio de ideas de la era suma 30%; cada invento de ideaTechs, 50%.
-function ideaMult(){let m=(1+0.05*vil.filter(v=>!v.away).length)*(st.legacy.ideaMult||1)*(1+0.3*act(ERA.ideaBuild));for(const t of ERA.ideaTechs)if(st.techs[t])m*=1.5;return m;}
+function ideaMult(){let m=(1+0.05*vil.filter(v=>!v.away).length)*(st.legacy.ideaMult||1)*(1+0.3*(act(ERA.ideaBuild)+lvx(ERA.ideaBuild)));for(const t of ERA.ideaTechs)if(st.techs[t])m*=1.5;return m;}
 function prodOf(b){ // producción por segundo de un tipo de edificio (todas sus copias)
   const n=act(b.id)+(INL.length?inSum(b.id,'sp'):0),out={};if(!n||!b.prod)return out;
   const eng=st.techs[ERA.boostTech]?1.5:1;
-  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*act(ERA.farmBuild))*(st.legacy.agri||1)*smogPen();if(k==='ideas')v*=ideaMult();out[k]=v;}
+  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*(act(ERA.farmBuild)+lvx(ERA.farmBuild)))*(st.legacy.agri||1)*smogPen();if(k==='ideas')v*=ideaMult();out[k]=v;}
   return out;
 }
 // Un edificio que gasta algo se frena cuando le falta.
 // Un edificio de fabricación (`craft`) se frena si le falta lo que gasta o si ya no entra lo que hace (no tira nada).
 const runs=b=>!!counts[b.id]&&(!b.use||Object.keys(b.use).every(k=>st.res[k]>=1))&&!(b.craft&&Object.keys(b.prod||{}).every(k=>st.res[k]>=cap(k)));
 // Cuánto cambia el humo por segundo: lo echan los edificios en marcha, lo limpian los parques y el aire se aclara de a poco.
-function smogRate(){let em=0;for(const b of BUILDS)if(b.smoke&&runs(b))em+=b.smoke*smkN(b.id);return Math.max(0,em-0.05*(counts.parque||0))-st.smog/400;}
+function smogRate(){let em=0;for(const b of BUILDS)if(b.smoke&&runs(b))em+=b.smoke*smkN(b.id);return Math.max(0,em-0.05*((counts.parque||0)+lvx('parque')))-st.smog/400;}
 // Dos redes posibles (ERA.grid). La eléctrica: usinas y represas son fuentes; un poste se conecta si hay otra parte de la red a
 // LINK casilleros, un edificio con ⚡ tiene luz si queda a REACH de la red y, si piden más luz de la que hay, todos rinden menos (f).
 // La de datos: los servidores son la raíz; una antena o una ciudad se engancha a LINK. Las ciudades no pasan la señal a otras,
@@ -811,9 +811,9 @@ function amEach(k,...a){for(const m of AM)if(m[k])m[k](...a);}
 // Guardianes: cada cuartel terminado trae uno (syncGuards; no se guardan, al cargar salen de sus cuarteles). Patrulla cerca de
 // su cuartel y va solo a la amenaza más cercana que esté a GUARD_R casilleros del cuartel: camina hasta ella (los drones vuelan)
 // y la resuelve como un toque tuyo (tapThreat, con las mismas ideas), sin los avisos (quiet).
-function syncGuards(){if(!BUILD.cuartel)return;for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||o.t!=='cuartel'||guards.some(g=>g.hi===i))continue;
+function syncGuards(){if(!BUILD.cuartel)return;for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||o.t!=='cuartel')continue;for(let n=guards.filter(g=>g.hi===i).length;n<lvOf(o);n++){
     const hx=i%MW,hy=(i/MW)|0,sp=DIRS8.map(([a,b])=>[hx+a,hy+b]).find(([x,y])=>passable(x,y))||[hx,hy];
-    guards.push({x:sp[0],y:sp[1],path:[],hi:i,home:[hx,hy],face:1,moving:false,t:1,rp:0,goal:null,lift:ERA.guard.fly?0.6:0});}
+    guards.push({x:sp[0],y:sp[1],path:[],hi:i,home:[hx,hy],face:1,moving:false,t:1,rp:0,goal:null,lift:ERA.guard.fly?0.6:0});}}
   guards=guards.filter(g=>obj[g.hi]&&obj[g.hi].t==='cuartel');}
 // Las amenazas que puede frenar un guardián: dónde está cada una (x,y), dónde se la toca (tx,ty) y si es un edificio (b).
 function threatTargets(){const T=[],add=(x,y,tx,ty,b)=>T.push({x,y,tx,ty,b});
@@ -991,7 +991,7 @@ function spawnLuddites(){const homes=[],targets=[];
 function luddHome(l){l.state='home';const[x,y]=tileOf(l);l.path=bfs(x,y,(a,b)=>a===l.home[0]&&b===l.home[1])||[];}
 function updateLuddites(dt){const D=ERA.defense,halls=[];if(D)obj.forEach((o,i)=>{if(o&&o.t===D.id&&!o.bug)halls.push(i);});
   for(const l of ludds){if(l.wait>0){l.wait-=dt;continue;}
-    if(l.state!=='home'&&halls.some(i=>Math.hypot(i%MW-l.x,((i/MW)|0)-l.y)<=D.r)){float(l.x,l.y-1,'¡negociaron!','#ffd35a');luddHome(l);continue;}
+    if(l.state!=='home'&&halls.some(i=>Math.hypot(i%MW-l.x,((i/MW)|0)-l.y)<=defR(i))){float(l.x,l.y-1,'¡negociaron!','#ffd35a');luddHome(l);continue;}
     if(l.state==='smash'){const o=obj[l.target];if(!o||o.bug){luddHome(l);continue;}l.t+=dt;
       if(l.t>=LUDD_SMASH){o.bug=true;BROKEN=null;float(l.target%MW,(l.target/MW)|0,'¡máquinas rotas!','#e8654d');
         toast((o.t==='mina'?'La mina':'La '+BUILD[o.t].name.toLowerCase())+' quedó rota: tocala para arreglarla.');for(const m of ludds)if(m.target===l.target&&m.state==='smash')luddHome(m);}
@@ -1838,6 +1838,7 @@ function drawObj(o,x,y){
   if(o.t==='casa'&&lampOn())drawLamp(px,py);
   if(isOld(o))oldBadge(px,py,canModern(o));
   if(o.m)inBadge(px,py,y*MW+x);
+  if(o.lv>1)lvBadge(px,py,o.lv);
   if(o.past)pastBadge(px,py,o.past);
   const cfg=RES[o.t];
   if(cfg&&o.hp>0&&o.hp<cfg.hp){ctx.fillStyle='#1b1a24';ctx.fillRect(px+2,top-3,12,3);ctx.fillStyle='#93d36c';ctx.fillRect(px+3,top-2,10*o.hp/cfg.hp,1);}
@@ -1882,6 +1883,30 @@ const MICON={};
 const pctS=(k,v)=>MACH[k].s+Math.round(v*100)+'%';
 let INL=[],CREW=new Set(),inSel=0,inArmed=-1,inItems=[],inLast=0,inSpawn=0;
 const hasIn=o=>!!(o&&BUILD[o.t]&&BUILD[o.t].puestos);
+// Niveles (octubre de 2026, Juani: "que todas las construcciones sean interactivas"; eligió que cada una tenga lo suyo y
+// probarlo en la Industria): los edificios de ERA.niveles que no producen se mejoran hasta el nivel 3 desde adentro, y cada
+// uno tiene su efecto según su papel: la casa suma un aldeano por nivel; el depósito guarda 1,5 y 2 veces; el parque limpia,
+// la herrería hace juntar, la estación potencia las granjas y el edificio de ideas potencia las ideas 1,5 y 2 veces lo de uno;
+// la defensa llega un casillero más por nivel y el cuartel entrena un guardián más. El nivel se guarda con el edificio
+// (`lv`, el noveno dato). Cuesta 1,5 y 2,5 veces lo que costó el primero, más lo que diga ERA.levelExtra (nivel 2 y 3).
+const LVW=[1,1.5,2];
+let LVX={};
+const hasLv=o=>!!(o&&BUILD[o.t]&&ERA.niveles&&ERA.niveles.includes(o.t));
+const lvOf=o=>o&&o.lv||1;
+const lvRole=id=>id==='casa'?'casa':id===ERA.storage.id?'storage':id==='parque'?'parque':id==='herreria'?'herreria':ERA.defense&&id===ERA.defense.id?'defense':id==='cuartel'?'cuartel':id===ERA.farmBuild?'farm':id===ERA.ideaBuild?'idea':null;
+const lvx=id=>LVX[id]||0;
+// El alcance de una defensa, con su nivel.
+const defR=i=>ERA.defense.r+lvOf(obj[i])-1;
+function lvCost(b,lv){const c={},x=(ERA.levelExtra||[])[lv-2]||{};for(const k in b.base)c[k]=Math.ceil(b.base[k]*(lv===2?1.5:2.5));for(const k in x)c[k]=(c[k]||0)+x[k];return c;}
+// Lo que hace un edificio en cada nivel: [qué, en el nivel lv].
+function lvTxt(o,lv){const id=o.t,r=lvRole(id),w=LVW[lv-1];
+  return r==='casa'?['Aldeanos',String(lv+1)]:r==='storage'?['Guarda de cada cosa',String(150*w)]:r==='parque'?['Limpia el humo','×'+fmt(w)]:r==='herreria'?['Tu gente junta','+'+Math.round(30*w)+'%']:
+    r==='defense'?['Alcance',(ERA.defense.r+lv-1)+' casilleros']:r==='cuartel'?[ERA.guard.unit+(lv>1?(/[aeiou]$/.test(ERA.guard.unit)?'s':'es'):''),String(lv)]:
+    r==='farm'?['Granjas','+'+Math.round(50*w)+'%']:r==='idea'?['Ideas','+'+Math.round(30*w)+'%']:['Nivel',String(lv)];}
+function lvUp(i){const o=obj[i],b=o&&BUILD[o.t];if(!hasLv(o)||lvOf(o)>=3||isOld(o))return false;const lv=lvOf(o)+1,c=lvCost(b,lv);if(!afford(c)){toast('Te falta para mejorarlo.');return false;}
+  pay(c);o.lv=lv;recount();const x=i%MW,y=(i/MW)|0;
+  if(o.t==='casa')addVillager(x,y);
+  float(x,y,'¡nivel '+lv+'!','#5fe3d0');zaps.push({x,y,t:0.5});save();return true;}
 // Los edificios con alguna máquina y los que tienen su obrero adentro; se rearma en recount().
 function inList(){INL=[];for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&o.m&&hasIn(o)&&o.m.some(Boolean))INL.push(i);}
   CREW=new Set(vil.filter(v=>v.inside&&v.job!=null).map(v=>v.job));}
@@ -1913,15 +1938,27 @@ function putMachine(i,j,k){const o=obj[i],b=o&&BUILD[o.t];if(!hasIn(o)||!(j>=0&&
 function upMachine(i,j){const o=obj[i],m=o&&o.m&&o.m[j];if(!m||m.lv>=3)return false;const c=MACH_COST[m.lv];if(!afford(c)){toast('Te falta para mejorarla.');return false;}
   pay(c);m.lv++;float(i%MW,(i/MW)|0,'¡nivel '+m.lv+'!','#5fe3d0');save();return true;}
 function dropMachine(i,j){const o=obj[i];if(!o||!o.m||!o.m[j])return false;o.m[j]=null;if(!o.m.some(Boolean)){delete o.m;for(const v of vil)if(v.job===i)crewLeave(v);}inList();save();return true;}
-// La pista, una vez: hasta que ponés la primera máquina, si tenés con qué.
-function inTip(){if(INL.length)return null;const b=BUILDS.find(b=>b.puestos&&counts[b.id]);if(!b||!afford(MACH_COST[0]))return null;
-  return['Entrá:','tocá tu '+b.name.toLowerCase()+': adentro hay puestos para máquinas.'];}
+// La pista: hasta que ponés la primera máquina o mejorás algo, si tenés con qué, y como mucho unos 45 s (no tapa las otras).
+let inTipT=0;
+function inTip(){if(INL.length||Object.keys(LVX).length||inTipT>45)return null;
+  const b=BUILDS.find(b=>b.puestos&&counts[b.id]&&afford(MACH_COST[0]))||(st.time>120?BUILDS.find(b=>ERA.niveles&&ERA.niveles.includes(b.id)&&counts[b.id]&&afford(lvCost(b,2))):null);
+  if(!b)return null;inTipT+=0.15;return['Entrá:','tocá tu '+b.name.toLowerCase()+': adentro se puede mejorar.'];}
 // Lo que hace un edificio ahora, con sus máquinas: producción y consumo por minuto y humo.
 function inRate(i){const o=obj[i],b=BUILD[o.t],f=inFx(i),on=!o.bug&&runs(b),n=act(b.id)+(INL.length?inSum(b.id,'sp'):0),p=prodOf(b),pr={},us={};
   if(on&&n>0)for(const k in p)pr[k]=p[k]/n*wOf(o)*f.sp*60;if(on&&b.use)for(const k in b.use)us[k]=b.use[k]*f.us*60;return{pr,us,f,on};}
-function inSig(){const o=obj[sheetSel];if(!hasIn(o))return'';const ok=c=>Object.entries(c).map(([k,v])=>st.res[k]>=v?1:0).join('');
+function inSig(){const o=obj[sheetSel];const ok=c=>Object.entries(c).map(([k,v])=>st.res[k]>=v?1:0).join('');
+  if(!hasIn(o))return hasLv(o)?'lv'+lvOf(o)+(lvOf(o)<3?ok(lvCost(BUILD[o.t],lvOf(o)+1)):'')+isOld(o)+o.bug:'';
   return(o.m||[]).map(m=>m?m.k+m.lv:'-').join()+(vil.find(v=>v.job===sheetSel)||{}).inside+ok(MACH_COST[0])+ok(MACH_COST[1])+ok(MACH_COST[2])+o.bug+runs(BUILD[o.t])+inArmed+inSel+vil.filter(v=>v.job!=null).length;}
-function inSheet(body){const i=sheetSel,o=obj[i],b=o&&BUILD[o.t];if(!hasIn(o)){closeSheet();return;}
+// Un edificio con niveles: lo que hace ahora, lo que haría en el siguiente y el botón para mejorarlo.
+function lvSheet(body){const i=sheetSel,o=obj[i],b=BUILD[o.t],lv=lvOf(o),old=isOld(o);
+  $('sheetTitle').textContent=nameOf(o);$('sheetSub').textContent='Adentro · nivel '+lv+' de 3';
+  const[what,now]=lvTxt(o,lv),nx=lv<3?lvTxt(o,lv+1)[1]:null,c=lv<3?lvCost(b,lv+1):null,can=!old&&!!c&&afford(c);
+  body.innerHTML='<canvas id="inCv" width="704" height="280" style="width:100%;display:block;border:1px solid var(--line);background:#1b1a24"></canvas>'+
+    '<p class="note">'+b.desc+'</p><div class="item"><h3>'+(lv<3?'Nivel '+lv+' → '+(lv+1):'Nivel 3')+'</h3>'+
+    (lv<3?(old?'<span class="tag">modernizalo primero</span>':'<button class="btn" data-lv="'+i+'"'+(can?'':' disabled')+'>Mejorar</button>'):'<span class="tag ok">nivel máximo</span>')+
+    '<p>'+what+': '+now+(nx?' → '+nx:'')+'.</p>'+(c&&!old?costHTML(c):'')+'</div>';
+  drawInside();}
+function inSheet(body){const i=sheetSel,o=obj[i],b=o&&BUILD[o.t];if(!hasIn(o)&&!hasLv(o)){closeSheet();return;}if(!hasIn(o)){lvSheet(body);return;}
   const kinds=Object.keys(MACH).filter(k=>MACH[k].ok(b)),{pr,us,f,on}=inRate(i),nm=(o.m||[]).filter(Boolean).length;
   $('sheetTitle').textContent=nameOf(o);$('sheetSub').textContent='Adentro · '+nm+' de '+PUESTOS+' puestos con máquina';
   const now=Object.entries(pr).map(([k,v])=>'+'+fmt(v)+' '+RN[k].toLowerCase()).concat(Object.entries(us).map(([k,v])=>'gasta '+fmt(v)+' de '+RN[k].toLowerCase())).join(' · ');
@@ -1994,7 +2031,7 @@ function machArt(k,lv,ep,f){return mkA(112,128,a=>{const K=OUTL,
     if(lv>=3){rect(a,22,52,68,2,TRIM[2]);rect(a,22,94,68,2,TRIM[2]);ell(a,82,70,6,6,TRIM[2]);ell(a,82,70,3,3,TRIM[3]);}}
   outlineAll(a,K);});}
 const machSprite=(k,lv,f)=>{const key=k+lv+f;return INART[key]||(INART[key]=machArt(k,lv,EPOCH,f));};
-function drawInside(){const cv=$('inCv');if(!cv||sheetMode!=='in')return;const c=cv.getContext('2d'),i=sheetSel,o=obj[i],b=o&&BUILD[o.t];if(!hasIn(o))return;
+function drawInside(){const cv=$('inCv');if(!cv||sheetMode!=='in')return;const c=cv.getContext('2d'),i=sheetSel,o=obj[i],b=o&&BUILD[o.t];if(!hasIn(o)&&!hasLv(o))return;
   const now=performance.now()/1000,dt=Math.min(0.1,now-(inLast||now));inLast=now;c.imageSmoothingEnabled=false;
   if(!INART.wall){INART.wall=inWallArt(EPOCH);INART.floor=inFloorArt(EPOCH);}
   const dk=darkness(),sky=dk>0.3?'#1b2440':dk>0.05?'#c87a4a':'#9fd0ff';c.fillStyle=sky;c.fillRect(0,0,IN_W,IN_FLOOR);
@@ -2003,6 +2040,8 @@ function drawInside(){const cv=$('inCv');if(!cv||sheetMode!=='in')return;const c
   // El corazón del edificio: lo dibuja la era (HS['in_'+id], uno o dos cuadros) o, si no, el edificio mismo en grande.
   const core=HS['in_'+o.t];if(core){const cf=Array.isArray(core)?core[run?Math.floor(now*3)%core.length:0]:core;c.drawImage(cf,0,IN_FLOOR+16-cf.height);}
   else{const s=HS[o.t];if(s)c.drawImage(s,16,IN_FLOOR+16-128,128,128);}
+  // Con niveles: lo que suma cada nivel (HS['inp_'+id], o el guardián en el cuartel) en los lugares de la derecha.
+  if(!hasIn(o))lvProps(c,o,now);else{
   // La cinta: lo que hace sale hacia la puerta de la derecha.
   const by=IN_FLOOR+40;c.fillStyle='#24242c';c.fillRect(150,by,IN_W-150,16);c.fillStyle='#4a4a56';const off=run?(now*90)%24:0;for(let x=150-24+off;x<IN_W;x+=24)if(x>=150)c.fillRect(x,by+2,10,4);
   c.fillStyle='#1b1a24';for(let x=162;x<IN_W;x+=48)c.fillRect(x,by+16,6,24);c.fillStyle='#0e0d14';c.fillRect(IN_W-36,IN_FLOOR-120,36,by-IN_FLOOR+136);
@@ -2023,12 +2062,19 @@ function drawInside(){const cv=$('inCv');if(!cv||sheetMode!=='in')return;const c
     const x=walk?x0+(x1-x0)*(u-2.2)/0.8:x0,vf=(w.bot?HS.robot:HS.vil[w.skin%3])[walk||work?Math.floor(now*(walk?8:5))%2:0];
     c.save();if(walk&&x1<x0){c.translate(x*2+64,0);c.scale(-1,1);}c.drawImage(vf,x,IN_FLOOR+22-64-(work&&!walk&&Math.sin(now*14)>0?3:0));c.restore();}
   else if(ms.length){c.font='bold 20px system-ui,sans-serif';c.textAlign='center';const t=w?'va un obrero':'sin obrero',cx=IN_X[ms[0]];c.fillStyle='#1b1a24';
-    c.fillRect(cx-70,IN_FLOOR-160,140,28);c.fillStyle=w?'#e8e0c0':'#e8654d';c.fillText(t,cx,IN_FLOOR-139);}
+    c.fillRect(cx-70,IN_FLOOR-160,140,28);c.fillStyle=w?'#e8e0c0':'#e8654d';c.fillText(t,cx,IN_FLOOR-139);}}
   if(dk>0.05){c.fillStyle='rgba(10,12,30,'+(dk*0.45).toFixed(3)+')';c.fillRect(0,0,IN_W,IN_H);
     for(const lx of[100,320,540]){const g=c.createRadialGradient(lx,40,4,lx,40,150);g.addColorStop(0,'rgba(255,214,120,'+(dk*0.5).toFixed(3)+')');g.addColorStop(1,'rgba(255,214,120,0)');c.fillStyle=g;c.fillRect(lx-150,0,300,260);
       c.fillStyle='#ffd35a';c.fillRect(lx-6,30,12,8);c.fillStyle='#24242c';c.fillRect(lx-1,12,2,18);}}
   if(o.bug){c.fillStyle='rgba(60,10,10,.5)';c.fillRect(0,0,IN_W,IN_H);}
   if(o.bug||!on){c.font='bold 24px system-ui,sans-serif';c.textAlign='center';const t=o.bug?'Rota: arreglala desde el mapa':'Parada';c.fillStyle='#1b1a24';c.fillRect(IN_W/2-200,8,400,36);c.fillStyle='#e8654d';c.fillText(t,IN_W/2,34);}}
+function lvProps(c,o,now){const lv=lvOf(o),pr=HS['inp_'+o.t]||(o.t==='cuartel'&&HS.guard);
+  for(let j=0;j<3;j++){const cx=IN_X[j];c.fillStyle='rgba(0,0,0,.25)';c.fillRect(cx-66,IN_FLOOR+4,132,22);
+    if(j<lv){if(pr){const fr=Array.isArray(pr)?pr[Math.floor(now*2+j*0.7)%pr.length]:pr;c.drawImage(fr,Math.round(cx-fr.width/2),IN_FLOOR+20-fr.height);}continue;}
+    c.strokeStyle='rgba(232,224,192,.55)';c.lineWidth=3;c.setLineDash([10,8]);c.strokeRect(cx-52,IN_FLOOR-100,104,120);c.setLineDash([]);
+    c.font='bold 20px system-ui,sans-serif';c.textAlign='center';c.fillStyle='rgba(232,224,192,.8)';c.fillText('nivel '+(j+1),cx,IN_FLOOR-34);}}
+// En el mapa: el nivel de un edificio mejorado, en puntitos dorados arriba a la derecha.
+function lvBadge(px,py,lv){for(let k=0;k<lv;k++){ctx.fillStyle='#1b1a24';ctx.fillRect(px+15-k*3.2,py-1,3,3);ctx.fillStyle='#e8c05a';ctx.fillRect(px+15.5-k*3.2,py-0.5,2,2);}}
 // En el mapa: un engranaje que gira sobre el edificio que tiene máquinas trabajando.
 function inBadge(px,py,i){if(!INL.length||!obj[i].m||!CREW.has(i))return;
   const t=performance.now()/1000,s=Math.floor(t*(obj[i].bug?0:4))%2;ctx.fillStyle='#1b1a24';ctx.fillRect(px,py-1,7,7);ctx.fillStyle=obj[i].bug?'#a39b88':'#e8c05a';
@@ -2360,7 +2406,7 @@ function holeRow(p){const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BU
   $(p+'Fill').style.width=f+'%';$(p+'Fill').classList.toggle('hi',n>0||nb>0);$(p+'Num').textContent=Math.round(f)+'%';
   $(p+'Meta').textContent=n?(n===1?'1 agujero negro':n+' agujeros negros')+(no?' · '+no+' en órbita':''):nb?nb+(nb===1?' estirado':' estirados'):sh.length?'gravedad en calma':'sin '+D.label.toLowerCase();}
 function defenseRow(p){if(ERA.ufos){ufoRow(p);return;}if(ERA.rifts){riftRow(p);return;}if(ERA.holes){holeRow(p);return;}for(const m of AM)if(m.row){m.row(p);return;}const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){if(!D.of||D.of.includes(o.t))bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
-  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,nb=ERA.meteors||ERA.plague||ERA.luddites||ERA.infect||ERA.hijack?bugCount():0,np=pirates.length+swarms.length+ludds.filter(angry).length+goos.length,
+  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=defR(j))).length,nb=ERA.meteors||ERA.plague||ERA.luddites||ERA.infect||ERA.hijack?bugCount():0,np=pirates.length+swarms.length+ludds.filter(angry).length+goos.length,
     on=sh.length>0||meteors.length>0||np>0||nb>0||(ERA.cities?grid().linked.length>0:ERA.robots?vil.some(v=>v.bot):ERA.goo?st.time>=GOO_START:ERA.meteors?st.time>60:ERA.plague?st.time>=PLAGUE_START:ERA.locusts?st.time>=LOCUST_START:ERA.luddites?st.time>=LUDD_START:!!st.techs[ERA.pirates]);$(p==='g'?'gridRow':'smogRow').hidden=!on;
   if(on){$(p+'Fill').style.width=(bs.length?cov/bs.length*100:0)+'%';$(p+'Fill').classList.toggle('hi',meteors.length>0||np>0||nb>0);$(p+'Num').textContent=Math.round(bs.length?cov/bs.length*100:0)+'%';
     $(p+'Meta').textContent=meteors.length?(meteors.length===1?'1 meteorito en camino':meteors.length+' meteoritos en camino'):np?(ERA.goo?(np===1?'1 nube de nanobots':np+' nubes de nanobots'):ERA.locusts?(np===1?'1 manga de langostas':np+' mangas de langostas'):ERA.luddites?(np===1?'1 luddita en camino':np+' ludditas en camino'):np===1?'1 pirata en la costa':np+' piratas en la costa'):
@@ -2393,7 +2439,7 @@ function renderSheet(){
     const was=nameOf(o);$('sheetTitle').textContent=was;$('sheetSub').textContent=old?'Viene de '+(ERAS[o.era-1]||'otra era')+': rinde '+Math.round(oldW(o)*100)+'%':'Al día con la era';
     body.innerHTML='<div class="item"><h3>'+(was!==b.name?was+' → ':'')+b.name+'</h3>'+(old?(open?'<button class="btn" data-modern="'+i+'"'+(can?'':' disabled')+'>Modernizar</button>':'<span class="tag">Bloqueado</span>'):'<span class="tag ok">Modernizado</span>')+
       '<p>'+b.desc+(old?' Modernizado rinde '+(oldW(o)<0.5?Math.round(1/oldW(o))+' veces más':'el doble')+'.':'')+'</p>'+(old?(open?costHTML(c):'<p>Requiere: '+TECH[b.req].name+'</p>'):'')+'</div>'+
-      '<p class="note">Lo que viene de otra era rinde la mitad por cada era de atraso hasta que lo modernizás.</p>'+(hasIn(o)?'<button class="btn ghost" data-in="'+i+'">Entrar</button>':'');
+      '<p class="note">Lo que viene de otra era rinde la mitad por cada era de atraso hasta que lo modernizás.</p>'+(hasIn(o)||hasLv(o)?'<button class="btn ghost" data-in="'+i+'">Entrar</button>':'');
   }else if(sheetMode==='tribe'){
     const{pr,us}=economy(),hungry=vil.filter(v=>v.hungry).length,working=vil.filter(v=>v.state!=='idle').length,sick=vil.filter(sickHome).length;
     $('sheetTitle').textContent='Tribu';$('sheetSub').textContent='Aldeanos, prioridades y economía';
@@ -2420,6 +2466,7 @@ $('sheetBody').addEventListener('click',e=>{
     if(mk&&!mk.disabled){inArmed=-1;inSel=+mk.dataset.pj;putMachine(sheetSel,+mk.dataset.pj,mk.dataset.mk);sheetSig='';renderSheet();hud();}
     if(mu&&!mu.disabled){inArmed=-1;inSel=+mu.dataset.mu;upMachine(sheetSel,+mu.dataset.mu);sheetSig='';renderSheet();hud();}
     if(md){const j=+md.dataset.md;inSel=j;if(inArmed!==j)inArmed=j;else{inArmed=-1;dropMachine(sheetSel,j);toast('Sacaste la máquina: el obrero vuelve a juntar.');}sheetSig='';renderSheet();hud();}
+    {const lv=e.target.closest('[data-lv]');if(lv&&!lv.disabled){lvUp(+lv.dataset.lv);sheetSig='';renderSheet();hud();}}
     if(en){sheetSel=+en.dataset.in;inSel=0;inArmed=-1;inItems=[];sheetMode='in';sheetSig='';renderSheet();}}
   if(b&&!b.disabled)startPlace(b.dataset.build);
   if(p){st.prio=p.dataset.prio;vil.forEach(v=>{if(v.state==='go'){v.state='idle';v.t=0.2;v.target=null;v.path=[];}});renderSheet();toast(st.prio==='auto'?'Aldeanos en automático':'Aldeanos priorizan '+RN[st.prio].toLowerCase());}
@@ -2561,7 +2608,7 @@ function onTap(tx,ty){
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
   if(o){
     if(isOld(o)){sheetSel=ty*MW+tx;openSheet('bld');return;}
-    if(hasIn(o)){sheetSel=ty*MW+tx;inSel=0;inArmed=-1;inItems=[];openSheet('in');return;}
+    if(hasIn(o)||hasLv(o)){sheetSel=ty*MW+tx;inSel=0;inArmed=-1;inItems=[];openSheet('in');return;}
     if(!RES[o.t]){const b=BUILD[o.t];toast(INFO[o.t]+(o.t==='rival'?' Va '+Math.floor(st.rival)+'%.':'')+(o.t==='ciudad'?(grid().on.has(ty*MW+tx)?' Ya está conectada.':' Todavía no está conectada.'):'')+(b&&b.prod?prodLine(b):'')+(b&&b.elec?(grid().powered.has(ty*MW+tx)?' Tiene luz.':' Sin luz: poné un poste cerca.'):''));return;}
     if(!HANDS){if(o.hp<=0)toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');else sendWorker(tx,ty);return;}
     if(o.hp<=0){toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');P.act=null;P.task=null;const p=bfs(px,py,(x,y)=>x===tx&&y===ty);if(p)P.path=p;return;}
@@ -2622,7 +2669,7 @@ if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;}
   botTaps:()=>{const Q=[];for(const m of AM)if(m.botTaps)Q.push(...m.botTaps());else if(m.targets)m.targets((x,y,tx,ty)=>Q.push([tx,ty]));return Q;},prueba:()=>amEach('prueba')};
 if(location.search.indexOf('debug')>=0)for(const m of AMENAZAS)Object.assign(window.__rtagiDebug,m.debug);
 // Adentro de las industrias, para el bot y las pruebas.
-if(location.search.indexOf('debug')>=0)Object.assign(window.__rtagiDebug,{INL:()=>INL,MACH,MACH_COST,putMachine,upMachine,dropMachine,inFx:i=>inFx(i),inRate:i=>inRate(i),crew:()=>vil.filter(v=>v.job!=null),drawInside});
+if(location.search.indexOf('debug')>=0)Object.assign(window.__rtagiDebug,{INL:()=>INL,MACH,MACH_COST,putMachine,upMachine,dropMachine,lvUp,lvCost:(id,lv)=>lvCost(BUILD[id],lv),LVX:()=>LVX,inFx:i=>inFx(i),inRate:i=>inRate(i),crew:()=>vil.filter(v=>v.job!=null),drawInside});
 })();
 </script>
 </body></html>

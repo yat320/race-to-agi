@@ -1,12 +1,12 @@
 // Bot del mundo abierto: juega las eras desde la 2 hasta la última una atrás de otra (cada una arranca con lo que dejó la anterior) y
 // reporta cuántos minutos de juego tarda en terminar la obra de cada era. Sirve para ajustar el balance con datos.
-//   node tools/bot-mundo.mjs [corridas=3] [eras=2-N o una sola, como 3] [solo] [ritmo=1] [ignora] [sindefensa] [sintorres] [singuardias] [sinmaquinas]
+//   node tools/bot-mundo.mjs [corridas=3] [eras=2-N o una sola, como 3] [solo] [ritmo=1] [ignora] [sindefensa] [sintorres] [singuardias] [sinmaquinas] [sinniveles]
 // Con `solo`, cada era arranca sin nada de la anterior (como si la abrieras suelta) en vez de encadenarlas.
 // Con `ritmo=N` decide cada N segundos de juego en vez de cada uno (y mira las amenazas cada 3N): con 2 o 3 se parece
 // más a una persona, que tarda en abrir hojas, elegir y caminar. Con `ignora` no toca nunca las amenazas (para medir cuánto
 // pesan sobre alguien distraído) y con `sindefensa` no construye la defensa de la era (atalayas, escudos) ni los cuarteles
 // de los guardianes; con `sintorres`, solo los cuarteles, y con `singuardias`, solo la defensa. Con `sinmaquinas` no pone
-// máquinas adentro de las industrias (las eras con puestos).
+// máquinas adentro de las industrias (las eras con puestos) y con `sinniveles` no mejora edificios (ERA.niveles).
 // Juega desde adentro de la página con ?debug: avanza el juego de a 0,1 s y cada segundo de juego decide qué hacer
 // (tocar amenazas, comer, investigar, construir, juntar). Investiga y construye por las hojas, como una persona.
 // La Antigüedad arranca con un legado típico de la Prehistoria (4 aldeanos, 50 ideas, ábaco, rueda y agricultura).
@@ -18,7 +18,7 @@ const ALL = loadEras(), LAST = ALL.at(-1).n;
 
 const RUNS = +(process.argv[2] || 3);
 const [E0, E1 = E0] = (process.argv[3] || '2-' + LAST).split('-').map(Number);
-const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), IGNORE = OPT.includes('ignora'), NODEF = OPT.includes('sindefensa'), NOTOWER = OPT.includes('sintorres'), NOGUARD = OPT.includes('singuardias'), NOMACH = OPT.includes('sinmaquinas'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
+const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), IGNORE = OPT.includes('ignora'), NODEF = OPT.includes('sindefensa'), NOTOWER = OPT.includes('sintorres'), NOGUARD = OPT.includes('singuardias'), NOMACH = OPT.includes('sinmaquinas'), NOLV = OPT.includes('sinniveles'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
 const MAX_MIN = 120;
 const PREHISTORIA = JSON.stringify({ v: 3, st: { won: true, res: { ideas: 50 }, techs: { abaco: true, rueda: true, agricultura: true } }, vil: [[0, 0], [0, 0], [0, 0], [0, 0]], obj: [] });
 
@@ -122,7 +122,8 @@ function modern(){if(!D.modernize)return false;const o=D.obj();let best=-1,bv=-1
     const v=b&&b.prod?2:b&&(b.id===E.ideaBuild||b.id===E.farmBuild)?1:0;if(v>bv){bv=v;best=i;}}
   if(best<0)return false;const t=o[best].t;if(D.modernize(best)){S.modern=(S.modern||0)+1;return true;}return false;}
 // Adentro de las industrias (edificios con puestos): cada 5 s, por la hoja como una persona, pone una máquina rápida (o una
-// limpia si hay mucho humo y el edificio echa) en la industria que hace lo que más le falta al próximo invento, o la mejora,
+// limpia si hay mucho humo y el edificio echa) en la industria que más hace de lo que le falta al próximo invento (si hace al
+// menos 0,15 por segundo: en el café o una mina no rinde lo que el aldeano que se lleva), o la mejora,
 // con una persona de cada 3 como mucho de obrero (una por industria con máquinas), si le alcanza (sin gastar más de la mitad de lo que pide ese invento, salvo que la máquina haga justo lo que le falta) y le
 // quedan al menos 3 personas libres para juntar.
 function machines(){if(window.__nomach||!D.INL||!E.builds.some(b=>b.puestos))return false;
@@ -131,8 +132,8 @@ function machines(){if(window.__nomach||!D.INL||!E.builds.some(b=>b.puestos))ret
   const nd=t?need(t.cost):{},want=Object.keys(t?t.cost:{}).filter(k=>R()[k]<t.cost[k]).concat(Object.keys(nd));
   let best=-1;
   for(let i=0;i<o.length;i++){const q=o[i],b=q&&B[q.t];if(!b||!b.puestos||q.bug||D.isOld(q))continue;
-    const ks=Object.keys(b.prod||{}),n=(q.m||[]).filter(Boolean).length,sc=(ks.some(k=>want.includes(k))?2:0)-0.4*n;if(sc>bs){bs=sc;best=i;}}
-  if(bs<0.5)return false;bs=2;
+    const n=(q.m||[]).filter(Boolean).length,g=Object.entries(b.prod||{}).reduce((t,[k,v])=>t+(want.includes(k)?v:0),0),sc=g>=0.15?g-0.03*n:-1;if(sc>bs){bs=sc;best=i;}}
+  if(bs<0)return false;bs=2;
   if(best<0)return false;const q=o[best],b=B[q.t],m=q.m||[];
   let j=-1;for(let k=0;k<3;k++)if(!m[k]){j=k;break;}const work=D.vil.filter(v=>v.job!=null).length,add=j>=0&&free>3&&(q.m&&q.m.some(Boolean)||work<Math.floor(D.vil.length/3))&&ok(D.MACH_COST[0]);
   const up=!add&&m.map((x,k)=>[x,k]).filter(([x])=>x&&x.lv<3).sort((a,c)=>a[0].lv-c[0].lv)[0];
@@ -140,6 +141,16 @@ function machines(){if(window.__nomach||!D.INL||!E.builds.some(b=>b.puestos))ret
   closeAll();D.onTap(best%MW,(best/MW)|0);if($('sheet').hidden)return false;
   let el;if(add){const k=b.smoke&&D.st.smog>25&&m.some(x=>x&&x.k==='r')?'l':'r';el=document.querySelector('[data-mk="'+k+'"][data-pj="'+j+'"]');}else el=document.querySelector('[data-mu="'+up[1]+'"]');
   const done=!!el&&!el.disabled;if(done){el.click();S.mach=(S.mach||0)+1;(S.machLog=S.machLog||[]).push([Math.round(D.st.time),q.t,add?el.dataset.mk:'+']);}closeAll();return done;}
+// Niveles (los edificios de ERA.niveles): cada 5 s, por la hoja, mejora la casa cuando ya tiene las 4 (un aldeano más), el
+// depósito cuando se llena, la herrería, el parque con humo, y el palacio o la estación, si le alcanza sin gastar más de la mitad
+// de lo que pide el próximo invento. Con sinniveles no mejora nada.
+function levels(){if(window.__nolv||!E.niveles||!D.lvUp)return false;const t=nextTech(),keep=t?t.cost:{},o=D.obj();
+  const ok=c=>Object.entries(c).every(([k,v])=>R()[k]>=v+0.5*(keep[k]||0));
+  const full=['madera','piedra',ORE].some(k=>R()[k]>=D.cap(k)-5);
+  const want=id=>id==='casa'?cnt('casa')>=4:id===E.storage.id?full:id==='parque'?D.st.smog>20:id==='herreria'||id===E.ideaBuild||id===E.farmBuild;
+  let best=-1,bl=9;for(let i=0;i<o.length;i++){const q=o[i];if(!q||!E.niveles.includes(q.t)||!want(q.t)||D.isOld(q)||(q.lv||1)>=3)continue;const lv=q.lv||1;if(lv<bl&&ok(D.lvCost(q.t,lv+1))){bl=lv;best=i;}}
+  if(best<0)return false;closeAll();D.onTap(best%MW,(best/MW)|0);const el=document.querySelector('[data-lv]');const done=!!el&&!el.disabled;
+  if(done){el.click();S.lv=(S.lv||0)+1;(S.lvLog=S.lvLog||[]).push([Math.round(D.st.time),o[best].t,o[best].lv]);}closeAll();return done;}
 let tick=0;const PACE=window.__pace||1;
 function step(){tick++;
   if(tick%(3*PACE)===0&&!window.__ignore)threats();
@@ -150,13 +161,14 @@ function step(){tick++;
   modern();
   for(let k=0;k<3&&build();k++);
   if(tick%(5*PACE)===0)machines();
+  if(tick%(5*PACE)===2*PACE)levels();
   gather();S.smogMax=Math.max(S.smogMax,D.st.smog);
   if(tick%(60-60%PACE)===0&&E.rival)S.safety.push([Math.round(D.st.time/60),Math.round(D.st.safety),Math.round(D.st.rival)]);}
 return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
     while(!D.st.won&&!D.st.lost&&D.st.time<maxMin*60){for(let k=0;k<10;k++)D.update(0.1);step();}
     closeAll();const n=E.builds.reduce((s,b)=>s+cnt(b.id),0);
     return{won:D.st.won,lost:!!D.st.lost,min:Math.round(D.st.time/6)/10,day:Math.floor(D.st.time/160)+1,vil:D.vil.filter(v=>!v.bot).length,bots:D.vil.filter(v=>v.bot).length,
-      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
+      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
       legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety};}};
 })();`;
 
@@ -175,13 +187,13 @@ try {
       const t0 = Date.now();
       if (SOLO) await p.evaluate(() => { for (const k of Object.keys(localStorage)) if (k.startsWith('rtagi-mundo')) localStorage.removeItem(k); });
       await p.goto(srv.url + '/mundo' + n + '.html?debug');
-      await p.evaluate(([k, ig, nd, nt, ng, nm]) => { window.__pace = k; window.__ignore = ig; window.__nodef = nd; window.__notower = nt; window.__noguard = ng; window.__nomach = nm; }, [PACE, IGNORE, NODEF, NOTOWER, NOGUARD, NOMACH]);
+      await p.evaluate(([k, ig, nd, nt, ng, nm, nl]) => { window.__pace = k; window.__ignore = ig; window.__nodef = nd; window.__notower = nt; window.__noguard = ng; window.__nomach = nm; window.__nolv = nl; }, [PACE, IGNORE, NODEF, NOTOWER, NOGUARD, NOMACH, NOLV]);
       await p.evaluate(BOT);
       const r = await p.evaluate(m => window.__bot.run(m), MAX_MIN);
       await p.evaluate(() => { window.__rtagiActive = 'fin'; });
       r.n = n; r.run = run; all.push(r);
       console.log('corrida ' + run + ' · ' + NAMES[n].padEnd(12) + (r.won ? ' terminada en ' + String(r.min).padStart(5) + ' min' : r.lost ? ' PERDIDA a los ' + r.min + ' min' : ' sin terminar a los ' + r.min + ' min') +
-        ' · día ' + r.day + ' · ' + r.vil + ' aldeanos' + (r.bots ? ' + ' + r.bots + ' robots' : '') + ' · ' + r.buildings + ' edificios · ' + r.taps + ' amenazas tocadas' + (r.mach ? ' · ' + r.mach + ' máquinas (' + r.crew + ' obreros)' : '') + (r.guard ? ' (+' + r.guard + ' por los guardianes)' : '') +
+        ' · día ' + r.day + ' · ' + r.vil + ' aldeanos' + (r.bots ? ' + ' + r.bots + ' robots' : '') + ' · ' + r.buildings + ' edificios · ' + r.taps + ' amenazas tocadas' + (r.mach ? ' · ' + r.mach + ' máquinas (' + r.crew + ' obreros)' : '') + (r.lv ? ' · ' + r.lv + ' niveles' : '') + (r.guard ? ' (+' + r.guard + ' por los guardianes)' : '') +
         (r.rivalAt ? ' · rival ' + r.rival + '% (llegaba a los ' + r.rivalAt + ' min)' : '') + (r.smog ? ' · humo hasta ' + r.smog + '%' : '') + ' (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
       // La era siguiente lee la partida ganada de esta; si no se ganó, la cadena se corta.
       if (!r.won && !SOLO) break;
@@ -190,7 +202,7 @@ try {
   }
 } finally { await b.close(); srv.close(); }
 
-writeFileSync('out/bot-mundo' + (SOLO ? '-solo' : '') + (PACE > 1 ? '-ritmo' + PACE : '') + (IGNORE ? '-ignora' : '') + (NODEF ? '-sindefensa' : '') + (NOTOWER ? '-sintorres' : '') + (NOGUARD ? '-singuardias' : '') + (NOMACH ? '-sinmaquinas' : '') + '.json', JSON.stringify(all, null, 1));
+writeFileSync('out/bot-mundo' + (SOLO ? '-solo' : '') + (PACE > 1 ? '-ritmo' + PACE : '') + (IGNORE ? '-ignora' : '') + (NODEF ? '-sindefensa' : '') + (NOTOWER ? '-sintorres' : '') + (NOGUARD ? '-singuardias' : '') + (NOMACH ? '-sinmaquinas' : '') + (NOLV ? '-sinniveles' : '') + '.json', JSON.stringify(all, null, 1));
 // Resumen: minutos por era (mínimo, promedio y máximo entre corridas) y cuándo se investigó cada invento, en promedio.
 console.log('\n' + (SOLO ? 'Cada era sola, sin legado.' : 'Eras encadenadas: cada una arranca con lo que dejó la anterior.') + (PACE > 1 ? ' Decide cada ' + PACE + ' s.' : '') + '\nera            corridas  ganadas   mín   prom   máx  (minutos de juego hasta la obra)');
 for (let n = E0; n <= E1; n++) {
