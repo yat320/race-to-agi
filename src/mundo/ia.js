@@ -1,6 +1,6 @@
 // IA del mundo abierto: tierras raras, robots que se desalinean y toman edificios, centros de supervisión; el asistente universal. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:9,name:'IA',de:'de la IA',next:{file:'mundo10.html',to:'a la AGI'},
+  n:9,name:'IA',de:'de la IA',obra:'el asistente universal',nombreInicio:'Inteligencia artificial',next:{file:'mundo10.html',to:'a la AGI'},
   ore:{id:'tierras',name:'Tierras raras',col:'#c8a8f0',empty:'Veta de tierras raras agotada',gather:'tierras raras',icon:[['........','..kkkk..','.kqvqqk.','kqqQqvqk','kQqqvqQk','.kQQqQk.','..kkkk..','........'],{q:'#9a7ac8',Q:'#5a4a8a',v:'#7ae0c8'}]},
   storage:{id:'granero'},ideaBuild:'labia',ideaTechs:['redes','lenguaje'],boostTech:'chips',farmBuild:'huerta',nightTech:'chips',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

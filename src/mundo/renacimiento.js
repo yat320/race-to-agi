@@ -1,6 +1,6 @@
 // Renacimiento del mundo abierto: plata, talleres, bancos, carabelas, langostas y palomares, y la pascalina. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:4,name:'Renacimiento',de:'del Renacimiento',next:{file:'mundo5.html',to:'a la Industria'},
+  n:4,name:'Renacimiento',de:'del Renacimiento',obra:'la pascalina',next:{file:'mundo5.html',to:'a la Industria'},
   ore:{id:'plata',name:'Plata',col:'#e3e8f0',empty:'Veta de plata agotada',gather:'plata',icon:[['........','........','..kkkkkk','.kvvvvQk','kqqqqqQk','kQQQQQkk','kkkkkkk.','........'],{q:'#c9d1dc',Q:'#8a93a3',v:'#ffffff'}]},
   storage:{id:'granero'},ideaBuild:'academia',ideaTechs:['perspectiva','academias','telescopio'],boostTech:'mecanica',farmBuild:'jardin',nightTech:'telescopio',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

@@ -1,6 +1,6 @@
 // Antigüedad del mundo abierto: cobre, monedas, depósitos y el mecanismo de Anticitera. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:2,name:'Antigüedad',de:'de la Antigüedad',next:{file:'mundo3.html',to:'a la Edad Media'},
+  n:2,name:'Antigüedad',de:'de la Antigüedad',obra:'el mecanismo de Anticitera',next:{file:'mundo3.html',to:'a la Edad Media'},
   ore:{id:'cobre',name:'Cobre',col:'#f0a066',empty:'Veta de cobre agotada',gather:'cobre',icon:[['........','..kkkk..','.kqqQqk.','kqvqqQqk','kqqqQqQk','kQqqqQQk','.kkkkkk.','........']]},
   storage:{id:'deposito',name:'Depósito'},ideaBuild:'biblioteca',ideaTechs:['escritura','matematica','astronomia'],boostTech:'engranajes',farmBuild:'acueducto',nightTech:'astronomia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

@@ -1,6 +1,6 @@
 // Electricidad del mundo abierto: cobre, usinas, postes, la red eléctrica y las tormentas; la tabuladora. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:6,name:'Electricidad',de:'de la Electricidad',next:{file:'mundo7.html',to:'a la Computación'},
+  n:6,name:'Electricidad',de:'de la Electricidad',obra:'la tabuladora eléctrica',next:{file:'mundo7.html',to:'a la Computación'},
   ore:{id:'cobre',name:'Cobre',col:'#f0a066',empty:'Veta de cobre agotada',gather:'cobre',icon:[['........','..kkkk..','.kqqQqk.','kqvqqQqk','kqqqQqQk','kQqqqQQk','.kkkkkk.','........']]},
   storage:{id:'granero'},ideaBuild:'escuela',ideaTechs:['lamparita','escuelas','telefono'],boostTech:'valvulas',farmBuild:'frigorifico',nightTech:'lamparita',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

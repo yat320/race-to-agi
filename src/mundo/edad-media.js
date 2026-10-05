@@ -1,6 +1,6 @@
 // Edad Media del mundo abierto: hierro, monasterios, ferias, molinos y la imprenta. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:3,name:'Edad Media',de:'de la Edad Media',next:{file:'mundo4.html',to:'al Renacimiento'},
+  n:3,name:'Edad Media',de:'de la Edad Media',obra:'la imprenta',next:{file:'mundo4.html',to:'al Renacimiento'},
   ore:{id:'hierro',name:'Hierro',col:'#b8c4d6',empty:'Veta de hierro agotada',gather:'hierro',icon:[['........','........','..kkkkk.','.kvqqqQk','kqqqqQQk','kQQQQQk.','.kkkkk..','........'],{q:'#9aa6b8',Q:'#5d6270',v:'#e3e8f0'}]},
   storage:{id:'granero'},ideaBuild:'universidad',ideaTechs:['monasterios','universidades','anteojos'],boostTech:'reloj',farmBuild:'molino',nightTech:'anteojos',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

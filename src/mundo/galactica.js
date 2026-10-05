@@ -1,6 +1,6 @@
 // Era galáctica del mundo abierto (la que sigue a la interestelar): neutronio, torres de interferencia y ovnis que se llevan a tu gente; la federación galáctica. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:13,name:'Era galáctica',de:'de la era galáctica',next:{file:'mundo14.html',to:'a la era intergaláctica'},
+  n:13,name:'Era galáctica',de:'de la era galáctica',obra:'la federación galáctica',next:{file:'mundo14.html',to:'a la era intergaláctica'},
   ore:{id:'neutronio',name:'Neutronio',col:'#8ab0f0',empty:'Veta de neutronio agotada',gather:'neutronio',icon:[['........','..kkkk..','.kqvqqk.','kqqvQqqk','kqQvvqQk','.kqQqqk.','..kkkk..','........'],{q:'#2a3a6a',Q:'#1a2440',v:'#e8f4ff'}]},
   storage:{id:'granero'},ideaBuild:'observatorio',ideaTechs:['neutronio','cartografia'],boostTech:'energia',farmBuild:'jardin',nightTech:'cartografia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

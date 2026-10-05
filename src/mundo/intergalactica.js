@@ -1,6 +1,6 @@
 // Era intergaláctica del mundo abierto (la que sigue a la galáctica): materia oscura, anclas temporales y grietas que hacen retroceder en el tiempo lo que tocan; la red de agujeros de gusano. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:14,name:'Era intergaláctica',de:'de la era intergaláctica',next:{file:'mundo15.html',to:'a la era cósmica'},
+  n:14,name:'Era intergaláctica',de:'de la era intergaláctica',obra:'la red de agujeros de gusano',next:{file:'mundo15.html',to:'a la era cósmica'},
   ore:{id:'oscura',name:'Materia oscura',col:'#b4a0f0',empty:'Veta de materia oscura agotada',gather:'materia oscura',icon:[['........','..kkkk..','.kqvqqk.','kqQqvqqk','kqvQqQqk','.kqqvqk.','..kkkk..','........'],{q:'#3a2e6c',Q:'#221a44',v:'#d8ccff'}]},
   storage:{id:'granero'},ideaBuild:'ondas',ideaTechs:['oscura','universo'],boostTech:'entropia',farmBuild:'huerto',nightTech:'universo',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

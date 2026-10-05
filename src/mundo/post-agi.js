@@ -1,6 +1,6 @@
 // Era estelar del mundo abierto (la que sigue a la AGI, antes de la interestelar): iridio, puerto espacial, escudos y meteoritos; la esfera de Dyson. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:11,name:'Era estelar',de:'de la era estelar',next:{file:'mundo12.html',to:'a la era interestelar'},
+  n:11,name:'Era estelar',de:'de la era estelar',obra:'la esfera de Dyson',next:{file:'mundo12.html',to:'a la era interestelar'},
   ore:{id:'iridio',name:'Iridio',col:'#b8c8e8',empty:'Veta de iridio agotada',gather:'iridio',icon:[['........','..kkkk..','.kqvqqk.','kqqqvqqk','kqvqqqQk','.kqQqQk.','..kkkk..','........'],{q:'#565a6e',Q:'#3a3a48',v:'#b8c8e8'}]},
   storage:{id:'granero'},ideaBuild:'instituto',ideaTechs:['nanotec','cosmologia'],boostTech:'fusion',farmBuild:'sintetizador',nightTech:'cosmologia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

@@ -1,17 +1,17 @@
 # Race to AGI
 
-Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI, y más allá, en 16 eras. Todo es HTML + canvas, sin dependencias, pensado para jugar en el celular.
+Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI, y más allá, era por era. Todo es HTML + canvas, sin dependencias, pensado para jugar en el celular.
 
 ## Qué hay
 
 | Archivo | Qué es | Estado |
 |---|---|---|
-| `index.html` | Inicio del mundo abierto: sus 16 eras (con la que toca jugar marcada), el progreso hacia la AGI, el código de progreso y, para probar, el modo prueba (abrir cualquier era y terminarla al toque) y empezar de cero; las misiones y la carrera por turnos quedan plegadas en "Otros modos que probamos" | funciona |
+| `index.html` | Inicio del mundo abierto: sus eras (con la que toca jugar marcada), el progreso hacia la AGI, el código de progreso y, para probar, el modo prueba (abrir cualquier era y terminarla al toque) y empezar de cero; las misiones y la carrera por turnos quedan plegadas en "Otros modos que probamos" | funciona |
 | `era1.html` | Prehistoria por misiones (10 misiones, estilo Farm Frenzy) | jugable, probado con bot |
 | `era2.html` | Antigüedad por misiones (10 misiones, ciudad que crece) | jugable, probado con bot |
 | `carrera.html` | Prototipo por turnos (mapa, árbol de tecnologías, rival que corre a la obra) | prototipo, probado con simulaciones |
 | `mundo.html` | Prototipo de mundo abierto, Prehistoria: explorar, juntar recursos, sumar aldeanos, lobos de noche que acechan lejos del fuego (tocalos, poné antorchas o criá perros, que además ayudan a cazar), construir el ábaco | prototipo, retomado |
-| `src/mundo/motor.html` | Motor común de las eras 2 a 16 del mundo abierto: reglas, render, HUD y todas las mecánicas (humo, red eléctrica, bichos, ciudades y virus, robots, rival, meteoritos, nanobots, ovnis, grietas temporales, agujeros negros, dobles) y los guardianes de cada era (soldado, médico de la peste, policía, drones, agente…), que salen solos de su cuartel a frenar la amenaza. `npm run build` le mete los datos y el arte de cada era (`src/mundo/<era>.js`) y escribe `dist/mundoN.html` | funciona |
+| `src/mundo/motor.html` | Motor común de las eras del mundo abierto desde la 2: reglas, render, HUD y todas las mecánicas (humo, red eléctrica, bichos, ciudades y virus, robots, rival, meteoritos, nanobots, ovnis, grietas temporales, agujeros negros, dobles) y los guardianes de cada era (soldado, médico de la peste, policía, drones, agente…), que salen solos de su cuartel a frenar la amenaza. `npm run build` le mete los datos y el arte de cada era (`src/mundo/<era>.js`) y escribe `dist/mundoN.html` | funciona |
 | `src/mundo/antiguedad.js` → `mundo2.html` | Mundo abierto, Antigüedad: cobre, monedas, 13 edificios, piratas que desembarcan a robar (tocalos o poné atalayas) y el mecanismo de Anticitera; arranca con lo que trae la tribu de la Prehistoria | prototipo, retomado |
 | `src/mundo/edad-media.js` → `mundo3.html` | Mundo abierto, Edad Media: hierro, monasterios, ferias, molinos de viento, universidades, una peste que se contagia de casa en casa (tocá las casas enfermas o poné hospitales) y la imprenta; arranca con lo que trae la ciudad de la Antigüedad | prototipo, retomado |
 | `src/mundo/renacimiento.js` → `mundo4.html` | Mundo abierto, Renacimiento: plata, talleres de artistas, bancos, jardines botánicos, carabelas, academias, mangas de langostas que se comen las granjas (tocalas o poné palomares) y la pascalina; arranca con lo que trae la ciudad de la Edad Media | prototipo, retomado |
@@ -27,6 +27,8 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI, 
 | `src/mundo/intergalactica.js` → `mundo14.html` | Mundo abierto, era intergaláctica (la que sigue a la galáctica): materia oscura, portal intergaláctico, grietas temporales que hacen retroceder en el tiempo lo que produce (la holoplaza vuelve a ser café y fogata, y rinde la mitad por cada época; tocalas o poné anclas temporales) y la red de agujeros de gusano; arranca con lo que trae la ciudad de la era galáctica | prototipo |
 | `src/mundo/cosmica.js` → `mundo15.html` | Mundo abierto, era cósmica (la que sigue a la intergaláctica): quarks, biblioteca de Babel, agujeros negros que flotan hacia la ciudad, atrapan gente en órbita, se tragan lo que tienen cerca y estiran los edificios (tocalos para evaporarlos, los grandes piden varios toques, o poné repulsores gravitatorios) y la computadora cósmica; arranca con lo que trae la ciudad de la era intergaláctica | prototipo |
 | `src/mundo/multiversal.js` → `mundo16.html` | Mundo abierto, era multiversal (la que sigue a la cósmica): materia espejo, ventana a otros universos, dobles de tu gente que llegan por portales, se mezclan y te roban (los delata que titilan: tocalos o poné espejos de la verdad) y la puerta al multiverso; arranca con lo que trae la ciudad de la era cósmica | prototipo |
+| `src/mundo/amenazas/` | Las amenazas en archivo propio (desde los dobles): cada una se registra sola en el motor y la prende la era que la usa; `LEEME.md` explica los ganchos | funciona |
+| `docs/eras/` | Un doc por era: qué tiene, qué hereda, su amenaza, cómo se ajustó, cuánto tarda con el bot y su arte. `docs/hoja-de-ruta.md`, las que siguen | |
 | `arbol.html` | Prototipo del árbol de progreso de las 10 eras (sin juego atrás) | prototipo |
 
 ## Correr
@@ -38,13 +40,13 @@ npm run serve                   # arma dist/ y lo sirve en http://localhost:8765
 npm run bot:era2                # un bot juega las 10 misiones de la Antigüedad y reporta tiempos
 npm run sim:carrera             # 40 partidas rival vs rival del prototipo por turnos
 npm run huella:mundo            # juega un guion fijo en cada era del mundo abierto y guarda la huella en out/huella
-npm run bot:mundo               # un bot juega las eras 2 a 16 del mundo abierto encadenadas y reporta minutos hasta cada obra
+npm run bot:mundo               # un bot juega las eras del mundo abierto encadenadas, desde la 2 y reporta minutos hasta cada obra
 npm run bot:prehistoria         # un bot juega la Prehistoria del mundo abierto y reporta cuándo saca cada invento y el ábaco
 ```
 
 Los bots arman `dist/` y lo sirven solos en un puerto libre; no hace falta tener `npm run serve` corriendo. Al final `bot:era1` y `bot:era2` dicen cuántas misiones ganaron y cuántas quedaron bajo el oro; salen con error si alguna no se gana o hay errores de página. Si ya hay un Chromium instalado y no se puede bajar otro, `PW_CHROMIUM=/ruta/al/chrome npm run bot:era2`.
 
-`index.html` y `arbol.html` están escritos "estilo artifact" (sin `<head>` propio) porque así se publican en Claude; `tools/build.mjs` los envuelve al armar `dist/`. Las eras y `carrera.html` son documentos completos. Las eras 2 a 16 del mundo abierto no están en la raíz: `tools/build.mjs` las arma desde `src/mundo/` (abrirlas siempre desde `dist/`, con `npm run serve`).
+`index.html` y `arbol.html` están escritos "estilo artifact" (sin `<head>` propio) porque así se publican en Claude; `tools/build.mjs` los envuelve al armar `dist/`. Las eras y `carrera.html` son documentos completos. Las eras del mundo abierto desde la 2 no están en la raíz: `tools/build.mjs` las arma desde `src/mundo/` (y arma solas las listas de eras del inicio y de la Prehistoria) (abrirlas siempre desde `dist/`, con `npm run serve`).
 
 ## Publicar
 

@@ -1,6 +1,6 @@
 // Era interestelar del mundo abierto (la que sigue a la estelar): materia exótica, campos de contención y nanobots grises; el motor de curvatura. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:12,name:'Era interestelar',de:'de la era interestelar',next:{file:'mundo13.html',to:'a la era galáctica'},
+  n:12,name:'Era interestelar',de:'de la era interestelar',obra:'el motor de curvatura',next:{file:'mundo13.html',to:'a la era galáctica'},
   ore:{id:'exotica',name:'Materia exótica',col:'#c49cff',empty:'Cristal exótico agotado',gather:'materia exótica',icon:[['....k...','...kvk..','..kvqk.k','.kvqqkkv','.kvqQkvq','kvqQQkqQ','kqQQQkQk','.kkkkkk.'],{q:'#8a5ad0',Q:'#5a3a8a',v:'#e0c8ff'}]},
   storage:{id:'granero'},ideaBuild:'academia',ideaTechs:['exotica','xenologia'],boostTech:'cuantica',farmBuild:'terraformador',nightTech:'xenologia',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
