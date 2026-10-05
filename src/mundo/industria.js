@@ -1,6 +1,6 @@
 // Industria del mundo abierto: carbón, fábricas, trenes, el humo y los ludditas; la máquina analítica. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:5,name:'Industria',de:'de la Industria',next:{file:'mundo6.html',to:'a la Electricidad'},
+  n:5,name:'Industria',de:'de la Industria',obra:'la máquina analítica',next:{file:'mundo6.html',to:'a la Electricidad'},
   ore:{id:'carbon',name:'Carbón',col:'#a3a8b4',empty:'Veta de carbón agotada',gather:'carbón',icon:[['........','...kk...','..kvqk..','.kqqQkk.','kvqQkqqk','kqQQkqQk','.kkkkkk.','........'],{q:'#3e3848',Q:'#24202c',v:'#8a8f9c'}]},
   storage:{id:'granero'},ideaBuild:'palacio',ideaTechs:['quimica','exposiciones','gas'],boostTech:'tarjetas',farmBuild:'estacion',nightTech:'gas',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

@@ -1,6 +1,6 @@
 // Computación del mundo abierto: silicio, computadoras, las polillas que traen los bichos y la trampa de luz; el microprocesador. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:7,name:'Computación',de:'de la Computación',next:{file:'mundo8.html',to:'a Internet'},
+  n:7,name:'Computación',de:'de la Computación',obra:'el microprocesador',next:{file:'mundo8.html',to:'a Internet'},
   ore:{id:'silicio',name:'Silicio',col:'#d8ccf0',empty:'Veta de cuarzo agotada',gather:'silicio',icon:[['........','...k....','..kvk.k.','..kqkkvk','.kqqkqk.','.kqQkQk.','..kkkk..','........'],{q:'#c8b8e8',Q:'#8a7ab8',v:'#ffffff'}]},
   storage:{id:'granero'},ideaBuild:'universidad',ideaTechs:['lenguajes','satelite','universidades'],boostTech:'circuito',farmBuild:'galpon',nightTech:'satelite',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

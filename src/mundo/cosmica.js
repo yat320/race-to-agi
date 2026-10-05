@@ -1,6 +1,6 @@
 // Era cósmica del mundo abierto (la que sigue a la intergaláctica): quarks, repulsores gravitatorios y agujeros negros que atrapan a tu gente en órbita y estiran los edificios; la computadora cósmica. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:15,name:'Era cósmica',de:'de la era cósmica',next:{file:'mundo16.html',to:'a la era multiversal'},
+  n:15,name:'Era cósmica',de:'de la era cósmica',obra:'la computadora cósmica',next:{file:'mundo16.html',to:'a la era multiversal'},
   ore:{id:'quarks',name:'Quarks',col:'#f0a0ff',empty:'Nube de quarks agotada',gather:'quarks',icon:[['...kk...','..krrk..','..krRk..','.kkkkkk.','kggkkbbk','kgGkkbBk','.kk..kk.','........'],{r:'#e8504a',R:'#ff9a8a',g:'#4fc060',G:'#b6f08a',b:'#4a78e8',B:'#9ac0ff'}]},
   storage:{id:'granero'},ideaBuild:'radio',ideaTechs:['quarks','fondo'],boostTech:'cuerdas',farmBuild:'sol',nightTech:'fondo',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

@@ -1,6 +1,6 @@
 // Internet del mundo abierto: litio, servidor, antenas, ciudades, virus y soporte técnico; el teléfono inteligente. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:8,name:'Internet',de:'de Internet',next:{file:'mundo9.html',to:'a la IA'},
+  n:8,name:'Internet',de:'de Internet',obra:'el teléfono inteligente',next:{file:'mundo9.html',to:'a la IA'},
   ore:{id:'litio',name:'Litio',col:'#b8f0a0',empty:'Veta de litio agotada',gather:'litio',icon:[['...kk...','..kkkk..','..kvqk..','..kqqk..','..kqqk..','..kQQk..','..kkkk..','........'],{q:'#9ae07a',Q:'#5aa347',v:'#e8ffe0'}]},
   storage:{id:'granero'},ideaBuild:'buscador',ideaTechs:['www','email','buscadores'],boostTech:'banda',farmBuild:'semillas',nightTech:'banda',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

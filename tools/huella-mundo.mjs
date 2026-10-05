@@ -1,10 +1,11 @@
-// Huella del mundo abierto (eras 2 a 16): juega un guion fijo con el azar sembrado, el reloj congelado y los
+// Huella del mundo abierto (las eras desde la 2): juega un guion fijo con el azar sembrado, el reloj congelado y los
 // cuadros controlados, y guarda el estado, los textos, los sprites y capturas de cada era en una carpeta.
 // Sirve para comprobar que un cambio en el motor no cambia nada: correrlo antes y después, y comparar con
 // `node tools/huella-mundo.mjs comparar <antes> <después>`.
 //   node tools/huella-mundo.mjs <carpeta> [eras, ej. 2,5,10]
 import { mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync } from 'node:fs';
 import { serve, launch } from './harness.mjs';
+import { loadEras } from './eras.mjs';
 
 const ERAS = {
   2: { techs: ['metalurgia', 'escritura', 'moneda', 'irrigacion', 'navegacion', 'matematica', 'astronomia', 'engranajes', 'anticitera'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'deposito', 'herreria', 'cantera', 'templo', 'mercado', 'acueducto', 'puerto', 'biblioteca', 'atalaya'] },
@@ -23,8 +24,12 @@ const ERAS = {
   16: { techs: ['espejo', 'verdad', 'canje', 'semillas', 'pulido', 'identidad', 'destinos', 'superposicion', 'puerta'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'ventana', 'verdad', 'canje', 'semillero', 'pulidora', 'telar'] },
   15: { techs: ['quarks', 'antigravedad', 'estrellas', 'soles', 'colisionadores', 'hawking', 'fondo', 'cuerdas', 'computadora'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'babel', 'repulsor', 'bolsa', 'sol', 'colisionador', 'radio'] },
 };
-const PREV = { 2: 'rtagi-mundo-v1' }; for (let n = 3; n <= 16; n++) PREV[n] = 'rtagi-mundo' + (n - 1) + '-v1';
+// Las eras que no están arriba usan sus inventos y edificios en el orden de sus datos.
+const ALL = loadEras(), LAST = ALL.at(-1).n;
+for (const e of ALL) ERAS[e.n] ||= { techs: e.ERA.techs.map(t => t.id), builds: e.ERA.builds.map(b => b.id) };
+const PREV = { 2: 'rtagi-mundo-v1' }; for (let n = 3; n <= LAST; n++) PREV[n] = 'rtagi-mundo' + (n - 1) + '-v1';
 const PERKS = ['abaco', 'rueda', 'agricultura', 'anticitera', 'irrigacion', 'imprenta', 'molinos', 'pascalina', 'botanica', 'analitica', 'ferrocarril', 'tabuladora', 'frio', 'micro', 'tractor', 'smartphone', 'biotec', 'asistente', 'vertical', 'interpretabilidad', 'agi', 'automatizacion', 'escalado', 'dyson', 'sintesis', 'cohetes', 'curvatura', 'terraformacion', 'naves', 'federacion', 'xenoagro', 'cartografia', 'red', 'cuantica', 'universo', 'computadora', 'soles', 'fondo'];
+for (const e of ALL) for (const [t] of e.ERA.legacy.perks || []) if (!PERKS.includes(t)) PERKS.push(t);
 const prevSave = n => { const techs = Object.fromEntries(PERKS.map(t => [t, true])), vil = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]];
   return JSON.stringify(n === 2 ? { st: { won: true, res: { ideas: 120 }, techs }, vil, obj: [] } : { v: 1, won: true, vil, res: { ideas: 150, monedas: 60 }, techs, obj: [] }); };
 
@@ -60,7 +65,7 @@ const HELP = `window.__H={t:2000,step(n){for(let k=0;k<(n||2);k++){this.t+=200;_
     if(D.storms){const w=D.storms()[0];if(w){D.onTap(Math.round(w.x),Math.round(w.y-0.6));n++;}}
     if(D.moths){const m=D.moths().find(m=>m.trap==null);if(m){D.onTap(Math.round(m.x),Math.round(m.y-0.4));n++;}}
     if(D.spies){const sp=D.spies().find(sp=>!(sp.wait>0));if(sp){D.onTap(Math.round(sp.x),Math.round(sp.y));n++;}}
-    if(D.twins){const w=D.twins().find(w=>w.state!=='gone');if(w){D.onTap(Math.round(w.x),Math.round(w.y));n++;}}
+    if(D.botTaps){const t=D.botTaps()[0];if(t){D.onTap(t[0],t[1]);n++;}}
     if(D.holes){const h=D.holes().find(h=>h.state!=='die');if(h){for(let k=Math.ceil(h.m);k>0;k--)D.onTap(Math.round(h.x),Math.round(h.y));n++;}}
     if(D.rifts){const r=D.rifts().find(r=>r.state!=='close');if(r){D.onTap(Math.round(r.x),Math.round(r.y));n++;}else{const j=o.findIndex(q=>q&&q.past);if(j>=0){D.onTap(j%64,(j/64)|0);n++;}}}
     const b=D.vil.find(v=>v.bad);if(b){D.onTap(Math.round(b.x),Math.round(b.y));n++;}return n;},
@@ -125,7 +130,8 @@ async function era(b, srv, n, dir, legacy) {
     if (n === 13) for (let k = 0; k < 2; k++) D.spawnUfos();
     if (n === 14) for (let k = 0; k < 3; k++) D.spawnRift();
     if (n === 15) D.spawnHoles();
-    if (n === 16) for (let k = 0; k < 3; k++) D.spawnTwin();
+    // Las amenazas en archivos propios traen su tanda de prueba (los dobles, tres).
+    if (D.prueba) D.prueba();
     if (n === 2) for (let k = 0; k < 3; k++) D.spawnPirates();
     if (n === 4) for (let k = 0; k < 2; k++) D.spawnLocusts();
     if (n === 5) for (let k = 0; k < 2; k++) D.spawnLuddites();
@@ -242,11 +248,11 @@ else if (process.argv[2] === 'cargar') {
   // node tools/huella-mundo.mjs cargar <carpeta con las partidas> <salida>
   const from = process.argv[3], dir = process.argv[4]; mkdirSync(dir, { recursive: true });
   const srv = await serve(process.env.HUELLA_DIST || 'dist'), b = await launch();
-  try { for (let n = 2; n <= 16; n++) { if (!existsSync(from + '/m' + n + '.json')) continue; const o = await cargar(b, srv, n, dir, from); writeFileSync(dir + '/m' + n + '.json', JSON.stringify(o)); console.log('era ' + n + ' cargada · errores ' + o.errs.length); } }
+  try { for (let n = 2; n <= LAST; n++) { if (!existsSync(from + '/m' + n + '.json')) continue; const o = await cargar(b, srv, n, dir, from); writeFileSync(dir + '/m' + n + '.json', JSON.stringify(o)); console.log('era ' + n + ' cargada · errores ' + o.errs.length); } }
   finally { await b.close(); srv.close(); }
 }
 else {
-  const dir = process.argv[2] || 'out/huella', list = (process.argv[3] || '2,3,4,5,6,7,8,9,10,11,12,13,14,15,16').split(',').map(Number);
+  const dir = process.argv[2] || 'out/huella', list = (process.argv[3] || ALL.map(e => e.n).join(',')).split(',').map(Number);
   mkdirSync(dir, { recursive: true });
   const srv = await serve(process.env.HUELLA_DIST || 'dist'), b = await launch();
   try {

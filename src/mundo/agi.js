@@ -1,6 +1,6 @@
 // AGI del mundo abierto: grafeno, la seguridad, la carrera contra el rival y sus espías, puestos de guardia; la AGI. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:10,name:'AGI',de:'de la AGI',next:{file:'mundo11.html',to:'a la era estelar'},
+  n:10,name:'AGI',de:'de la AGI',obra:'la AGI, antes que el rival',next:{file:'mundo11.html',to:'a la era estelar'},
   ore:{id:'grafeno',name:'Grafeno',col:'#c8ccd2',empty:'Veta de grafeno agotada',gather:'grafeno',icon:[['........','..kkkk..','.kqvvqk.','kqkqqkqk','kqkqqkqk','.kqkkqk.','..kkkk..','........'],{q:'#4a4e5a',Q:'#2a2e38',v:'#c8ccd2'}]},
   storage:{id:'granero'},ideaBuild:'instituto',ideaTechs:['computo','ciencia'],boostTech:'escalado',farmBuild:'agro',nightTech:'escalado',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).

@@ -1,6 +1,6 @@
 // Era multiversal del mundo abierto (la que sigue a la cósmica): materia espejo, espejos de la verdad y dobles de tu gente que llegan de otros universos a robarte; la puerta al multiverso. Datos y arte de la era; las reglas están en motor.html.
 const ERA={
-  n:16,name:'Era multiversal',de:'de la era multiversal',next:null,
+  n:16,name:'Era multiversal',de:'de la era multiversal',obra:'la puerta al multiverso',next:null,
   ore:{id:'espejo',name:'Materia espejo',col:'#bfe4f4',empty:'Veta de materia espejo agotada',gather:'materia espejo',icon:[['....k...','...kwk..','..kwsSk.','.kwsSSsk','kwsSwSk.','.ksSSk..','..kSk...','...k....'],{w:'#ffffff',s:'#bfe4f4',S:'#7aa8c8'}]},
   storage:{id:'granero'},ideaBuild:'telar',ideaTechs:['espejo','destinos'],boostTech:'superposicion',farmBuild:'semillero',nightTech:'destinos',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
@@ -55,8 +55,7 @@ const ERA={
     legacy:'Lo que trae tu ciudad de la era cósmica',
     noLegacy:'No hay una era cósmica terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Llegan dobles de tu gente desde otros universos: se mezclan y roban ideas, monedas y materia espejo. Los delatan que titilan cada tanto y el número de lo que roban: tocalos para mandarlos de vuelta con lo robado. Cerca de un espejo de la verdad los desenmascaran solos. En la compu: flechas o WASD.',
-    win:'La puerta al multiverso',winText:()=>'Terminaste la puerta al multiverso en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ahora tu ciudad puede ir a visitar a todas sus otras versiones.',
-    winNote:'Por ahora es la última era.'}
+    win:'La puerta al multiverso',winText:()=>'Terminaste la puerta al multiverso en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ahora tu ciudad puede ir a visitar a todas sus otras versiones.'}
 };
 /* ---------- arte de la era ---------- */
 const CYAN=hx('#5fe3d0'),VIO=hx('#b48cff'),GOLDL=hx('#ffd35a'),CORAL=hx('#e8654d'),PINK=hx('#ff4fd8'),SKY=hx('#4fe8ff'),

@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700&family=Pixelify+Sans:wght@400;600;700&display=swap">
 <style>
-/* Layout: una columna tipo línea de tiempo · barra hacia la AGI arriba · las 16 eras del mundo abierto · progreso · otros modos plegados abajo */
+/* Layout: una columna tipo línea de tiempo · barra hacia la AGI arriba · las eras del mundo abierto · progreso · otros modos plegados abajo */
 :root{
   --night:#15131b; --panel:#201d27; --panel-2:#2a2632; --line:#3e3848;
   --bone:#f0e7d4; --muted:#a99f91; --ochre:#dd9c40; --ochre-deep:#8d5b1f;
@@ -69,7 +69,7 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
 
 <div class="wrap">
   <header>
-    <div class="kicker">Mundo abierto · 16 eras</div>
+    <div class="kicker" id="mundoKick">Mundo abierto</div>
     <h1>Race to AGI</h1>
     <p class="lede">De las piedras al ábaco, del ábaco a la AGI y de la AGI a las estrellas. Cada era es una partida larga: cuando terminás su obra pasás a la siguiente con tu gente, tus ideas y tus monedas.</p>
   </header>
@@ -125,28 +125,15 @@ const PROTOS=[
     state:s=>s&&s.G&&s.G.tiles&&!s.G.over?'En curso · turno '+s.G.turn+' de 30':null}];
 // Mundo abierto: una página y una clave por era. La Prehistoria guarda distinto ({st, vil, obj}, días de 150 s).
 // Es lo principal del inicio; las misiones y la carrera por turnos quedan plegadas abajo ("Otros modos que probamos").
+// La Prehistoria está acá; las eras de src/mundo las pone el build (tools/build.mjs).
 const MUNDO=[
-  {n:1,name:'Prehistoria',obra:'el ábaco',file:'mundo.html',save:'rtagi-mundo-v1'},
-  {n:2,name:'Antigüedad',obra:'el mecanismo de Anticitera',file:'mundo2.html',save:'rtagi-mundo2-v1'},
-  {n:3,name:'Edad Media',obra:'la imprenta',file:'mundo3.html',save:'rtagi-mundo3-v1'},
-  {n:4,name:'Renacimiento',obra:'la pascalina',file:'mundo4.html',save:'rtagi-mundo4-v1'},
-  {n:5,name:'Industria',obra:'la máquina analítica',file:'mundo5.html',save:'rtagi-mundo5-v1'},
-  {n:6,name:'Electricidad',obra:'la tabuladora eléctrica',file:'mundo6.html',save:'rtagi-mundo6-v1'},
-  {n:7,name:'Computación',obra:'el microprocesador',file:'mundo7.html',save:'rtagi-mundo7-v1'},
-  {n:8,name:'Internet',obra:'el teléfono inteligente',file:'mundo8.html',save:'rtagi-mundo8-v1'},
-  {n:9,name:'Inteligencia artificial',obra:'el asistente universal',file:'mundo9.html',save:'rtagi-mundo9-v1'},
-  {n:10,name:'AGI',obra:'la AGI, antes que el rival',file:'mundo10.html',save:'rtagi-mundo10-v1'},
-  {n:11,name:'Era estelar',obra:'la esfera de Dyson',file:'mundo11.html',save:'rtagi-mundo11-v1'},
-  {n:12,name:'Era interestelar',obra:'el motor de curvatura',file:'mundo12.html',save:'rtagi-mundo12-v1'},
-  {n:13,name:'Era galáctica',obra:'la federación galáctica',file:'mundo13.html',save:'rtagi-mundo13-v1'},
-  {n:14,name:'Era intergaláctica',obra:'la red de agujeros de gusano',file:'mundo14.html',save:'rtagi-mundo14-v1'},
-  {n:15,name:'Era cósmica',obra:'la computadora cósmica',file:'mundo15.html',save:'rtagi-mundo15-v1'},
-  {n:16,name:'Era multiversal',obra:'la puerta al multiverso',file:'mundo16.html',save:'rtagi-mundo16-v1'}];
+  {n:1,name:'Prehistoria',obra:'el ábaco',file:'mundo.html',save:'rtagi-mundo-v1'}].concat(/*@mundo*/[]);
 // Partida guardada de una era del mundo abierto: {seen, won, lost, dia}, o null si nunca se abrió.
 function mundoState(e){try{const d=JSON.parse(get(e.save));if(!d)return null;
   if(e.n===1)return d.st?{seen:!!d.st.seen||d.st.time>0,won:!!d.st.won,lost:false,dia:Math.floor((d.st.time||0)/150)+1}:null;
   return Array.isArray(d.obj)?{seen:!!d.seen||d.time>0,won:!!d.won,lost:!!d.lost,dia:Math.floor((d.time||0)/160)+1}:null;}catch(x){return null;}}
 const $=id=>document.getElementById(id);
+$('mundoKick').textContent='Mundo abierto · '+MUNDO.length+' eras';
 function get(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function set(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
 function legGet(){try{const l=JSON.parse(get(LEG));if(l&&l.eras)return l;}catch(e){}return{v:1,eras:{}};}
