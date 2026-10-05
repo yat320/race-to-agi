@@ -2278,7 +2278,10 @@ const erasHTML=done=>'<div class="eras">'+ERAS.map((e,i)=>'<span class="'+(i<don
 function showIntro(){
   const L=st.legacy,E=ERA.text;
   const leg=L.has?'<div class="kicker">'+E.legacy+'</div><ul class="perks">'+L.perks.map(p=>'<li>'+p+'</li>').join('')+'</ul>':'<p class="muted">'+E.noLegacy+'</p>';
-  showModalI('<div class="kicker">Mundo abierto · '+E.when+'</div><h1>'+E.title+'</h1><p>'+E.intro+'</p>'+erasHTML(ERA.n-1)+leg+'<p class="muted">'+E.news+'</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
+  // Sin la ciudad anterior, lo que trae `starterKit` se dice acá, así no parece una partida que quedó guardada.
+  const kitN=['casa','granja','aserradero','cantera'].filter(t=>BUILD[t]).map(t=>BUILD[t].name.toLowerCase()),
+    kit=HANDS||prevCity()?'':'<p class="muted">Como desde la Industria no se junta a mano, cada vez que empezás sin la ciudad de la era anterior ya tenés armado lo básico: '+kitN[0]+' con 2 aldeanos más, '+kitN.slice(1).join(', ').replace(/, ([^,]*)$/,' y $1')+'.</p>';
+  showModalI('<div class="kicker">Mundo abierto · '+E.when+'</div><h1>'+E.title+'</h1><p>'+E.intro+'</p>'+erasHTML(ERA.n-1)+leg+kit+'<p class="muted">'+E.news+'</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
 }
 const nextBtn=cls=>ERA.next?'<button class="'+cls+'" data-m="next">Pasar '+ERA.next.to+'</button>':'';
 function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+pctText()+'</div><h2>Menú</h2><p class="muted">'+ERA.text.menu+'</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?nextBtn('btn ghost'):'')+(TEST&&!st.won?'<button class="btn ghost" data-m="win">Terminar la era ya (prueba)</button>':'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button><button class="btn ghost" data-m="gente">Gente transparente frente a los edificios: '+(ghostOn?'sí':'no')+'</button></div>');}
