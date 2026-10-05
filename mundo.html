@@ -263,10 +263,10 @@ const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=[
  {id:'fogata',name:'Fogata',req:'fuego',lv:[{c:{madera:6,piedra:4},w:6},{c:{madera:15,piedra:12},w:10},{c:{madera:30,piedra:25,pieles:4},w:16}],grow:1.5,
    fx:lv=>['Ideas +'+fmt(FX.fogata.ideas[lv-1]*60)+'/min','Investigación +'+fmt(FX.fogata.rs[lv-1]*60)+'/min','Luz, calor de noche y comida cocinada'],desc:'El centro de la tribu.'},
- {id:'antorcha',name:'Antorcha',req:'fuego',lv:[{c:{madera:6,piedra:2},w:3}],grow:1.25,
-   fx:()=>['Los lobos no se acercan a '+WOLF_R+' casilleros','Alumbra de noche'],desc:'Un palo con fuego en la punta: de noche se puede trabajar cerca sin que te acechen los lobos.'},
- {id:'cucha',name:'Cucha',req:'domesticacion',lv:[{c:{madera:6,pieles:1},w:4}],grow:1.4,
-   fx:()=>['Un perro que de noche cuida a quien anda lejos del fuego','Corre a los lobos que se le acercan a '+DOG_R+' casilleros','Ayuda a cazar: +50% de carne y +1 de pieles (hasta '+DOG_HUNT+' perros)','Come 1 de comida cada '+DOG_EAT+' s si sobra'],desc:'Una cucha de ramas y pieles para un perro.'},
+ {id:'antorcha',name:'Antorcha',req:'fuego',lv:[{c:{madera:6,piedra:2},w:3},{c:{madera:10,piedra:4},w:4},{c:{madera:14,piedra:6,pieles:2},w:5}],grow:1.25,
+   fx:lv=>['Los lobos no se acercan a '+(WOLF_R+lv-1)+' casilleros','Alumbra de noche'],desc:'Un palo con fuego en la punta: de noche se puede trabajar cerca sin que te acechen los lobos.'},
+ {id:'cucha',name:'Cucha',req:'domesticacion',lv:[{c:{madera:6,pieles:1},w:4},{c:{madera:10,pieles:3},w:6},{c:{madera:16,pieles:5},w:8}],grow:1.4,
+   fx:lv=>[(lv>1?lv+' perros que':'Un perro que')+' de noche cuida'+(lv>1?'n':'')+' a quien anda lejos del fuego','Corre a los lobos que se le acercan a '+DOG_R+' casilleros','Ayuda a cazar: +50% de carne y +1 de pieles (hasta '+DOG_HUNT+' perros)','Come 1 de comida cada '+DOG_EAT+' s si sobra'],desc:'Una cucha de ramas y pieles para un perro.'},
  {id:'choza',name:'Choza',req:'refugio',lv:[{c:{madera:14,piedra:6},w:12},{c:{madera:20,piedra:12,pieles:3},w:14},{c:{madera:30,piedra:20,pieles:6},w:18}],grow:1.45,
    fx:lv=>['Lugar para '+lv+(lv===1?' aldeano':' aldeanos')],desc:'Los aldeanos llegan si hay lugar y comida.'},
  {id:'taller',name:'Taller',req:'pedernal',lv:[{c:{madera:20,piedra:15},w:12},{c:{madera:35,piedra:25,pedernal:8},w:18},{c:{madera:50,pedernal:15,pieles:6},w:24}],grow:3,unique:true,
@@ -397,22 +397,25 @@ function recount(){
 }
 function newGame(){
   obj=genObjects();renderGround();st=freshState();vil.length=0;anim=[];wolves=[];dogs=[];wolfT=0;wolfDark=false;floats=[];parts=[];
-  Object.assign(P,{x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,hunt:null,face:1});recount();buildChips();
+  Object.assign(P,{x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,hunt:null,face:1});recount();POSTN={};carveT={};buildChips();
   for(let i=0;i<3;i++)spawnAnim('deer',true);for(let i=0;i<3;i++)spawnAnim('boar',true);
 }
 function serialize(){
-  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b)o.push([i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.lv||0,b.work||0,b.need||0,b.stage||0,Math.round((b.grow||0)*10)/10]);}
+  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b)o.push([i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.lv||0,b.work||0,b.need||0,b.stage||0,Math.round((b.grow||0)*10)/10,...(b.of?[b.of]:[])]);}
   const s=Object.assign({},st);delete s._ev;
-  return{v:3,st:s,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[Math.round(v.x),Math.round(v.y),v.home[0],v.home[1],v.skin,v.name,v.sick||0]),obj:o};
+  return{v:3,st:s,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[Math.round(v.x),Math.round(v.y),v.home[0],v.home[1],v.skin,v.name,v.sick||0,...(v.post!=null?[v.post]:[])]),obj:o};
 }
 function load(d){
   if(!d||d.v!==3||!Array.isArray(d.obj))return false;
   genObjects();renderGround();
-  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,lv,work,need,stage,grow]of d.obj)obj[i]={t,hp,regen,lv,work,need,stage,grow};
+  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,lv,work,need,stage,grow,of]of d.obj){obj[i]={t,hp,regen,lv,work,need,stage,grow};if(of>0&&OFICIO[t])obj[i].of=Math.min(of|0,lv||0);}
   const f=freshState();st=Object.assign(f,d.st);st.res=Object.assign(f.res,d.st.res);st.upg=Object.assign(f.upg,d.st.upg);st.found=Object.assign(f.found,d.st.found);st.hitos=d.st.hitos||{};
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null,hunt:null});
-  vil.length=0;(d.vil||[]).forEach(v=>{const m=mkVillager(v[0],v[1],v[2],v[3],v[4],v[5]);m.sick=v[6]||0;vil.push(m);});
-  anim=[];wolves=[];dogs=[];wolfT=0;wolfDark=false;floats=[];parts=[];recount();syncDogs();buildChips();for(let i=0;i<2;i++){spawnAnim('deer',true);spawnAnim('boar',true);}return true;
+  vil.length=0;(d.vil||[]).forEach(v=>{const m=mkVillager(v[0],v[1],v[2],v[3],v[4],v[5]);m.sick=v[6]||0;
+    // Con oficio: vuelve a su puesto, adentro.
+    if(v[7]!=null){const o=obj[v[7]];if(o&&OFICIO[o.t]&&o.lv>0&&vil.filter(w=>w.post===v[7]).length<(o.of||0)){m.post=v[7];m.state='post';m.inside=true;m.x=v[7]%MW;m.y=(v[7]/MW)|0;}}
+    vil.push(m);});
+  anim=[];wolves=[];dogs=[];wolfT=0;wolfDark=false;floats=[];parts=[];recount();syncDogs();countPosts();buildChips();for(let i=0;i<2;i++){spawnAnim('deer',true);spawnAnim('boar',true);}return true;
 }
 function save(){if(!st)return;try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
 
@@ -444,7 +447,7 @@ const thinkers=()=>vil.filter(v=>v.state==='think').length;
 // La tribu piensa sola un poco (IDEA_BASE), aunque no haya fogata ni nadie pensando: en octubre de 2026 Juani dijo que la
 // investigación seguía lenta, sobre todo la del ábaco.
 const IDEA_BASE=0.1;
-const ideaRate=()=>(IDEA_BASE+agg.ideas+thinkers()*THINK.ideas)*(st.techs.lenguaje?1.3:1)*(1+0.05*vil.length);
+const ideaRate=()=>(IDEA_BASE+agg.ideas+thinkers()*THINK.ideas+painterIdeas())*(st.techs.lenguaje?1.3:1)*(1+0.05*vil.length);
 const rsSpeed=()=>(1.2+agg.rs+thinkers()*THINK.rs)*(st.techs.contar?1.5:1);
 const winterPenalty=()=>isWinter()&&!st.techs.vestimenta;
 function darkness(){const ph=(st.time%DAY)/DAY;if(ph<0.62)return 0;if(ph<0.72)return(ph-0.62)/0.1*0.62;if(ph<0.92)return 0.62;return(1-ph)/0.08*0.62;}
@@ -489,6 +492,42 @@ function finishBuild(o,x,y){
   if(o.t==='monumento'&&!st.won){st.won=true;save();setTimeout(showWin,900);}
   save();
 }
+
+/* ---------- oficios ---------- */
+// Oficios (octubre de 2026, Juani: llevar a la Prehistoria lo de entrar a las construcciones de la Industria; eligió interior
+// y oficios): la cueva, el taller y el campamento tienen puestos para aldeanos, tantos como su nivel. Un aldeano con oficio
+// deja de juntar, camina hasta el edificio y trabaja adentro (no se ve en el mapa y los lobos no lo buscan; sigue comiendo):
+// cada pintor suma 40% a las ideas de su cueva, cada tallador hace pedernal con piedra (3 por minuto, gasta 2 de piedra cada
+// uno) y cada cazador suma 50% a lo que trae su campamento. Cuántos se quieren lo dice el edificio (`of`, el décimo dato) y
+// quién está, el aldeano (`post`, el octavo); se acomodan solos cada segundo (syncPosts).
+const OFICIO={
+  cueva:{n:'Pintor',ns:'Pintores',fx:k=>'Ideas de la cueva +'+Math.round(40*k)+'%'},
+  taller:{n:'Tallador',ns:'Talladores',fx:k=>'Pedernal +'+(3*k)+'/min (gasta piedra)'},
+  campamento:{n:'Cazador',ns:'Cazadores',fx:k=>'Caza del campamento +'+Math.round(50*k)+'%'}};
+let POSTN={},carveT={};
+// Cuántos están trabajando adentro de cada edificio.
+function countPosts(){POSTN={};for(const v of vil)if(v.post!=null&&v.inside)POSTN[v.post]=(POSTN[v.post]||0)+1;}
+const postN=i=>POSTN[i]||0;
+function painterIdeas(){let n=0;for(const i in POSTN){const o=obj[i];if(o&&o.t==='cueva'&&o.lv>0)n+=FX.cueva.ideas[o.lv-1]*0.4*POSTN[i];}return n;}
+const postFree=v=>v.post==null&&!v.sick&&!v.carry&&v.state!=='return'&&!pinned(v)&&v.hungry<2;
+function postLeave(v){const i=v.post;v.post=null;v.state='idle';v.t=0.5;v.path=[];v.target=null;v.job=null;
+  if(v.inside){v.inside=false;const x=i%MW,y=(i/MW)|0,d=DIRS8.map(([a,b])=>[x+a,y+b]).find(([a,b])=>passable(a,b));if(d){v.x=d[0];v.y=d[1];}}}
+function syncPosts(){
+  for(const v of vil)if(v.post!=null){const o=obj[v.post];if(!o||!OFICIO[o.t]||!o.lv)postLeave(v);}
+  for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||!OFICIO[o.t])continue;const want=Math.min(o.of||0,o.lv||0),mine=vil.filter(v=>v.post===i);
+    // Sobran: salen primero los que todavía no llegaron.
+    mine.sort((a,b)=>(a.inside?1:0)-(b.inside?1:0));for(let k=0;k<mine.length-want;k++)postLeave(mine[k]);
+    for(let k=mine.length;k<want;k++){const x=i%MW,y=(i/MW)|0;let best=null,bd=1e9;for(const v of vil){if(!postFree(v))continue;const d=Math.hypot(v.x-x,v.y-y);if(d<bd){bd=d;best=v;}}
+      if(!best)break;const[vx,vy]=tileOf(best),p=adj(vx,vy,x,y)?[]:pathAdj(vx,vy,x,y);if(!p)break;
+      best.post=i;best.state='post';best.job=null;best.target=null;best.path=p;best.say={txt:'¡Voy a '+(o.t==='cueva'?'pintar':o.t==='taller'?'tallar':'cazar')+'!',t:2};}}
+  countPosts();}
+function postArrive(v){const i=v.post,x=i%MW,y=(i/MW)|0,[vx,vy]=tileOf(v);
+  if(adj(vx,vy,x,y)){v.inside=true;v.x=x;v.y=y;v.moving=false;countPosts();return;}
+  const p=pathAdj(vx,vy,x,y);if(p&&p.length)v.path=p;else postLeave(v);}
+// Los talladores: cada uno, 1 pedernal cada 20 s si hay 2 de piedra.
+function carve(dt){for(const i in POSTN){const o=obj[i];if(!o||o.t!=='taller')continue;carveT[i]=(carveT[i]||0)+POSTN[i]*dt/20;
+  while(carveT[i]>=1){carveT[i]-=1;if(st.res.piedra<2)continue;st.res.piedra-=2;add('pedernal',1);float(i%MW,((i/MW)|0)-0.4,'+1 pedernal',RCOL.pedernal||'#a9c4e8');}}}
+function setOficio(i,d){const o=obj[i];if(!o||!OFICIO[o.t]||!o.lv)return false;const n=Math.max(0,Math.min(o.lv,(o.of||0)+d));if(n===(o.of||0))return false;o.of=n;syncPosts();save();return true;}
 
 /* ---------- jugador ---------- */
 const speedP=()=>4.2*(st.techs.rueda?1.3:1)*(st.upg.sandalias?1.25:1)*(st.energy<=0?0.55:1);
@@ -584,12 +623,12 @@ const wolfEvery=()=>30/(1+0.05*Object.keys(st.techs).length);
 const wolfOut=w=>!(w.wait>0)&&w.state!=='flee';
 const pinned=e=>wolves.some(w=>w.state==='bite'&&w.prey===e);
 const wolfPin=()=>pinned(P);
-const fireSafe=o=>o.t==='antorcha'?WOLF_R:FX.fogata.light[o.lv-1]*0.7;
+const fireSafe=o=>o.t==='antorcha'?WOLF_R+o.lv-1:FX.fogata.light[o.lv-1]*0.7;
 function scaredAt(x,y){const r=7,x0=Math.max(0,Math.floor(x-r)),x1=Math.min(MW-1,Math.ceil(x+r)),y0=Math.max(0,Math.floor(y-r)),y1=Math.min(MH-1,Math.ceil(y+r));
   for(let j=y0;j<=y1;j++)for(let i=x0;i<=x1;i++){const o=obj[j*MW+i];if(!o||!o.lv||(o.t!=='antorcha'&&o.t!=='fogata'))continue;if(Math.hypot(i-x,j-y)<=fireSafe(o))return true;}return false;}
 const nearT=(px,py)=>(a,b)=>Math.max(Math.abs(a-px),Math.abs(b-py))<=1;
 // Presas: vos y los aldeanos que están lejos del fuego y sin un perro al lado (si no hay ninguna, vienen por vos).
-const preys=()=>[P,...vil].filter(e=>!scaredAt(e.x,e.y)&&!guarded(e)&&!wolves.some(w=>w.prey===e&&w.state!=='flee'));
+const preys=()=>[P,...vil].filter(e=>!e.inside&&!scaredAt(e.x,e.y)&&!guarded(e)&&!wolves.some(w=>w.prey===e&&w.state!=='flee'));
 function spawnWolves(){const active=wolves.filter(w=>w.state!=='flee').length;if(active>=WOLF_MAX)return;
   const ps=preys(),prey=ps.length?ps[Math.floor(rnd()*ps.length)]:P,[px,py]=tileOf(prey);
   // Desde el bosque a 11–14 casilleros de la presa, de este lado del río (sin dar la vuelta por un puente lejano).
@@ -631,11 +670,11 @@ function updateWolves(dt,d){
 // tribu, la gente se iba de hambre y el jugador, solo, quedaba acorralado todas las noches.
 const DOG_R=5,DOG_SPD=3.2,DOG_EAT=60,DOG_LEFT=5,DOG_HUNT=2,DOG_NEAR=3,DOG_NAMES=['Firulais','Canela','Manchita','Toby','Luna','Chispa','Tango','Coco'];
 const guarded=e=>dogs.some(g=>g.ward===e&&Math.hypot(g.x-e.x,g.y-e.y)<=DOG_NEAR);
-function syncDogs(){for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||o.t!=='cucha'||!o.lv||dogs.some(g=>g.hi===i))continue;
+function syncDogs(){for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||o.t!=='cucha'||!o.lv)continue;for(let n=dogs.filter(g=>g.hi===i).length;n<o.lv;n++){
   const hx=i%MW,hy=(i/MW)|0,sp=DIRS8.map(([a,b])=>[hx+a,hy+b]).find(([x,y])=>passable(x,y))||tileOf(P);
-  dogs.push({x:sp[0],y:sp[1],path:[],hi:i,home:[hx,hy],face:1,moving:false,t:1,rp:0,ward:null,wolf:null,eat:DOG_EAT,name:DOG_NAMES[dogs.length%DOG_NAMES.length]});}}
+  dogs.push({x:sp[0],y:sp[1],path:[],hi:i,home:[hx,hy],face:1,moving:false,t:1,rp:0,ward:null,wolf:null,eat:DOG_EAT,name:DOG_NAMES[dogs.length%DOG_NAMES.length]});}}}
 function dogStatus(g){return g.wolf?['corre a un lobo','']:g.ward?['cuida a '+(g.ward===P?'vos':g.ward.name),'']:['descansa cerca de su cucha',''];}
-function pickWard(g){let best=null,bd=1e9;for(const e of[P,...vil]){if(scaredAt(e.x,e.y)||dogs.some(o=>o!==g&&o.ward===e))continue;const dd=Math.hypot(e.x-g.x,e.y-g.y);if(dd<bd){bd=dd;best=e;}}return best;}
+function pickWard(g){let best=null,bd=1e9;for(const e of[P,...vil]){if(e.inside||scaredAt(e.x,e.y)||dogs.some(o=>o!==g&&o.ward===e))continue;const dd=Math.hypot(e.x-g.x,e.y-g.y);if(dd<bd){bd=dd;best=e;}}return best;}
 function dogGo(g,dt,e,spd,keep){g.rp-=dt;if(g.rp<=0||!g.path.length){g.rp=0.4;const[x,y]=tileOf(g);g.path=(bfs(x,y,nearT(...tileOf(e)))||[]).slice(0,keep);}
   stepEnt(g,dt,spd);if(g.blocked){g.blocked=false;g.rp=0;}}
 function updateDogs(dt,d){
@@ -713,9 +752,12 @@ function updateVillager(v,dt){
   v.sayT-=dt;if(v.sayT<=0){v.sayT=18+rnd()*30;if(!v.say)vSay(v);}
   if(v.sick>0){v.sick-=dt;v.state='idle';v.path=[];v.target=null;return;}
   if(pinned(v)){v.moving=false;return;}// acorralado por un lobo: no se mueve ni trabaja hasta que se va
+  // Con oficio: adentro trabaja sin moverse; si todavía va, camina hasta el edificio.
+  if(v.post!=null&&v.inside){v.moving=false;return;}
   const boost=st.party>0?1.5:1,slow=v.hungry?0.5:1;
   stepEnt(v,dt,2.6*(st.techs.rueda?1.3:1)*slow*boost);
-  if(v.blocked){v.blocked=false;if(v.state==='go'){v.state='idle';v.t=0.4;v.target=null;}}
+  if(v.blocked){v.blocked=false;if(v.state==='go'){v.state='idle';v.t=0.4;v.target=null;}if(v.post!=null)v.path=[];}
+  if(v.post!=null){if(!v.path.length)postArrive(v);return;}
   switch(v.state){
     case'idle':v.t-=dt;if(v.t<=0&&!pickTarget(v))v.t=3;break;
     case'go':if(!v.path.length){const o=v.target&&obj[v.target[1]*MW+v.target[0]],[x,y]=tileOf(v);
@@ -730,6 +772,7 @@ function updateVillager(v,dt){
   }
 }
 function vStatus(v){
+  if(v.post!=null){const o=obj[v.post],F=o&&OFICIO[o.t];return[(v.inside?F.n.toLowerCase()+(o.t==='cueva'?' en la cueva':o.t==='taller'?' en el taller':' en el campamento'):'va a su oficio'),''];}
   if(v.sick>0)return['enfermo','neg'];if(pinned(v))return['acorralado por un lobo: si nadie lo espanta, se va','neg'];if(v.hungry)return['con hambre','neg'];
   if(v.state==='think')return['pensando junto al fuego',''];
   if(v.state==='idle')return['descansando',''];
@@ -782,12 +825,14 @@ function checkHitos(){
 /* ---------- actualización ---------- */
 function update(dt){
   st.time+=dt;
-  trapT-=dt;if(trapT<=0){trapT=1;unstick();}
+  trapT-=dt;if(trapT<=0){trapT=1;unstick();if(vil.some(v=>v.post!=null)||obj.some(o=>o&&o.of))syncPosts();}
   const si=seasonIdx();if(si!==st.lastSeason){st.lastSeason=si;onSeason(si);}
   const winter=si===3,d=darkness();
   st.energy=Math.max(0,st.energy-dt/4*(winterPenalty()?1.6:1)*(winter&&d>0.3&&!nearFire(P.x,P.y,5)?1.4:1));
   st.res.ideas+=ideaRate()*dt;
-  if(agg.comida){const m=winter?0.5:1;add('comida',agg.comida*m*dt);add('pieles',agg.pieles*m*dt);}
+  if(agg.comida){const m=winter?0.5:1;add('comida',agg.comida*m*dt);add('pieles',agg.pieles*m*dt);
+    for(const i in POSTN){const o=obj[i];if(o&&o.t==='campamento'&&o.lv>0){const k=0.5*POSTN[i]*m*dt;add('comida',FX.campamento.comida[o.lv-1]*k);add('pieles',FX.campamento.pieles[o.lv-1]*k);}}}
+  carve(dt);
   if(st.rs){const t=TECH[st.rs.id],need=t.ideas-st.rs.p,take=Math.min(rsSpeed()*dt,st.res.ideas,need);st.res.ideas-=take;st.rs.p+=take;if(st.rs.p>=t.ideas-1e-6)finishResearch();}
   if(st.party>0)st.party-=dt;
   if(homeWithRoom()){if(st.arrive<=0)st.arrive=40;st.arrive-=dt;if(st.arrive<=0){if(st.res.comida>=8){arriveVillager();st.arrive=40;}else st.arrive=10;}}
@@ -1027,6 +1072,73 @@ const HS={tree:treeArt(LEAF,false,false),treeW:treeArt(LEAF,false,true),oak:tree
 // Dibuja un sprite en alta con el tamaño que tenía el de 16 px.
 const hd=(c,x,y)=>ctx.drawImage(c,x,y,c.width/ART,c.height/ART);
 
+/* ---------- adentro ---------- */
+// Adentro de las construcciones (octubre de 2026): al tocarlas, la hoja muestra arriba el interior dibujado, que se mueve: a la
+// izquierda lo propio de cada una y a la derecha tres lugares con lo que suma cada nivel (asientos junto a la fogata, camas en
+// la choza, canastas en el almacén, perros en la cucha, antorchas) o, en la cueva, el taller y el campamento, los puestos de sus
+// oficios con quien trabaja ahí. Solo dibujo: no toca lo que se guarda.
+const IN_W=704,IN_H=280,IN_FLOOR=196,IN_X=[248,392,536],INSIDE={fogata:'afuera',antorcha:'afuera',cucha:'afuera',campamento:'afuera',choza:'choza',taller:'choza',almacen:'choza',cueva:'cueva'};
+const INA={};
+function inBgArt(k){return mkA(IN_W,IN_H,a=>{const DIRT=P4('#4a3322','#5a3e28','#6b4a30','#7d5a3a');
+  if(k==='cueva'){for(let y=0;y<IN_FLOOR;y++)for(let x=0;x<IN_W;x++){const v=hash(x>>3,y>>3,4)*0.5+hash(x>>4,y>>4,5)*0.5;a.set(x,y,mulc(ROCK[v<0.3?0:v<0.6?1:2],0.62+0.2*(y/IN_FLOOR)));}
+    for(const[x,y,r]of[[90,0,60],[300,0,80],[520,0,70],[680,0,50]])blob(a,[[x,y,r]],P4('#2a2c34','#33363f','#3c404a','#474b56'),null);}
+  else if(k==='choza'){for(let y=0;y<IN_FLOOR;y++)for(let x=0;x<IN_W;x++){const px=x%88,seam=px<2||y%40===0;a.set(x,y,seam?HIDE[0]:HIDE[(hash(x>>4,y>>3,7)*2|0)+1]);}
+    for(let x=0;x<IN_W;x+=88){rect(a,x-3,0,8,IN_FLOOR,WOOD[1]);rect(a,x-3,0,3,IN_FLOOR,WOOD[2]);}for(let x=40;x<IN_W;x+=88)for(let y=12;y<IN_FLOOR;y+=40){a.set(x,y,WOOD[0]);a.set(x+1,y+1,WOOD[0]);}
+    rect(a,0,0,IN_W,10,WOOD[1]);}
+  else{for(let y=60;y<IN_FLOOR;y++)for(let x=0;x<IN_W;x++){const h=60+Math.round(30*Math.sin(x/37)+20*Math.sin(x/13)+hash(x>>3,0,9)*10);if(y>=h)a.set(x,y,y<h+3?LEAF[1]:LEAF[0]);}}
+  for(let y=IN_FLOOR;y<IN_H;y++)for(let x=0;x<IN_W;x++){const g=k==='afuera';const v=hash(x>>2,y>>2,11);a.set(x,y,g?(v<0.3?GR[0]:v<0.7?GR[1]:GR[2]):DIRT[v<0.3?0:v<0.7?1:2]);}
+  for(let k2=0;k2<60;k2++){const x=(hash(k2,1,3)*IN_W)|0,y=IN_FLOOR+4+((hash(k2,2,3)*(IN_H-IN_FLOOR-8))|0);rect(a,x,y,6,2,k==='afuera'?GR[3]:STRAW[1]);}
+  for(let x=0;x<IN_W;x++)a.set(x,IN_FLOOR,mulc(a.get(x,IN_FLOOR+1)||GR[0],0.6));});}
+// Lo propio de cada construcción (176×200, dos cuadros).
+function inCoreArt(t,f){return mkA(176,200,a=>{const F=f?[FIRE[0],FIRE[1],FIRE[2]]:[FIRE[1],FIRE[2],FIRE[3]];
+  if(t==='fogata'){for(let k=0;k<9;k++){const an=k/9*6.283;blob(a,[[88+Math.cos(an)*44,176+Math.sin(an)*14,9]],ROCK,null);}
+    for(const[x0,x1]of[[60,116],[64,112]])line(a,x0,182,x1,166,WOOD[2],6);const d=f?3:-3;poly(a,[[60,176],[66,138],[76,150],[88+d,100],[100,150],[110,136],[116,176]],F[0]);poly(a,[[70,176],[78,148],[88-d,118],[98,148],[106,176]],F[1]);poly(a,[[78,176],[88+d,140],[98,176]],F[2]);
+    rect(a,40,100,6,84,WOOD[1]);rect(a,130,100,6,84,WOOD[1]);rect(a,40,98,96,5,WOOD[2]);ell(a,88,112,14,8,BERRY[1]);ell(a,84,110,6,3,BERRY[2]);}
+  else if(t==='choza'){blob(a,[[60,186,26]],ROCK,null);ell(a,60,176,14,10,(i,j)=>j<4?(i*i+j*j<40?F[2]:F[1]):null);for(const x of[110,140]){ell(a,x,178,14,18,CLAY[2]);ell(a,x-4,172,5,6,CLAY[3]);rect(a,x-8,160,16,4,CLAY[0]);}
+    line(a,20,20,160,20,WOOD[1],3);for(let x=30;x<160;x+=22){line(a,x,20,x,44,STRAW[0]);blob(a,[[x,50,7]],x%44?LEAF:STRAW,null);}}
+  else if(t==='taller'){rect(a,10,140,150,18,ROCK[2]);rect(a,10,140,150,4,ROCK[3]);for(const x of[24,140])rect(a,x,158,14,42,ROCK[1]);
+    for(const[x,c]of[[40,FLINT],[70,ROCK],[100,FLINT],[128,FLINT]])blob(a,[[x,130,9]],c,null);line(a,30,118,52,96,WOOD[2],4);rect(a,46,86,16,12,ROCK[2]);
+    line(a,120,120,150,80,hx('#e8dcc0'),3);line(a,150,80,160,70,hx('#e8dcc0'),2);line(a,150,80,166,86,hx('#e8dcc0'),2);if(f)for(const[x,y]of[[78,118],[84,112],[72,114]])rect(a,x,y,2,2,FIRE[3]);}
+  else if(t==='almacen'){for(const[x,y,s]of[[40,176,1],[80,180,1.2],[124,176,1],[60,134,0.9],[104,136,0.9]]){ell(a,x,y,18*s,22*s,CLAY[2]);ell(a,x-5*s,y-6*s,6*s,8*s,CLAY[3]);rect(a,x-10*s,y-22*s,20*s,4,CLAY[0]);}
+    for(let k=0;k<4;k++)rect(a,20+k*36,96,30,30,STRAW[1+(k%2)]);for(let k=0;k<4;k++)for(let y=98;y<126;y+=5)rect(a,20+k*36,y,30,1,STRAW[0]);}
+  else if(t==='campamento'){for(const x of[20,150])rect(a,x,40,6,160,WOOD[1]);rect(a,16,40,144,6,WOOD[2]);for(let x=30;x<150;x+=18){line(a,x,46,x,70,WOOD[0]);rect(a,x-5,70,10,f?26:24,BERRY[x%36?1:0]);}
+    rect(a,40,110,96,70,WOOD[1]);rect(a,46,116,84,58,HIDE[2]);for(let k=0;k<6;k++){a.set(46+k*16,116,WOOD[0]);a.set(46+k*16,173,WOOD[0]);}ell(a,88,145,20,14,HIDE[3]);}
+  else if(t==='cueva'){blob(a,[[50,104,46],[104,92,50],[140,134,36],[72,150,44],[30,160,30]],P4('#6a5a4a','#7d6b58','#8f7d68','#a39079'),null);const OCH=[hx('#b5523b'),hx('#c87a3c'),hx('#2a2018')];
+    const deer=(x,y,c)=>{ell(a,x,y,18,8,c);rect(a,x-14,y+6,3,14,c);rect(a,x+12,y+6,3,14,c);line(a,x+16,y-4,x+26,y-14,c,3);line(a,x+24,y-14,x+30,y-24,c,2);line(a,x+24,y-14,x+18,y-24,c,2);};
+    deer(70,80,OCH[0]);deer(120,120,OCH[2]);deer(54,140,OCH[1]);for(const[x,y]of[[130,60],[30,100],[150,160]]){ell(a,x,y,7,9,OCH[0]);for(let k=0;k<4;k++)rect(a,x-6+k*4,y-16,3,8,OCH[0]);}
+    if(f)rect(a,96,44,4,4,FIRE[3]);}
+  outlineAll(a,OUTL);});}
+// Lo que suma cada nivel (o el puesto de un oficio): asiento, cama, canasta; pinturas, piedra de tallar y lanzas.
+function inPropArt(t){return mkA(112,112,a=>{
+  if(t==='fogata'){ell(a,56,96,40,12,WOOD[2]);ell(a,22,96,8,12,RING[2]);ell(a,22,96,4,7,RING[1]);rect(a,22,84,68,6,WOOD[3]);}
+  else if(t==='choza'){rect(a,6,80,100,22,STRAW[1]);rect(a,10,72,92,14,HIDE[2]);rect(a,10,72,92,3,HIDE[3]);for(let x=14;x<100;x+=12)rect(a,x,76,6,2,HIDE[1]);ell(a,24,72,12,7,HIDE[3]);}
+  else if(t==='almacen'){for(const[x,y]of[[30,92],[80,92],[55,60]]){ell(a,x,y,22,16,STRAW[1]);for(let k=-14;k<15;k+=5)rect(a,x+k,y-12,2,24,STRAW[0]);blob(a,[[x-6,y-14,6],[x+4,y-16,6],[x+10,y-12,5]],BERRY,null);}}
+  else if(t==='cueva'){for(const[x,c]of[[24,hx('#b5523b')],[56,hx('#c87a3c')],[88,hx('#2a2018')]]){ell(a,x,96,14,10,CLAY[2]);ell(a,x,90,11,4,c);}}
+  else if(t==='taller'){blob(a,[[56,92,22]],ROCK,null);for(const[x,y]of[[20,104],[90,106],[30,98],[84,100]])rect(a,x,y,6,3,FLINT[2]);}
+  else if(t==='campamento'){for(let k=0;k<4;k++){line(a,20+k*20,108,36+k*20,20,WOOD[2],3);poly(a,[[36+k*20,12],[40+k*20,24],[32+k*20,24]],FLINT[2]);}rect(a,10,100,92,6,WOOD[1]);}
+  outlineAll(a,OUTL);});}
+function drawInside(){const cv=$('inCv');if(!cv||sheetMode!=='bld')return;const c=cv.getContext('2d'),i=sheetSel,o=obj[i];if(!o||!INSIDE[o.t])return;
+  const now=performance.now()/1000,k=INSIDE[o.t],f=Math.floor(now*3)%2,dk=darkness();c.imageSmoothingEnabled=false;
+  if(!INA[k])INA[k]=inBgArt(k);if(k==='afuera'){c.fillStyle=dk>0.3?'#1b2440':dk>0.05?'#c87a4a':'#9fd0ff';c.fillRect(0,0,IN_W,IN_FLOOR);}
+  c.drawImage(INA[k],0,0);
+  // Lo propio: en la cucha y la antorcha, el mismo dibujo del mapa en grande.
+  if(o.t==='cucha')c.drawImage(HS.cucha,16,IN_FLOOR+16-128,128,128);else if(o.t==='antorcha')c.drawImage(HS.antorcha[f],16,IN_FLOOR+16-128,128,128);
+  else{const key='c'+o.t+f;if(!INA[key])INA[key]=inCoreArt(o.t,f);c.drawImage(INA[key],0,IN_FLOOR+16-200);}
+  const lv=o.lv||0,F=OFICIO[o.t],inN=postN(i),want=Math.min(o.of||0,lv);
+  c.font='bold 20px system-ui,sans-serif';c.textAlign='center';
+  for(let j=0;j<3;j++){const cx=IN_X[j];c.fillStyle='rgba(0,0,0,.25)';c.fillRect(cx-66,IN_FLOOR+4,132,22);
+    if(j>=lv){c.strokeStyle='rgba(232,224,192,.55)';c.lineWidth=3;c.setLineDash([10,8]);c.strokeRect(cx-52,IN_FLOOR-100,104,120);c.setLineDash([]);c.fillStyle='rgba(232,224,192,.8)';c.fillText('nivel '+(j+1),cx,IN_FLOOR-34);continue;}
+    if(F){const pk='p'+o.t;if(!INA[pk])INA[pk]=inPropArt(o.t);c.drawImage(INA[pk],cx-70,IN_FLOOR+20-112);
+      if(j<inN){const v=vil.filter(w=>w.post===i&&w.inside)[j],fr=HS.vil[(v?v.skin:j)%4][Math.floor(now*4+j)%2];c.drawImage(fr,cx+4,IN_FLOOR+22-64-(Math.sin(now*12+j)>0?3:0));}
+      else if(j<want){c.fillStyle='#1b1a24';c.fillRect(cx-70,IN_FLOOR-160,140,28);c.fillStyle='#e8e0c0';c.fillText('va uno',cx,IN_FLOOR-139);}
+      else{c.strokeStyle='rgba(232,224,192,.55)';c.lineWidth=3;c.setLineDash([10,8]);c.strokeRect(cx-52,IN_FLOOR-100,104,120);c.setLineDash([]);c.fillStyle='rgba(232,224,192,.7)';c.fillRect(cx-4,IN_FLOOR-70,8,32);c.fillRect(cx-16,IN_FLOOR-58,32,8);}
+      continue;}
+    if(o.t==='cucha'){const fr=HS.dog[Math.floor(now*2+j)%2];c.drawImage(fr,cx-48,IN_FLOOR+20-78,96,78);}
+    else if(o.t==='antorcha'){const fr=HS.antorcha[Math.floor(now*7+j)%2];c.drawImage(fr,cx-48,IN_FLOOR+20-96,96,96);}
+    else{const pk='p'+o.t;if(!INA[pk])INA[pk]=inPropArt(o.t);c.drawImage(INA[pk],cx-56,IN_FLOOR+20-112);}}
+  if(o.need>0){c.fillStyle='rgba(20,16,10,.45)';c.fillRect(0,0,IN_W,IN_H);c.fillStyle='#1b1a24';c.fillRect(IN_W/2-160,8,320,36);c.fillStyle='#ffd35a';c.font='bold 24px system-ui,sans-serif';c.fillText(lv?'Mejora en obra':'En obra',IN_W/2,34);}
+  if(dk>0.05&&k!=='afuera'){c.fillStyle='rgba(10,12,30,'+(dk*0.3).toFixed(3)+')';c.fillRect(0,0,IN_W,IN_H);}}
+
 /* ---------- render ---------- */
 const cv=$('world'),ctx=cv.getContext('2d'),lc=document.createElement('canvas'),lx=lc.getContext('2d');
 let W=0,H=0,SC=4,DPR=1,hudH=0,barH=0;const cam={x:0,y:0};
@@ -1101,7 +1213,7 @@ function reachCount(sx,sy,cap,skip){if(!inb(sx,sy))return 0;const s=sy*MW+sx,see
     for(const[dx,dy]of DIRS){const nx=cx+dx,ny=cy+dy;if(!inb(nx,ny))continue;const n=ny*MW+nx;if(n===skip||seen.has(n)||!passable(nx,ny))continue;seen.add(n);q.push(n);}}
   return Math.min(q.length,cap);}
 const ENCLOSE_CAP=150,TRAP_MIN=12,FREE_MIN=40;
-const freeWho=()=>[P].concat(vil);
+const freeWho=()=>[P].concat(vil.filter(v=>!v.inside));
 // Un puente se pisa: construirlo nunca encierra a nadie.
 function wouldEnclose(id,x,y){if(id==='puente')return null;const skip=y*MW+x;
   for(const e of freeWho()){const[ex,ey]=tileOf(e);const a=reachCount(ex,ey,ENCLOSE_CAP,-1);if(reachCount(ex,ey,ENCLOSE_CAP,skip)<a-1)return e;}return null;}
@@ -1133,7 +1245,7 @@ function render(){
   if(placing){const[px,py]=tileOf(P),rad=placing==='puente'?20:10;for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(Math.abs(x-px)+Math.abs(y-py)>rad||!canPlace(placing,x,y))continue;ctx.fillStyle='rgba(95,227,208,.2)';ctx.fillRect(x*T+1,y*T+1,T-2,T-2);}}
   const list=[];
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*MW+x];if(o&&o.t!=='puente')list.push({k:y+1,z:0,o,x,y});}
-  list.push({k:P.y+1,z:1,e:P,f:HS.hero,kind:'p'});for(const v of vil)list.push({k:v.y+1,z:1,e:v,f:HS.vil[v.skin%4],kind:'v'});
+  list.push({k:P.y+1,z:1,e:P,f:HS.hero,kind:'p'});for(const v of vil)if(!v.inside)list.push({k:v.y+1,z:1,e:v,f:HS.vil[v.skin%4],kind:'v'});
   for(const a of anim)if(a.x>=x0-1&&a.x<=x1+1&&a.y>=y0-1&&a.y<=y1+1)list.push({k:a.y+1,z:1,e:a,f:HS[a.kind],kind:'a'});
   for(const w of wolves)if(!(w.wait>0))list.push({k:w.y+1,z:1,e:w,f:HS.wolf,kind:'w'});
   for(const g of dogs)list.push({k:g.y+1,z:1,e:g,f:HS.dog,kind:'d'});
@@ -1148,7 +1260,7 @@ function render(){
   if(d>0.01){
     lx.globalCompositeOperation='source-over';lx.clearRect(0,0,W,H);lx.fillStyle='rgba(10,12,38,'+d+')';lx.fillRect(0,0,W,H);lx.globalCompositeOperation='destination-out';
     const hole=(wx,wy,R,a)=>{const sx=(wx-cam.x)*s,sy=(wy-cam.y)*s,g=lx.createRadialGradient(sx,sy,0,sx,sy,R);g.addColorStop(0,'rgba(0,0,0,'+a+')');g.addColorStop(0.55,'rgba(0,0,0,'+a*0.75+')');g.addColorStop(1,'rgba(0,0,0,0)');lx.fillStyle=g;lx.beginPath();lx.arc(sx,sy,R,0,Math.PI*2);lx.fill();};
-    const fires=[];for(let y=Math.max(0,y0-6);y<=Math.min(MH-1,y1+6);y++)for(let x=Math.max(0,x0-6);x<=Math.min(MW-1,x1+6);x++){const o=obj[y*MW+x];if(o&&o.t==='fogata'&&o.lv>0)fires.push([x*T+8,y*T+9,FX.fogata.light[o.lv-1]]);else if(o&&o.t==='antorcha'&&o.lv>0)fires.push([x*T+8,y*T+3,WOLF_R/0.7]);}
+    const fires=[];for(let y=Math.max(0,y0-6);y<=Math.min(MH-1,y1+6);y++)for(let x=Math.max(0,x0-6);x<=Math.min(MW-1,x1+6);x++){const o=obj[y*MW+x];if(o&&o.t==='fogata'&&o.lv>0)fires.push([x*T+8,y*T+9,FX.fogata.light[o.lv-1]]);else if(o&&o.t==='antorcha'&&o.lv>0)fires.push([x*T+8,y*T+3,(WOLF_R+o.lv-1)/0.7]);}
     for(const[fx,fy,r]of fires)hole(fx,fy,T*s*(r+0.15*Math.sin(st.time*9+fx)),1);
     hole(P.x*T+8,P.y*T+8,T*s*2.2,0.7);
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(lc,0,0);ctx.globalCompositeOperation='lighter';
@@ -1231,7 +1343,7 @@ function hud(){
   $('tribeDot').classList.toggle('on',hungry>0||upgOk);$('tribeDot').classList.toggle('warn',hungry>0);
   $('tribeHint').textContent=upgOk?'mejorar':vil.length?vil.length+(vil.length===1?' aldeano':' aldeanos'):'vos';
   $('eatHint').textContent=nearFire(P.x,P.y,4)?'+25 al fuego':'+12 energía';
-  if(sheetMode&&!sheetHeld){const sig=RK.map(k=>Math.floor(st.res[k])).join()+'|'+Object.keys(st.techs).length+'|'+JSON.stringify(agg.lvsum)+agg.obras+'|'+vil.length+'|'+hungry+'|'+st.prio+'|'+JSON.stringify(st.upg)+'|'+(st.rs?Math.floor(st.rs.p):'')+'|'+vil.map(v=>vStatus(v)[0]).join()+(sheetSel!=null&&obj[sheetSel]?obj[sheetSel].lv+'-'+Math.floor(obj[sheetSel].work):'');if(sig!==sheetSig){sheetSig=sig;renderSheet();}}
+  if(sheetMode&&!sheetHeld){const sig=RK.map(k=>Math.floor(st.res[k])).join()+'|'+Object.keys(st.techs).length+'|'+JSON.stringify(agg.lvsum)+agg.obras+'|'+vil.length+'|'+hungry+'|'+st.prio+'|'+JSON.stringify(st.upg)+'|'+(st.rs?Math.floor(st.rs.p):'')+'|'+vil.map(v=>vStatus(v)[0]).join()+(sheetSel!=null&&obj[sheetSel]?obj[sheetSel].lv+'-'+Math.floor(obj[sheetSel].work)+'-'+(obj[sheetSel].of||0)+'-'+postN(sheetSel):'');if(sig!==sheetSig){sheetSig=sig;renderSheet();}}
   measure();
 }
 
@@ -1283,11 +1395,16 @@ function renderSheet(){
   }else if(sheetMode==='bld'){
     const o=obj[sheetSel];if(!o||!BUILD[o.t]){closeSheet();return;}const b=BUILD[o.t],max=b.lv.length,nx=b.lv[o.lv];
     $('sheetTitle').textContent=b.name;$('sheetSub').textContent=max>1?'Nivel '+o.lv+' de '+max:b.desc;
-    let html='<div class="item"><h3>Ahora</h3>'+(max>1?lvHTML(o.lv,max):'<span></span>')+'<p>'+b.fx(o.lv).join('<br>')+'</p></div>';
+    let html=(INSIDE[o.t]?'<canvas id="inCv" width="704" height="280" style="width:100%;display:block;border:1px solid var(--line);background:#1b1a24"></canvas>':'')+'<div class="item"><h3>Ahora</h3>'+(max>1?lvHTML(o.lv,max):'<span></span>')+'<p>'+b.fx(o.lv).join('<br>')+'</p></div>';
+    // Los oficios: cuántos trabajan ahí (tantos puestos como el nivel), con sumar uno y sacar uno.
+    if(OFICIO[o.t]&&o.lv>0){const F=OFICIO[o.t],n=Math.min(o.of||0,o.lv),inN=postN(sheetSel),free=vil.some(postFree);
+      html+='<div class="item"><h3>'+F.ns+' · '+n+' de '+o.lv+'</h3>'+(n<o.lv?'<button class="btn" data-of="1"'+(free?'':' disabled')+'>Sumar '+F.n.toLowerCase()+'</button>':'<span class="tag">puestos llenos</span>')+
+        '<p>'+F.fx(n)+(n<o.lv?' → '+F.fx(n+1).replace(/^[^+]*/,''):'')+'. Cada '+F.n.toLowerCase()+' deja de juntar y trabaja adentro.'+(inN<n?' Va'+(n-inN>1?'n '+(n-inN):' uno')+' en camino.':'')+(n<o.lv?'':o.lv<max?' Mejorá para tener más puestos.':'')+(!free&&n<o.lv?' No hay nadie libre: esperá que vuelvan.':'')+'</p>'+
+        (n>0?'<div style="grid-column:1/-1"><button class="btn ghost" data-of="-1">Sacar un '+F.n.toLowerCase()+'</button></div>':'')+'</div>';}
     if(o.need>0)html+='<div class="item active"><h3>Mejora en obra</h3><span class="tag">'+Math.floor(o.work)+'/'+o.need+'</span><div class="pbar"><i style="width:'+(o.work/o.need*100)+'%"></i></div><p>Tocá el edificio en el mapa para trabajar, o dejá que la tribu la termine.</p></div>';
     else if(nx)html+='<div class="item"><h3>Nivel '+(o.lv+1)+'</h3><button class="btn" data-up="1"'+(afford(nx.c)?'':' disabled')+'>Mejorar</button><p>'+b.fx(o.lv+1).join('<br>')+'</p>'+costHTML(nx.c,'<span class="cost time">'+nx.w+' de trabajo</span>')+'</div>';
     else if(max>1)html+='<p class="note">Está al máximo.</p>';
-    body.innerHTML=html;
+    body.innerHTML=html;drawInside();
   }
 }
 function openSheet(m,sel){if(placing){placing=null;$('place').hidden=true;}else if(!sheetMode)navPush();sheetOpenedAt=performance.now();sheetMode=m;sheetSel=sel==null?null:sel;sheetSig='';$('sheet').hidden=false;renderSheet();SFX.click();}
@@ -1303,6 +1420,7 @@ $('sheetBody').addEventListener('click',e=>{
   else if((b=q('[data-build]'))&&!b.disabled)startPlace(b.dataset.build);
   else if((b=q('[data-upg]'))&&!b.disabled){const u=UPG.find(x=>x.id===b.dataset.upg),nx=upgNext(u);if(upgOpen(nx)&&afford(nx.c)){pay(nx.c);st.upg[u.id]++;toast('Hiciste: '+nx.n,'good');SFX.done();confetti(P.x,P.y);renderSheet();hud();save();}}
   else if((b=q('[data-prio]'))&&!b.disabled){st.prio=b.dataset.prio;vil.forEach(v=>{if(v.state==='go'){v.state='idle';v.t=0.2;v.target=null;v.path=[];}});renderSheet();SFX.click();}
+  else if((b=q('[data-of]'))&&!b.disabled){if(setOficio(sheetSel,+b.dataset.of)){SFX.click();sheetSig='';renderSheet();}}
   else if((b=q('[data-up]'))&&!b.disabled){const o=obj[sheetSel],nx=BUILD[o.t].lv[o.lv];if(nx&&afford(nx.c)&&!o.need){pay(nx.c);o.need=nx.w;o.work=0;recount();toast('Mejora en obra: tocala para trabajar');SFX.click();closeSheet();save();}}
 });
 function startResearch(id){const t=TECH[id];if(st.rs||st.techs[id]||!t.req.every(r=>st.techs[r])||!afford(t.cost))return;pay(t.cost);st.rs={id,p:0};toast('Empezaste a investigar: '+t.name);SFX.click();renderSheet();hud();save();}
@@ -1374,7 +1492,7 @@ function onTap(tx,ty,wx,wy){
     P.act=null;P.task=null;P.hunt=hit;P.huntT=0;marker=null;return;}
   let o=obj[ty*MW+tx];
   if((!o||isBridge(o))&&inb(tx,ty+1)){const b=obj[(ty+1)*MW+tx];if(b&&(b.t==='tree'||b.t==='oak')&&b.hp>0){ty++;o=b;}}
-  const vHit=vil.find(v=>Math.round(v.x)===tx&&Math.round(v.y)===ty);
+  const vHit=vil.find(v=>!v.inside&&Math.round(v.x)===tx&&Math.round(v.y)===ty);
   if(vHit&&(!o||isBridge(o))){toast(vHit.name+': '+vStatus(vHit)[0]);vHit.say={txt:'¡Hola!',t:1.5};return;}
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
   if(o&&!isBridge(o)&&!spent(o)){
@@ -1420,6 +1538,7 @@ function frame(now){
   const dt=Math.max(0,Math.min(0.1,(now-last)/1000));last=now;
   if(!paused)update(dt);
   render();
+  if(sheetMode==='bld')drawInside();
   if(now-lastHud>150){hud();lastHud=now;}
   requestAnimationFrame(frame);
 }
@@ -1437,7 +1556,9 @@ if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;}
   get agg(){return agg;},ground,T,TECHS,BUILDS,UPG,RES,ANIM,onTap,startResearch,eat,get wolves(){return wolves;},get dogs(){return dogs;},syncDogs,get wolfPinT(){return wolfPinT;},get wolfLost(){return wolfLost;},spawnWolves,wolfEvery,scaredAt,HS,cam,get SC(){return SC;},get DPR(){return DPR;},canPlace,buildCost,afford,canGather,canWork,rsSpeed,ideaRate,cap,
   place:(id,x,y)=>{startPlace(id);tryPlace(x,y);if(placing)stopPlace();},
   tool:id=>{const u=UPG.find(x=>x.id===id),nx=upgNext(u);if(!upgOpen(nx)||!afford(nx.c))return false;pay(nx.c);st.upg[id]++;return true;},
-  levelUp:i=>{const o=obj[i],nx=o&&BUILD[o.t]&&BUILD[o.t].lv[o.lv];if(!nx||!afford(nx.c)||o.need)return false;pay(nx.c);o.need=nx.w;o.work=0;recount();return true;}};
+  levelUp:i=>{const o=obj[i],nx=o&&BUILD[o.t]&&BUILD[o.t].lv[o.lv];if(!nx||!afford(nx.c)||o.need)return false;pay(nx.c);o.need=nx.w;o.work=0;recount();return true;},
+  // Oficios y adentro (para el bot y las pruebas).
+  setOficio:(i,d)=>setOficio(i,d),syncPosts,postN:i=>postN(i),arrive:()=>arriveVillager(),OFICIO};
 })();
 </script>
 </body></html>
