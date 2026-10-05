@@ -1805,7 +1805,8 @@ function oldBadge(px,py,can){const t=performance.now()/1000,hi=can&&Math.sin(t*5
 // Gente transparente (octubre de 2026, Juani: desde la era estelar los aldeanos y los robots molestaban): la gente, los robots
 // y los guardianes que pasan por delante de un edificio se dibujan transparentes, así no tapan los edificios ni sus flechas. Desde
 // la era estelar viene prendido; el menú lo prende o lo apaga para todas las eras (rtagi-gente: '1' o '0'). Pasa de a poco
-// (GHOST_NOW, aparte de la gente para no tocar lo que se guarda), así no titila al cruzar.
+// (GHOST_NOW, aparte de la gente para no tocar lo que se guarda; una amenaza que la dibuja con una copia pone `host`), así no
+// titila al cruzar. Lo que una amenaza dibuja encima de la persona (`post`) va siempre entero.
 const GHOST_A=0.4,GHOST_NOW=new WeakMap();
 let ghostOn=(()=>{try{const v=localStorage.getItem('rtagi-gente');return v==null?ERA.n>=11:v==='1';}catch(e){return ERA.n>=11;}})();
 function ghostAlpha(e){if(!ghostOn)return 1;const x0=Math.floor(e.x),x1=Math.ceil(e.x),y0=Math.floor(e.y-(e.lift||0))-1,y1=Math.floor(e.y);
@@ -1872,7 +1873,7 @@ function render(){
   drawBadBots();
   list.sort((a,b)=>a.k-b.k||a.z-b.z);
   amEach('drawUnder');
-  for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else{let a=1;if(it.ghost){const g=GHOST_NOW.has(it.e)?GHOST_NOW.get(it.e):1;a=g+(ghostAlpha(it.e)-g)*0.2;GHOST_NOW.set(it.e,a);}ctx.globalAlpha=a;drawEnt(it.e,it.f,it.p);if(it.post)it.post(it.e);ctx.globalAlpha=1;}}
+  for(const it of list){if(it.o)drawObj(it.o,it.x,it.y);else{let a=1;if(it.ghost){const key=it.e.host||it.e,g=GHOST_NOW.has(key)?GHOST_NOW.get(key):1;a=g+(ghostAlpha(it.e)-g)*0.2;GHOST_NOW.set(key,a);}ctx.globalAlpha=a;drawEnt(it.e,it.f,it.p);ctx.globalAlpha=1;if(it.post)it.post(it.e);}}
   drawGoo(x0,y0,x1,y1);
   drawWires(x0,y0,x1,y1);
   drawViruses();
