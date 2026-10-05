@@ -781,8 +781,8 @@ function updateHoles(dt){const T=towersXY(),D=ERA.defense;
 /* ---------- amenazas en archivos propios ---------- */
 // Cada amenaza nueva vive en src/mundo/amenazas/<nombre>.js y se registra con amenaza({on:'clave',...}); el build las mete
 // todas acá, en todas las eras. Las que la era prende (ERA[on]) quedan en AM y el motor las llama en cada punto donde hace
-// falta: reset, tick, update, targets, tap, ents, drawUnder, drawOver, drawTop, lights, arrows, hint, row, prueba, botTaps,
-// debug y guardia (ver src/mundo/amenazas/LEEME.md).
+// falta: reset, tick, update, targets, tap, ents, drawUnder, drawOver, drawTop, drawBug, lights, arrows, hint, row, prueba,
+// botTaps, debug y guardia (ver src/mundo/amenazas/LEEME.md).
 const AMENAZAS=[];
 function amenaza(m){AMENAZAS.push(m);return m;}
 /*@amenazas*/
@@ -1780,7 +1780,7 @@ function drawObj(o,x,y){
     // Lo demás: sombra, sprite, humo si anda (`smk` en el edificio), rayo tachado si le falta luz, lo propio de la era (ERA.deco) y el bicho.
     default:if(HS[o.t]){const sh=SHADOW[o.t]||[8,2],b=BUILD[o.t],pl=pastLv(o,y*MW+x);shadow(px+8,py+15,sh[0],sh[1]);hd(EP_ART[o.t]?epArt(o.t,Math.max(0,epOf(o)-pl)):pl?pastArt(o.t,pl):HS[o.t],px,py);
       if(b&&b.smk&&runs(b))for(const[sx,sy]of b.smk)puffs(px+sx,py+sy,b.puffs||3);
-      const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit&&!isOld(o))noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug){if(ERA.hijack)drawClips(px,py);else if(ERA.meteors||ERA.luddites||ERA.storms||ERA.holes)drawDamage(px,py);else if(sickable(o))drawPlague(px,py);else drawBug(px,py);}}
+      const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit&&!isOld(o))noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug){const bm=AM.find(m=>m.drawBug);if(bm)bm.drawBug(px,py,o);else if(ERA.hijack)drawClips(px,py);else if(ERA.meteors||ERA.luddites||ERA.storms||ERA.holes)drawDamage(px,py);else if(sickable(o))drawPlague(px,py);else drawBug(px,py);}}
   }
   if(isOld(o))oldBadge(px,py,canModern(o));
   if(o.past)pastBadge(px,py,o.past);
