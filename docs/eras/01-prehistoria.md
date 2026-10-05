@@ -25,3 +25,37 @@ El de la Prehistoria está en `mundo.html`, con la antorcha y el lobo, con un ha
 ## Bot
 
 `npm run bot:prehistoria` (ver "Cómo probar" en CLAUDE.md).
+
+## Adentro y oficios (octubre de 2026)
+
+Juani pidió llevar a la Prehistoria lo de entrar a las construcciones de la Industria y eligió interior y oficios. La Prehistoria ya tenía niveles (con obra), así que lo nuevo es:
+
+**El interior dibujado.** Al tocar la fogata, la choza, el taller, el almacén, el campamento, la cueva, la cucha o la antorcha, la hoja muestra arriba el adentro (`drawInside`). A la izquierda está lo propio de cada uno:
+
+- **Fogata:** la fogata con asado.
+- **Choza:** el fogón con ollas y hierbas colgadas.
+- **Taller:** la mesa de piedra con pedernales.
+- **Almacén:** vasijas y canastos.
+- **Campamento:** el secadero de carne y un cuero estirado.
+- **Cueva:** la pared con ciervos y manos pintadas.
+- **Cucha y antorcha:** el mismo dibujo del mapa en grande.
+
+A la derecha, tres lugares con lo que suma cada nivel: troncos para sentarse, camas de pieles, canastas con bayas, perros, antorchas. Los que faltan dicen "nivel N". Hay tres fondos: piedra (la cueva), cuero y palos (choza, taller y almacén) y afuera, con el cielo según la hora.
+
+**Oficios** (`OFICIO`). La cueva, el taller y el campamento tienen puestos para aldeanos, tantos como su nivel. Un aldeano con oficio deja de juntar, camina hasta el edificio y trabaja adentro: no se ve en el mapa, los lobos no lo buscan y sigue comiendo.
+
+| Oficio | Dónde | Qué suma cada uno |
+|---|---|---|
+| Pintor | cueva | ideas de esa cueva +40% |
+| Tallador | taller | pedernal: 1 cada 20 s, gasta 2 de piedra |
+| Cazador | campamento | caza de ese campamento +50% |
+
+En la hoja: "Pintores · 1 de 2", "Ideas de la cueva +40% → +80%", Sumar y Sacar uno. Cuántos se quieren se guarda en el edificio (`of`, décimo dato) y quién está, en el aldeano (`post`, octavo dato); se acomodan solos cada segundo (`syncPosts`).
+
+**Niveles nuevos:**
+
+- **Cucha:** hasta el nivel 3, un perro por nivel.
+- **Antorcha:** hasta el nivel 3, espanta y alumbra un casillero más por nivel.
+
+**Balance.** El bot de la Prehistoria no usa oficios ni mejora cuchas ni antorchas, y da exactamente lo mismo que antes: el ábaco en 16,7 min de promedio (14,1 a 24,1) en 5 corridas. En la Prehistoria lo que más pesa es juntar materiales (10,6 min por corrida), así que sacar a alguien de juntar es una decisión. Un pintor en una cueva de nivel 2 suma 12 ideas por minuto; uno que piensa junto a la fogata, 6.
+
