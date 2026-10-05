@@ -32,7 +32,7 @@ Los nombres son piel: lo que importa es que la mecánica sea nueva y que se pued
 
 Cómo se arma una era: [`nueva-era.md`](nueva-era.md).
 
-**Estado (octubre de 2026):** las eras 17, 18 y 19 están hechas; las 20, 21 y 22 se arman ahora. De las 17 a 19: ya están hechas, armadas en paralelo por tres agentes. Al balancearlas con el bot cambiaron algunos números de los de abajo (cada cuánto vienen, cuánto duran); los que quedaron están en el doc de cada era. Lo que sigue de acá es la especificación con la que se armaron.
+**Estado (octubre de 2026):** las eras 17 a 22 están hechas y **no se planean más**: Juani dijo que ya son muchas. Esta hoja queda como registro de cómo se especificaron. De las 17 a 19: ya están hechas, armadas en paralelo por tres agentes. Al balancearlas con el bot cambiaron algunos números de los de abajo (cada cuánto vienen, cuánto duran); los que quedaron están en el doc de cada era. Lo que sigue de acá es la especificación con la que se armaron.
 
 ## Era 17: Era de la conciencia
 
