@@ -62,8 +62,8 @@ amenaza({on:'twins',
   tick(step){if(st.time>=TWIN_START&&Math.random()<step/twinEvery())spawnTwin();},
   update:updateTwins,
   targets(add){for(const w of twins)if(twinOut(w))add(w.x,w.y,Math.round(w.x),Math.round(w.y));},
-  // Se dibuja como la persona que copia, con el corte de colores encima.
-  ents(list){for(const w of twins)if(twinOut(w))list.push({k:w.y+1,z:1,e:w,f:w.bot?HS.robot:HS.vil[w.skin%3],post:drawGlitch});},
+  // Se dibuja como la persona que copia, con el corte de colores encima (y transparente frente a un edificio, como ella).
+  ents(list){for(const w of twins)if(twinOut(w))list.push({k:w.y+1,z:1,e:w,f:w.bot?HS.robot:HS.vil[w.skin%3],post:drawGlitch,ghost:true});},
   drawUnder:drawTwinPortals,
   lights(L){for(const w of twins)if(twinOut(w))L.push([w.home[0]*T+8,w.home[1]*T+7,2.2,0.85]);},
   // La flecha del borde apunta al portal, no al doble (que se mezcla con tu gente).
