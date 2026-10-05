@@ -29,6 +29,8 @@ Los nombres son piel: lo que importa es que la mecánica sea nueva y que se pued
 
 Cómo se arma una era: [`nueva-era.md`](nueva-era.md).
 
+**Estado (octubre de 2026):** las eras 17, 18 y 19 ya están hechas, armadas en paralelo por tres agentes. Al balancearlas con el bot cambiaron algunos números de los de abajo (cada cuánto vienen, cuánto duran); los que quedaron están en el doc de cada era. Lo que sigue de acá es la especificación con la que se armaron.
+
 ## Era 17: Era de la conciencia
 
 La puerta al multiverso abre el camino a las mentes de todos los universos.

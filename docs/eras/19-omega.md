@@ -34,8 +34,10 @@ Con el bot (la era sola, 20 corridas por variante):
 ### Lo que no toca el motor
 
 - **Escarcha.** La dibuja `ERA.deco` con `frostCrust` (un bloque de hielo con brillo, nieve arriba y carámbanos). Encima, el motor dibuja `drawBug` (el marco rojo y `HS.bug`) en lo roto de las eras sin un daño propio, así que la era pone en `HS.bug` un copo de escarcha que tiembla. La fogata y el taller el motor los dibuja aparte, sin `ERA.deco`: su escarcha y su marco van en `drawOver`.
-- **Gente entumecida.** El motor mueve a la gente después de las amenazas, así que `update` les devuelve la mitad de lo que caminaron en el cuadro anterior y les estira el trabajo a la mitad.
+- **Gente entumecida.** `update` les pone `v.slow` mientras dura `v.chill`, y el motor los hace andar y trabajar a la mitad, como a los de una casa con peste. Al principio la era lo resolvía devolviéndoles la mitad de lo que caminaban en cada cuadro; `v.slow` se sumó al motor al integrarla.
 
 ## Arte
 
 Chispas (roca oscura rajada con brasas adentro y chispas que saltan), casa hoguera (de piedra, con techo de pizarra nevado, chimenea con brasas y la luz del fuego en la puerta), faro de la última luz (torre blanca y roja con la linterna encendida y un haz que gira), estufa estelar (de hierro sobre patas, con una estrella chiquita en la panza y calor que sube del caño), lonja del calor (toldo a rayas, tres arcos y braseros), invernadero eterno (cúpula de vidrio nevada con plantas y un brasero), recolector de chispas (un embudo de cobre al que le caen chispas y un frasco de brasas), crónica del universo (un libro enorme abierto sobre un atril, donde se escribe una línea nueva). Los árboles están nevados. La ola (`drawFrosts`): una pared de escarcha con cristales hacia adelante, copos que vuelan y escarcha que queda en el suelo detrás (`drawFrostUnder`); el corazón es un cristal azul que late, con su halo rojo de amenaza, y al romperse los pedazos saltan. Los entumecidos llevan un copito arriba y hielo bajo los pies. El fogonero tiene gorra de maquinista con chapa, hollín en la cara y una pala con una brasa encendida.
+
+Al integrarla, con `v.slow` en el motor en vez del arreglo de la gente lenta, el bot (la era sola, 3 corridas) dio: tocando, 9,5 min; solo cuarteles, 10,4; solo estufas, 11,4; sin tocar ni defensas, 14 (1,47 veces lo de tocando). Encadenada desde la Antigüedad, 4,3.

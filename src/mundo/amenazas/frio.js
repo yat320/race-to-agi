@@ -47,12 +47,8 @@ function updateFrosts(dt){const HT=towersXY();
       if(!(p.chill>0))float(p.x,p.y-1,'¡brr!','#bfe8ff');p.chill=FROST_CHILL;}}
   frosts=frosts.filter(w=>!w.dead);
   for(const s of frostSteam)s.t-=dt;frostSteam=frostSteam.filter(s=>s.t>0);
-  // Entumecidos: andan y trabajan a la mitad. El motor los mueve después de las amenazas, así que acá se les devuelve la mitad
-  // de lo que caminaron en el cuadro anterior y se les estira el trabajo.
-  for(const v of vil){if(!(v.chill>0))continue;v.chill-=dt;
-    if(v.fzx!=null){const ex=v.x-v.fzx,ey=v.y-v.fzy;if(Math.abs(ex)+Math.abs(ey)<1){v.x-=ex/2;v.y-=ey/2;}}
-    if(v.state==='work')v.t+=dt/2*(v.hungry?0.5:1);
-    if(v.chill>0){v.fzx=v.x;v.fzy=v.y;}else{v.chill=0;v.fzx=v.fzy=null;}}}
+  // Entumecidos: andan y trabajan a la mitad (v.slow, que el motor respeta como la peste).
+  for(const v of vil){if(!(v.chill>0))continue;v.chill-=dt;if(v.chill<=0)v.chill=0;v.slow=v.chill>0;}}
 // Cada medio segundo: aparecer, y lo congelado se descongela solo (en FROST_NEAR segundos cerca de una estufa).
 function frostTick(step){if(st.time>=FROST_START&&Math.random()<step/frostEvery())spawnFrost();const HT=towersXY();
   for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||!o.bug||!BUILD[o.t])continue;o.ice=(o.ice||0)+step;
