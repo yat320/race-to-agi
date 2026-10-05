@@ -1,12 +1,13 @@
 // Bot del mundo abierto: juega las eras desde la 2 hasta la última una atrás de otra (cada una arranca con lo que dejó la anterior) y
 // reporta cuántos minutos de juego tarda en terminar la obra de cada era. Sirve para ajustar el balance con datos.
-//   node tools/bot-mundo.mjs [corridas=3] [eras=2-N o una sola, como 3] [solo] [ritmo=1] [ignora] [sindefensa] [sintorres] [singuardias] [sinmaquinas] [sinniveles]
+//   node tools/bot-mundo.mjs [corridas=3] [eras=2-N o una sola, como 3] [solo] [ritmo=1] [ignora] [sindefensa] [sintorres] [singuardias] [sinmaquinas] [sinniveles] [sinoficios]
 // Con `solo`, cada era arranca sin nada de la anterior (como si la abrieras suelta) en vez de encadenarlas.
 // Con `ritmo=N` decide cada N segundos de juego en vez de cada uno (y mira las amenazas cada 3N): con 2 o 3 se parece
 // más a una persona, que tarda en abrir hojas, elegir y caminar. Con `ignora` no toca nunca las amenazas (para medir cuánto
 // pesan sobre alguien distraído) y con `sindefensa` no construye la defensa de la era (atalayas, escudos) ni los cuarteles
 // de los guardianes; con `sintorres`, solo los cuarteles, y con `singuardias`, solo la defensa. Con `sinmaquinas` no pone
-// máquinas adentro de las industrias (las eras con puestos) y con `sinniveles` no mejora edificios (ERA.niveles).
+// máquinas adentro de las industrias (las eras con puestos) con `sinniveles` no mejora edificios (ERA.niveles)
+// y con `sinoficios` no pone gente en los oficios (ERA.oficios).
 // Juega desde adentro de la página con ?debug: avanza el juego de a 0,1 s y cada segundo de juego decide qué hacer
 // (tocar amenazas, comer, investigar, construir, juntar). Investiga y construye por las hojas, como una persona.
 // La Antigüedad arranca con un legado típico de la Prehistoria (4 aldeanos, 50 ideas, ábaco, rueda y agricultura).
@@ -18,7 +19,7 @@ const ALL = loadEras(), LAST = ALL.at(-1).n;
 
 const RUNS = +(process.argv[2] || 3);
 const [E0, E1 = E0] = (process.argv[3] || '2-' + LAST).split('-').map(Number);
-const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), IGNORE = OPT.includes('ignora'), NODEF = OPT.includes('sindefensa'), NOTOWER = OPT.includes('sintorres'), NOGUARD = OPT.includes('singuardias'), NOMACH = OPT.includes('sinmaquinas'), NOLV = OPT.includes('sinniveles'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
+const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), IGNORE = OPT.includes('ignora'), NODEF = OPT.includes('sindefensa'), NOTOWER = OPT.includes('sintorres'), NOGUARD = OPT.includes('singuardias'), NOMACH = OPT.includes('sinmaquinas'), NOLV = OPT.includes('sinniveles'), NOOF = OPT.includes('sinoficios'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
 const MAX_MIN = 120;
 const PREHISTORIA = JSON.stringify({ v: 3, st: { won: true, res: { ideas: 50 }, techs: { abaco: true, rueda: true, agricultura: true } }, vil: [[0, 0], [0, 0], [0, 0], [0, 0]], obj: [] });
 
@@ -151,6 +152,17 @@ function levels(){if(window.__nolv||!E.niveles||!D.lvUp)return false;const t=nex
   let best=-1,bl=9;for(let i=0;i<o.length;i++){const q=o[i];if(!q||!E.niveles.includes(q.t)||!want(q.t)||D.isOld(q)||(q.lv||1)>=3)continue;const lv=q.lv||1;if(lv<bl&&ok(D.lvCost(q.t,lv+1))){bl=lv;best=i;}}
   if(best<0)return false;closeAll();D.onTap(best%MW,(best/MW)|0);const el=document.querySelector('[data-lv]');const done=!!el&&!el.disabled;
   if(done){el.click();S.lv=(S.lv||0)+1;(S.lvLog=S.lvLog||[]).push([Math.round(D.st.time),o[best].t,o[best].lv]);}closeAll();return done;}
+// Oficios (ERA.oficios): cada 5 s, por la hoja, suma uno en el edificio que más suma de lo que le falta al próximo invento (si
+// suma al menos 0,12 por segundo: un labrador hace menos que el aldeano que se lleva), con una persona de cada 4 como mucho y
+// al menos 4 libres para juntar. Con sinoficios no pone ninguno.
+function oficios(){if(window.__noof||!E.oficios||!D.setOficio)return false;const t=nextTech(),o=D.obj();if(!t)return false;
+  const nd=need(t.cost),want=Object.keys(t.cost).filter(k=>R()[k]<t.cost[k]).concat(Object.keys(nd));
+  const posts=o.reduce((s,q)=>s+(q&&q.of||0),0),free=D.vil.filter(v=>v.job==null&&v.post==null&&!v.bad&&!v.bot).length;
+  if(posts>=Math.floor(D.vil.length/4)||free<=4)return false;
+  let best=-1,bs=0.12;for(let i=0;i<o.length;i++){const q=o[i],f=q&&E.oficios[q.t];if(!f||!B[q.t]||q.bug||D.isOld(q)||(q.of||0)>=3)continue;
+    const g=f.v*Object.entries(B[q.t].prod||{}).reduce((s,[k,v])=>s+(want.includes(k)?v:0),0)-0.01*(q.of||0);if(g>=bs){bs=g;best=i;}}
+  if(best<0)return false;closeAll();D.onTap(best%MW,(best/MW)|0);const el=document.querySelector('[data-of="1"]');const done=!!el&&!el.disabled;
+  if(done){el.click();S.of=(S.of||0)+1;(S.ofLog=S.ofLog||[]).push([Math.round(D.st.time),o[best].t]);}closeAll();return done;}
 let tick=0;const PACE=window.__pace||1;
 function step(){tick++;
   if(tick%(3*PACE)===0&&!window.__ignore)threats();
@@ -162,13 +174,14 @@ function step(){tick++;
   for(let k=0;k<3&&build();k++);
   if(tick%(5*PACE)===0)machines();
   if(tick%(5*PACE)===2*PACE)levels();
+  if(tick%(5*PACE)===4*PACE)oficios();
   gather();S.smogMax=Math.max(S.smogMax,D.st.smog);
   if(tick%(60-60%PACE)===0&&E.rival)S.safety.push([Math.round(D.st.time/60),Math.round(D.st.safety),Math.round(D.st.rival)]);}
 return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
     while(!D.st.won&&!D.st.lost&&D.st.time<maxMin*60){for(let k=0;k<10;k++)D.update(0.1);step();}
     closeAll();const n=E.builds.reduce((s,b)=>s+cnt(b.id),0);
     return{won:D.st.won,lost:!!D.st.lost,min:Math.round(D.st.time/6)/10,day:Math.floor(D.st.time/160)+1,vil:D.vil.filter(v=>!v.bot).length,bots:D.vil.filter(v=>v.bot).length,
-      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
+      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
       legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety};}};
 })();`;
 
@@ -187,13 +200,13 @@ try {
       const t0 = Date.now();
       if (SOLO) await p.evaluate(() => { for (const k of Object.keys(localStorage)) if (k.startsWith('rtagi-mundo')) localStorage.removeItem(k); });
       await p.goto(srv.url + '/mundo' + n + '.html?debug');
-      await p.evaluate(([k, ig, nd, nt, ng, nm, nl]) => { window.__pace = k; window.__ignore = ig; window.__nodef = nd; window.__notower = nt; window.__noguard = ng; window.__nomach = nm; window.__nolv = nl; }, [PACE, IGNORE, NODEF, NOTOWER, NOGUARD, NOMACH, NOLV]);
+      await p.evaluate(([k, ig, nd, nt, ng, nm, nl, no]) => { window.__pace = k; window.__ignore = ig; window.__nodef = nd; window.__notower = nt; window.__noguard = ng; window.__nomach = nm; window.__nolv = nl; window.__noof = no; }, [PACE, IGNORE, NODEF, NOTOWER, NOGUARD, NOMACH, NOLV, NOOF]);
       await p.evaluate(BOT);
       const r = await p.evaluate(m => window.__bot.run(m), MAX_MIN);
       await p.evaluate(() => { window.__rtagiActive = 'fin'; });
       r.n = n; r.run = run; all.push(r);
       console.log('corrida ' + run + ' · ' + NAMES[n].padEnd(12) + (r.won ? ' terminada en ' + String(r.min).padStart(5) + ' min' : r.lost ? ' PERDIDA a los ' + r.min + ' min' : ' sin terminar a los ' + r.min + ' min') +
-        ' · día ' + r.day + ' · ' + r.vil + ' aldeanos' + (r.bots ? ' + ' + r.bots + ' robots' : '') + ' · ' + r.buildings + ' edificios · ' + r.taps + ' amenazas tocadas' + (r.mach ? ' · ' + r.mach + ' máquinas (' + r.crew + ' obreros)' : '') + (r.lv ? ' · ' + r.lv + ' niveles' : '') + (r.guard ? ' (+' + r.guard + ' por los guardianes)' : '') +
+        ' · día ' + r.day + ' · ' + r.vil + ' aldeanos' + (r.bots ? ' + ' + r.bots + ' robots' : '') + ' · ' + r.buildings + ' edificios · ' + r.taps + ' amenazas tocadas' + (r.mach ? ' · ' + r.mach + ' máquinas (' + r.crew + ' obreros)' : '') + (r.lv ? ' · ' + r.lv + ' niveles' : '') + (r.of ? ' · ' + r.of + ' oficios' : '') + (r.guard ? ' (+' + r.guard + ' por los guardianes)' : '') +
         (r.rivalAt ? ' · rival ' + r.rival + '% (llegaba a los ' + r.rivalAt + ' min)' : '') + (r.smog ? ' · humo hasta ' + r.smog + '%' : '') + ' (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
       // La era siguiente lee la partida ganada de esta; si no se ganó, la cadena se corta.
       if (!r.won && !SOLO) break;
@@ -202,7 +215,7 @@ try {
   }
 } finally { await b.close(); srv.close(); }
 
-writeFileSync('out/bot-mundo' + (SOLO ? '-solo' : '') + (PACE > 1 ? '-ritmo' + PACE : '') + (IGNORE ? '-ignora' : '') + (NODEF ? '-sindefensa' : '') + (NOTOWER ? '-sintorres' : '') + (NOGUARD ? '-singuardias' : '') + (NOMACH ? '-sinmaquinas' : '') + (NOLV ? '-sinniveles' : '') + '.json', JSON.stringify(all, null, 1));
+writeFileSync('out/bot-mundo' + (SOLO ? '-solo' : '') + (PACE > 1 ? '-ritmo' + PACE : '') + (IGNORE ? '-ignora' : '') + (NODEF ? '-sindefensa' : '') + (NOTOWER ? '-sintorres' : '') + (NOGUARD ? '-singuardias' : '') + (NOMACH ? '-sinmaquinas' : '') + (NOLV ? '-sinniveles' : '') + (NOOF ? '-sinoficios' : '') + '.json', JSON.stringify(all, null, 1));
 // Resumen: minutos por era (mínimo, promedio y máximo entre corridas) y cuándo se investigó cada invento, en promedio.
 console.log('\n' + (SOLO ? 'Cada era sola, sin legado.' : 'Eras encadenadas: cada una arranca con lo que dejó la anterior.') + (PACE > 1 ? ' Decide cada ' + PACE + ' s.' : '') + '\nera            corridas  ganadas   mín   prom   máx  (minutos de juego hasta la obra)');
 for (let n = E0; n <= E1; n++) {

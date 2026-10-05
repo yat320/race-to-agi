@@ -349,7 +349,7 @@ function readLegacy(){
   return out;
 }
 function freshState(){return{res:Object.assign({madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},Object.fromEntries(ITEMS.map(i=>[i.id,0]))),energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
-function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;const w=wOf(o);if(w<1)OLDC[o.t]=(OLDC[o.t]||0)+1-w;if(isOld(o))OLDN[o.t]=(OLDN[o.t]||0)+1;}LVX={};if(ERA.niveles)for(const o of obj)if(o&&o.lv>1&&counts[o.t]!==undefined)LVX[o.t]=(LVX[o.t]||0)+LVW[o.lv-1]-1;if(BUILD.cuartel)syncGuards();inList();}
+function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;const w=wOf(o);if(w<1)OLDC[o.t]=(OLDC[o.t]||0)+1-w;if(isOld(o))OLDN[o.t]=(OLDN[o.t]||0)+1;}LVX={};if(ERA.niveles)for(const o of obj)if(o&&o.lv>1&&counts[o.t]!==undefined)LVX[o.t]=(LVX[o.t]||0)+LVW[o.lv-1]-1;if(BUILD.cuartel)syncGuards();countPosts();inList();}
 // Edificios que vienen de otra era (importCity): rinden la mitad por cada era de atraso (oldW: la mitad si es de la anterior,
 // un cuarto si es de dos eras atrás) hasta que se modernizan pagando lo mismo que uno nuevo: el primero al precio base y cada
 // uno más caro, contando los que ya están al día (y con el invento que lo desbloquea, si tiene). OLDC suma, por tipo, lo que
@@ -408,27 +408,28 @@ function mapId(t){if(BUILD[t])return t;const r=ROLE[t];if(r==='drop')return null
 // vienen de otra era quedan con `era` y rinden la mitad hasta modernizarlos) y los hitos de esta era en la tierra libre más cercana.
 function importCity(c){genObjects();/* el suelo junto al inicio, como en un mapa nuevo */
   const o=new Array(MW*MH).fill(null);
-  for(const[i,t,hp,regen,,era,,mm,lv]of c.obj){if(i<0||i>=MW*MH)continue;if(RES[t]){o[i]={t,hp,regen};continue;}const id=mapId(t);if(id)o[i]=id==='monumento'?{t:id}:{t:id,era:era||c.n};
-    if(id===t&&Array.isArray(mm)&&hasIn(o[i])){const m=inParse(mm);if(m)o[i].m=m;}if(id===t&&lv>1&&hasLv(o[i]))o[i].lv=Math.min(3,lv|0);}
+  for(const[i,t,hp,regen,,era,,mm,lv,of]of c.obj){if(i<0||i>=MW*MH)continue;if(RES[t]){o[i]={t,hp,regen};continue;}const id=mapId(t);if(id)o[i]=id==='monumento'?{t:id}:{t:id,era:era||c.n};
+    if(id===t&&Array.isArray(mm)&&hasIn(o[i])){const m=inParse(mm);if(m)o[i].m=m;}if(id===t&&lv>1&&hasLv(o[i]))o[i].lv=Math.min(3,lv|0);if(id===t&&of>0&&hasOf(o[i]))o[i].of=Math.min(OF_MAX,of|0);}
   for(const[dx,dy,t]of ERA.landmarks||[]){let best=null,bd=1e9;
     for(let y=2;y<MH-2;y++)for(let x=2;x<MW-2;x++){if(ground[y*MW+x]===WATER||o[y*MW+x])continue;const d=Math.hypot(x-SPAWN[0]-dx,y-SPAWN[1]-dy);if(d<bd){bd=d;best=[x,y];}}
     if(best)o[best[1]*MW+best[0]]={t};}
   return o;}
 function mapChanged(){OCEAN=null;chunks.clear();pending.clear();}
 function serialize(){
-  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b)||b.past)e.push(isOld(b)?b.era:0);if(b.past)e.push(b.past);if(b.m&&b.m.some(Boolean)){while(e.length<7)e.push(0);e.push(b.m.map(m=>m?m.k+m.lv:''));}if(b.lv>1){while(e.length<8)e.push(0);e.push(b.lv);}o.push(e);}}
-  return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[...(v.orb?landTile(v):[Math.round(v.x),Math.round(v.y)]),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0,...(v.job!=null?[v.job,v.slot]:[])]),obj:o,...(MAPN!==ERA.n?{map:MAPN}:{})};
+  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b)||b.past)e.push(isOld(b)?b.era:0);if(b.past)e.push(b.past);if(b.m&&b.m.some(Boolean)){while(e.length<7)e.push(0);e.push(b.m.map(m=>m?m.k+m.lv:''));}if(b.lv>1){while(e.length<8)e.push(0);e.push(b.lv);}if(b.of>0){while(e.length<9)e.push(0);e.push(b.of);}o.push(e);}}
+  return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[...(v.orb?landTile(v):[Math.round(v.x),Math.round(v.y)]),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0,...(v.job!=null||v.post!=null?[v.job!=null?v.job:-1,v.slot||0]:[]),...(v.post!=null?[v.post]:[])]),obj:o,...(MAPN!==ERA.n?{map:MAPN}:{})};
 }
 function load(d){
   if(!d||d.v!==1||!Array.isArray(d.obj))return false;
   setMap(d.map||ERA.n);mapChanged();genObjects();/* restaura el suelo modificado junto al inicio */renderGround();
-  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug,era,past,mm,lv]of d.obj){obj[i]={t,hp,regen,bug:!!bug};if(era)obj[i].era=era;if(past>0)obj[i].past=Math.min(3,past|0);if(Array.isArray(mm)&&hasIn(obj[i])){const m=inParse(mm);if(m)obj[i].m=m;}if(lv>1&&hasLv(obj[i]))obj[i].lv=Math.min(3,lv|0);}
+  obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug,era,past,mm,lv,of]of d.obj){obj[i]={t,hp,regen,bug:!!bug};if(era)obj[i].era=era;if(past>0)obj[i].past=Math.min(3,past|0);if(Array.isArray(mm)&&hasIn(obj[i])){const m=inParse(mm);if(m)obj[i].m=m;}if(lv>1&&hasLv(obj[i]))obj[i].lv=Math.min(3,lv|0);if(of>0&&hasOf(obj[i]))obj[i].of=Math.min(OF_MAX,of|0);}
   const f=freshState();
   st=Object.assign(f,{res:Object.assign(f.res,d.res),energy:d.energy,techs:d.techs||{},time:d.time||0,gathers:d.gathers||0,won:!!d.won,seen:!!d.seen,prio:d.prio||'auto',smog:clamp(+d.smog||0,0,100),rival:clamp(+d.rival||0,0,100),safety:clamp(+d.safety||0,0,100),lost:!!d.lost,legacy:d.legacy||f.legacy});
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null});
   vil.length=0;(d.vil||[]).forEach(v=>{const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];m.bad=!!v[6];
     // El obrero de una máquina vuelve a su puesto, adentro.
-    if(v[7]!=null){const o=obj[v[7]];if(o&&o.m&&!m.bad&&!vil.some(w=>w.job===v[7])){m.job=v[7];m.slot=0;m.state='job';m.inside=true;m.x=v[7]%MW;m.y=(v[7]/MW)|0;}}
+    if(v[9]!=null){const o=obj[v[9]];if(hasOf(o)&&!m.bad&&vil.filter(w=>w.post===v[9]).length<(o.of||0)){m.post=v[9];m.state='post';m.inside=true;m.x=v[9]%MW;m.y=(v[9]/MW)|0;}}
+    if(v[7]!=null&&v[7]>=0){const o=obj[v[7]];if(o&&o.m&&!m.bad&&!vil.some(w=>w.job===v[7])){m.job=v[7];m.slot=0;m.state='job';m.inside=true;m.x=v[7]%MW;m.y=(v[7]/MW)|0;}}
     vil.push(m);});
   floats=[];guards=[];rifts=[];holes=[];amEach('reset');recount();return true;
 }
@@ -1145,7 +1146,7 @@ function pickTarget(v){
 }
 // Sin juntar a mano: el aldeano o robot libre más cercano (que no esté llevando nada) va a buscar ese recurso.
 function sendWorker(tx,ty){let best=null,bd=1e9;
-  for(const v of vil){if(v.bad||v.carry||v.state==='return'||v.away||v.abd||v.orb||v.held||v.job!=null)continue;const d=Math.hypot(v.x-tx,v.y-ty)+(v.hungry?50:0);if(d<bd){bd=d;best=v;}}
+  for(const v of vil){if(v.bad||v.carry||v.state==='return'||v.away||v.abd||v.orb||v.held||v.job!=null||v.post!=null)continue;const d=Math.hypot(v.x-tx,v.y-ty)+(v.hungry?50:0);if(d<bd){bd=d;best=v;}}
   if(!best){toast(vil.length?'Están todos ocupados: probá en un rato.':'No hay quien lo junte: construí '+BUILD.casa.name.toLowerCase()+'s.');return false;}
   const[x,y]=tileOf(best),p=pathAdj(x,y,tx,ty);if(!p){toast('No llegan hasta ahí.');return false;}
   best.target=[tx,ty];best.path=p;best.state='go';float(best.x,best.y-0.6,'¡voy!','#5fe3d0');return true;}
@@ -1167,11 +1168,12 @@ function updateVillager(v,dt){
     return;}
   if(!v.bot){v.eat-=dt;if(v.eat<=0){v.eat=30;if(st.res.comida>=1){st.res.comida-=1;v.hungry=false;}else v.hungry=true;}}
   // Obrero de una máquina (adentro): trabaja adentro, sin moverse; si todavía va, camina hasta el edificio.
-  if(v.job!=null&&v.inside){v.moving=false;return;}
+  if((v.job!=null||v.post!=null)&&v.inside){v.moving=false;return;}
   // Enfermo (peste en su casa) o lento por una amenaza en archivo propio (v.slow, el frío): anda y trabaja a la mitad.
   const sk=sickHome(v)||v.slow;stepEnt(v,dt,(v.bot?3.6:2.6)*(st.legacy.speed||1)*(v.hungry?0.5:1)*(sk?0.5:1));
   if(v.blocked){v.blocked=false;if(v.state==='go'){v.state='idle';v.t=0.4;v.target=null;}}
   if(v.job!=null){if(!v.path.length)crewArrive(v);return;}
+  if(v.post!=null){if(!v.path.length)postArrive(v);return;}
   switch(v.state){
     case'idle':v.t-=dt;if(v.t<=0&&!pickTarget(v))v.t=3;break;
     case'go':if(!v.path.length){const o=v.target&&obj[v.target[1]*MW+v.target[0]],[x,y]=tileOf(v);
@@ -1186,7 +1188,7 @@ function updateVillager(v,dt){
 /* ---------- actualización ---------- */
 function update(dt){
   st.time+=dt;
-  trapT-=dt;if(trapT<=0){trapT=1;unstick();if(INL.length||vil.some(v=>v.job!=null))syncCrew();}
+  trapT-=dt;if(trapT<=0){trapT=1;unstick();if(INL.length||vil.some(v=>v.job!=null))syncCrew();if(ERA.oficios&&(vil.some(v=>v.post!=null)||obj.some(o=>o&&o.of)))syncPosts();}
   for(const s of sparks)s.t-=dt;if(sparks.length)sparks=sparks.filter(s=>s.t>-1);
   vehT-=dt;if(vehT<=0){vehT=2;syncVehicles();}updateVehicles(dt);
   st.energy=HANDS?Math.max(0,st.energy-dt/4):100;
@@ -1837,7 +1839,7 @@ function drawObj(o,x,y){
   }
   if(o.t==='casa'&&lampOn())drawLamp(px,py);
   if(isOld(o))oldBadge(px,py,canModern(o));
-  if(o.m)inBadge(px,py,y*MW+x);
+  if(o.m||o.of)inBadge(px,py,y*MW+x);
   if(o.lv>1)lvBadge(px,py,o.lv);
   if(o.past)pastBadge(px,py,o.past);
   const cfg=RES[o.t];
@@ -1881,7 +1883,7 @@ const MICON={};
   a:['.kkkkkk.','kwwwwwwk','kwwwwRwk','kwwwRwwk','kwkRwwwk','kwwkwwwk','.kkkkkk.','..kkkk..']};
   for(const k in ic)MICON[k]=sprite(ic[k],8,{z:'#f0cc4a',Z:'#b38b1f',g:'#3f8f47',G:'#6cbf5a',w:'#e8eef4',R:'#c8413b'}).toDataURL();}
 const pctS=(k,v)=>MACH[k].s+Math.round(v*100)+'%';
-let INL=[],CREW=new Set(),inSel=0,inArmed=-1,inItems=[],inLast=0,inSpawn=0;
+let INL=[],CREW=new Set(),inSel=0,inArmed=-1,inItems=[],inLast=0,inSpawn=0,inN=0;
 const hasIn=o=>!!(o&&BUILD[o.t]&&BUILD[o.t].puestos);
 // Niveles (octubre de 2026, Juani: "que todas las construcciones sean interactivas"; eligió que cada una tenga lo suyo y
 // probarlo en la Industria): los edificios de ERA.niveles que no producen se mejoran hasta el nivel 3 desde adentro, y cada
@@ -1908,24 +1910,49 @@ function lvUp(i){const o=obj[i],b=o&&BUILD[o.t];if(!hasLv(o)||lvOf(o)>=3||isOld(
   if(o.t==='casa')addVillager(x,y);
   float(x,y,'¡nivel '+lv+'!','#5fe3d0');zaps.push({x,y,t:0.5});save();return true;}
 // Los edificios con alguna máquina y los que tienen su obrero adentro; se rearma en recount().
-function inList(){INL=[];for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&o.m&&hasIn(o)&&o.m.some(Boolean))INL.push(i);}
+// Oficios (octubre de 2026, Juani pidió llevar a la Antigüedad lo de la Prehistoria: interior, oficios y niveles): en las eras
+// con ERA.oficios ({id:{n,ns,v}}), lo que produce tiene 3 puestos para aldeanos en vez de máquinas. Cada uno deja de juntar,
+// camina hasta el edificio y trabaja adentro (como el obrero de las máquinas: no se ve en el mapa y sigue comiendo), y suma `v`
+// a lo que produce ese edificio. Cuántos se quieren lo dice el edificio (`of`, el décimo dato) y quién está, la persona (`post`,
+// el décimo dato); se acomodan solos cada segundo (syncPosts).
+const OF_MAX=3;
+let POSTN={};
+const hasOf=o=>!!(o&&ERA.oficios&&ERA.oficios[o.t]&&BUILD[o.t]);
+function countPosts(){POSTN={};for(const v of vil)if(v.post!=null&&v.inside)POSTN[v.post]=(POSTN[v.post]||0)+1;}
+const postFree=v=>v.post==null&&v.job==null&&!v.bot&&!v.bad&&!v.away&&!v.abd&&!v.orb&&!v.held&&!v.carry&&v.state!=='return'&&!v.hungry;
+function postLeave(v){const i=v.post;v.post=null;v.state='idle';v.t=0.5;v.path=[];v.target=null;
+  if(v.inside){v.inside=false;const x=i%MW,y=(i/MW)|0,d=DIRS8.map(([dx,dy])=>[x+dx,y+dy]).find(([a,b])=>passable(a,b));if(d){v.x=d[0];v.y=d[1];}}}
+function syncPosts(){
+  for(const v of vil)if(v.post!=null){const o=obj[v.post];if(v.bad||!hasOf(o))postLeave(v);}
+  for(let i=0;i<obj.length;i++){const o=obj[i];if(!hasOf(o))continue;const want=Math.min(o.of||0,OF_MAX),mine=vil.filter(v=>v.post===i);
+    mine.sort((a,b)=>(a.inside?1:0)-(b.inside?1:0));for(let k=0;k<mine.length-want;k++)postLeave(mine[k]);
+    for(let k=mine.length;k<want;k++){const x=i%MW,y=(i/MW)|0;let best=null,bd=1e9;for(const v of vil){if(!postFree(v))continue;const d=Math.hypot(v.x-x,v.y-y);if(d<bd){bd=d;best=v;}}
+      if(!best)break;const[vx,vy]=tileOf(best),p=adj(vx,vy,x,y)?[]:pathAdj(vx,vy,x,y);if(!p)break;
+      best.post=i;best.state='post';best.target=null;best.path=p;float(best.x,best.y-0.6,'¡voy!','#5fe3d0');}}
+  countPosts();inList();}
+function postArrive(v){const i=v.post,x=i%MW,y=(i/MW)|0,[vx,vy]=tileOf(v);
+  if(adj(vx,vy,x,y)){v.inside=true;v.x=x;v.y=y;v.moving=false;zaps.push({x,y,t:0.4});countPosts();return;}
+  const p=pathAdj(vx,vy,x,y);if(p&&p.length)v.path=p;else postLeave(v);}
+function setOficio(i,d){const o=obj[i];if(!hasOf(o)||isOld(o))return false;const n=clamp((o.of||0)+d,0,OF_MAX);if(n===(o.of||0))return false;o.of=n;if(!n)delete o.of;syncPosts();save();return true;}
+function inList(){INL=[];for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&((o.m&&hasIn(o)&&o.m.some(Boolean))||(o.of>0&&hasOf(o))))INL.push(i);}
   CREW=new Set(vil.filter(v=>v.inside&&v.job!=null).map(v=>v.job));}
 const inParse=mm=>{const m=[];for(let j=0;j<PUESTOS;j++){const s=mm[j];m.push(typeof s==='string'&&MACH[s[0]]?{k:s[0],lv:clamp(+s.slice(1)|0,1,3)}:null);}return m.some(Boolean)?m:null;};
 // Cuánto rinde un edificio con sus máquinas: producción, humo y consumo, en veces lo de uno sin máquinas.
-function inFx(i){const o=obj[i],f={sp:1,sm:1,us:1};if(!o||!o.m||o.bug||!CREW.has(i))return f;
-  for(let j=0;j<PUESTOS;j++){const m=o.m[j];if(!m)continue;const v=MACH[m.k].v[m.lv-1];
+function inFx(i){const o=obj[i],f={sp:1,sm:1,us:1};if(!o||o.bug)return f;
+  if(o.of>0&&hasOf(o))f.sp+=ERA.oficios[o.t].v*(POSTN[i]||0);
+  if(o.m&&CREW.has(i))for(let j=0;j<PUESTOS;j++){const m=o.m[j];if(!m)continue;const v=MACH[m.k].v[m.lv-1];
     if(m.k==='r')f.sp+=v;else if(m.k==='l')f.sm*=1-v;else f.us*=1-v;}
   f.sm*=f.sp;return f;}
 // Lo que suman las máquinas a todos los edificios de un tipo (k: 'sp', 'sm' o 'us'), en edificios de más o de menos.
 function inSum(id,k){let n=0;const b=BUILD[id];for(const i of INL){const o=obj[i];if(o.t!==id)continue;if(b.elec&&!isOld(o)&&!grid().powered.has(i))continue;n+=wOf(o)*(inFx(i)[k]-1);}return n;}
 const useN=id=>counts[id]+(INL.length?inSum(id,'us'):0),smkN=id=>counts[id]+(INL.length?inSum(id,'sm'):0);
-const crewFree=v=>v.job==null&&!v.bad&&!v.away&&!v.abd&&!v.orb&&!v.held&&!v.carry&&v.state!=='return';
+const crewFree=v=>v.job==null&&v.post==null&&!v.bad&&!v.away&&!v.abd&&!v.orb&&!v.held&&!v.carry&&v.state!=='return';
 function crewLeave(v){const i=v.job;CREW.delete(i);v.job=null;v.slot=null;v.state='idle';v.t=0.5;v.path=[];v.target=null;
   if(v.inside){v.inside=false;const x=i%MW,y=(i/MW)|0,d=DIRS8.map(([dx,dy])=>[x+dx,y+dy]).find(([a,b])=>passable(a,b));if(d){v.x=d[0];v.y=d[1];}}}
 // Cada segundo: suelta a los que se quedaron sin máquinas y manda al más cercano libre a cada industria con máquinas y sin obrero.
 function syncCrew(){
   for(const v of vil)if(v.job!=null){const o=obj[v.job];if(v.bad||!o||!o.m||!o.m.some(Boolean)||!hasIn(o)||vil.some(w=>w!==v&&w.job===v.job&&vil.indexOf(w)<vil.indexOf(v)))crewLeave(v);}
-  for(const i of INL){if(vil.some(v=>v.job===i))continue;const x=i%MW,y=(i/MW)|0;
+  for(const i of INL){if(!(obj[i].m&&obj[i].m.some(Boolean))||vil.some(v=>v.job===i))continue;const x=i%MW,y=(i/MW)|0;
     let best=null,bd=1e9;for(const v of vil){if(!crewFree(v))continue;const d=Math.hypot(v.x-x,v.y-y)+(v.hungry?50:0);if(d<bd){bd=d;best=v;}}
     if(!best)return;const[vx,vy]=tileOf(best),p=adj(vx,vy,x,y)?[]:pathAdj(vx,vy,x,y);if(!p)continue;
     best.job=i;best.slot=0;best.state='job';best.target=null;best.path=p;float(best.x,best.y-0.6,'¡voy!','#5fe3d0');}}
@@ -1947,6 +1974,7 @@ function inTip(){if(INL.length||Object.keys(LVX).length||inTipT>45)return null;
 function inRate(i){const o=obj[i],b=BUILD[o.t],f=inFx(i),on=!o.bug&&runs(b),n=act(b.id)+(INL.length?inSum(b.id,'sp'):0),p=prodOf(b),pr={},us={};
   if(on&&n>0)for(const k in p)pr[k]=p[k]/n*wOf(o)*f.sp*60;if(on&&b.use)for(const k in b.use)us[k]=b.use[k]*f.us*60;return{pr,us,f,on};}
 function inSig(){const o=obj[sheetSel];const ok=c=>Object.entries(c).map(([k,v])=>st.res[k]>=v?1:0).join('');
+  if(hasOf(o)&&!hasIn(o))return'of'+(o.of||0)+'-'+(POSTN[sheetSel]||0)+'-'+vil.some(postFree)+isOld(o)+o.bug+runs(BUILD[o.t]);
   if(!hasIn(o))return hasLv(o)?'lv'+lvOf(o)+(lvOf(o)<3?ok(lvCost(BUILD[o.t],lvOf(o)+1)):'')+isOld(o)+o.bug:'';
   return(o.m||[]).map(m=>m?m.k+m.lv:'-').join()+(vil.find(v=>v.job===sheetSel)||{}).inside+ok(MACH_COST[0])+ok(MACH_COST[1])+ok(MACH_COST[2])+o.bug+runs(BUILD[o.t])+inArmed+inSel+vil.filter(v=>v.job!=null).length;}
 // Un edificio con niveles: lo que hace ahora, lo que haría en el siguiente y el botón para mejorarlo.
@@ -1958,7 +1986,17 @@ function lvSheet(body){const i=sheetSel,o=obj[i],b=BUILD[o.t],lv=lvOf(o),old=isO
     (lv<3?(old?'<span class="tag">modernizalo primero</span>':'<button class="btn" data-lv="'+i+'"'+(can?'':' disabled')+'>Mejorar</button>'):'<span class="tag ok">nivel máximo</span>')+
     '<p>'+what+': '+now+(nx?' → '+nx:'')+'.</p>'+(c&&!old?costHTML(c):'')+'</div>';
   drawInside();}
-function inSheet(body){const i=sheetSel,o=obj[i],b=o&&BUILD[o.t];if(!hasIn(o)&&!hasLv(o)){closeSheet();return;}if(!hasIn(o)){lvSheet(body);return;}
+// Un edificio con oficios: cuántos trabajan (de 3), lo que suman y los botones para sumar o sacar uno.
+function ofSheet(body){const i=sheetSel,o=obj[i],b=BUILD[o.t],F=ERA.oficios[o.t],n=o.of||0,inN=POSTN[i]||0,old=isOld(o),free=vil.some(postFree),{pr,f,on}=inRate(i);
+  $('sheetTitle').textContent=nameOf(o);$('sheetSub').textContent='Adentro · '+n+' de '+OF_MAX+' '+F.ns.toLowerCase();
+  const now=Object.entries(pr).map(([k,v])=>'+'+fmt(v)+' '+RN[k].toLowerCase()).join(' · '),pc=k=>'+'+Math.round(F.v*k*100)+'%';
+  body.innerHTML='<canvas id="inCv" width="704" height="280" style="width:100%;display:block;border:1px solid var(--line);background:#1b1a24"></canvas>'+
+    '<p class="note">'+(o.bug?'Está dañado: tocalo en el mapa para arreglarlo.':!on?'Parado: le falta lo que gasta.':'Por minuto: '+now+'.')+'</p>'+
+    '<div class="item"><h3>'+F.ns+' · '+n+' de '+OF_MAX+'</h3>'+(old?'<span class="tag">modernizalo primero</span>':n<OF_MAX?'<button class="btn" data-of="1"'+(free?'':' disabled')+'>Sumar '+F.n.toLowerCase()+'</button>':'<span class="tag">puestos llenos</span>')+
+    '<p>Produce '+(n?pc(n):'+0%')+(n<OF_MAX?' → '+pc(n+1):'')+'. Cada '+F.n.toLowerCase()+' deja de juntar y trabaja adentro.'+(inN<n?' Va'+(n-inN>1?'n '+(n-inN):' uno')+' en camino.':'')+(!free&&n<OF_MAX&&!old?' No hay nadie libre: esperá que vuelvan.':'')+'</p>'+
+    (n>0?'<div style="grid-column:1/-1"><button class="btn ghost" data-of="-1">Sacar un '+F.n.toLowerCase()+'</button></div>':'')+'</div>';
+  drawInside();}
+function inSheet(body){const i=sheetSel,o=obj[i],b=o&&BUILD[o.t];if(!hasIn(o)&&!hasLv(o)&&!hasOf(o)){closeSheet();return;}if(hasOf(o)&&!hasIn(o)){ofSheet(body);return;}if(!hasIn(o)){lvSheet(body);return;}
   const kinds=Object.keys(MACH).filter(k=>MACH[k].ok(b)),{pr,us,f,on}=inRate(i),nm=(o.m||[]).filter(Boolean).length;
   $('sheetTitle').textContent=nameOf(o);$('sheetSub').textContent='Adentro · '+nm+' de '+PUESTOS+' puestos con máquina';
   const now=Object.entries(pr).map(([k,v])=>'+'+fmt(v)+' '+RN[k].toLowerCase()).concat(Object.entries(us).map(([k,v])=>'gasta '+fmt(v)+' de '+RN[k].toLowerCase())).join(' · ');
@@ -2031,7 +2069,7 @@ function machArt(k,lv,ep,f){return mkA(112,128,a=>{const K=OUTL,
     if(lv>=3){rect(a,22,52,68,2,TRIM[2]);rect(a,22,94,68,2,TRIM[2]);ell(a,82,70,6,6,TRIM[2]);ell(a,82,70,3,3,TRIM[3]);}}
   outlineAll(a,K);});}
 const machSprite=(k,lv,f)=>{const key=k+lv+f;return INART[key]||(INART[key]=machArt(k,lv,EPOCH,f));};
-function drawInside(){const cv=$('inCv');if(!cv||sheetMode!=='in')return;const c=cv.getContext('2d'),i=sheetSel,o=obj[i],b=o&&BUILD[o.t];if(!hasIn(o)&&!hasLv(o))return;
+function drawInside(){const cv=$('inCv');if(!cv||sheetMode!=='in')return;const c=cv.getContext('2d'),i=sheetSel,o=obj[i],b=o&&BUILD[o.t];if(!hasIn(o)&&!hasLv(o)&&!hasOf(o))return;
   const now=performance.now()/1000,dt=Math.min(0.1,now-(inLast||now));inLast=now;c.imageSmoothingEnabled=false;
   if(!INART.wall){INART.wall=inWallArt(EPOCH);INART.floor=inFloorArt(EPOCH);}
   const dk=darkness(),sky=dk>0.3?'#1b2440':dk>0.05?'#c87a4a':'#9fd0ff';c.fillStyle=sky;c.fillRect(0,0,IN_W,IN_FLOOR);
@@ -2041,13 +2079,16 @@ function drawInside(){const cv=$('inCv');if(!cv||sheetMode!=='in')return;const c
   const core=HS['in_'+o.t];if(core){const cf=Array.isArray(core)?core[run?Math.floor(now*3)%core.length:0]:core;c.drawImage(cf,0,IN_FLOOR+16-cf.height);}
   else{const s=HS[o.t];if(s)c.drawImage(s,16,IN_FLOOR+16-128,128,128);}
   // Con niveles: lo que suma cada nivel (HS['inp_'+id], o el guardián en el cuartel) en los lugares de la derecha.
-  if(!hasIn(o))lvProps(c,o,now);else{
-  // La cinta: lo que hace sale hacia la puerta de la derecha.
-  const by=IN_FLOOR+40;c.fillStyle='#24242c';c.fillRect(150,by,IN_W-150,16);c.fillStyle='#4a4a56';const off=run?(now*90)%24:0;for(let x=150-24+off;x<IN_W;x+=24)if(x>=150)c.fillRect(x,by+2,10,4);
-  c.fillStyle='#1b1a24';for(let x=162;x<IN_W;x+=48)c.fillRect(x,by+16,6,24);c.fillStyle='#0e0d14';c.fillRect(IN_W-36,IN_FLOOR-120,36,by-IN_FLOOR+136);
+  if(!hasIn(o)&&!hasOf(o))lvProps(c,o,now);else{
+  // La cinta: lo que hace sale hacia la puerta de la derecha. En la época antigua no hay cinta: lo que hace cada uno sube sobre su puesto.
+  const by=IN_FLOOR+40,belt=EPOCH>0||hasIn(o);if(belt){c.fillStyle='#24242c';c.fillRect(150,by,IN_W-150,16);c.fillStyle='#4a4a56';const off=run?(now*90)%24:0;for(let x=150-24+off;x<IN_W;x+=24)if(x>=150)c.fillRect(x,by+2,10,4);
+  c.fillStyle='#1b1a24';for(let x=162;x<IN_W;x+=48)c.fillRect(x,by+16,6,24);}c.fillStyle='#0e0d14';c.fillRect(IN_W-36,IN_FLOOR-120,36,by-IN_FLOOR+136);
   c.fillStyle=dk>0.3?'#2a3050':'#e8e0c0';c.fillRect(IN_W-30,IN_FLOOR-112,24,by-IN_FLOOR+112);
-  const ks=Object.keys(b.prod||{});if(run&&ks.length){inSpawn-=dt*f.sp;if(inSpawn<=0){inSpawn=1.2;inItems.push({x:150,k:ks[inItems.length%ks.length]});}}
-  for(const it of inItems)if(run)it.x+=dt*90;inItems=inItems.filter(it=>it.x<IN_W-34);for(const it of inItems)c.drawImage(I[it.k],it.x,by-22,24,24);
+  const ks=Object.keys(b.prod||{});if(run&&ks.length){inSpawn-=dt*f.sp;if(inSpawn<=0){inSpawn=1.2;const k=ks[inItems.length%ks.length];
+    if(belt)inItems.push({x:150,k});else{const n=Math.min(o.of||0,OF_MAX,vil.filter(v=>v.post===i&&v.inside).length),j=inN++%(n+1);inItems.push({x:j<n?IN_X[j]+26:60,y:IN_FLOOR-(j<n?84:120),t:0,k});}}}
+  if(belt){for(const it of inItems)if(run)it.x+=dt*90;inItems=inItems.filter(it=>it.x<IN_W-34);for(const it of inItems)c.drawImage(I[it.k],it.x,by-22,24,24);}
+  else{for(const it of inItems)it.t=(it.t||0)+dt;inItems=inItems.filter(it=>it.t<1.4);for(const it of inItems){c.globalAlpha=Math.max(0,1-it.t/1.4);c.drawImage(I[it.k],it.x,it.y-it.t*40,24,24);}c.globalAlpha=1;}
+  if(!hasIn(o)){ofProps(c,o,i,now);}else{
   // Los puestos: la máquina, su obrero trabajando al lado y el nivel; el libre, un marco con un +.
   const w=vil.find(v=>v.job===i),ms=[];for(let j=0;j<PUESTOS;j++)if(o.m&&o.m[j])ms.push(j);const work=run&&w&&w.inside;
   for(let j=0;j<PUESTOS;j++){const cx=IN_X[j],m=o.m&&o.m[j],sel=j===inSel;
@@ -2062,12 +2103,20 @@ function drawInside(){const cv=$('inCv');if(!cv||sheetMode!=='in')return;const c
     const x=walk?x0+(x1-x0)*(u-2.2)/0.8:x0,vf=(w.bot?HS.robot:HS.vil[w.skin%3])[walk||work?Math.floor(now*(walk?8:5))%2:0];
     c.save();if(walk&&x1<x0){c.translate(x*2+64,0);c.scale(-1,1);}c.drawImage(vf,x,IN_FLOOR+22-64-(work&&!walk&&Math.sin(now*14)>0?3:0));c.restore();}
   else if(ms.length){c.font='bold 20px system-ui,sans-serif';c.textAlign='center';const t=w?'va un obrero':'sin obrero',cx=IN_X[ms[0]];c.fillStyle='#1b1a24';
-    c.fillRect(cx-70,IN_FLOOR-160,140,28);c.fillStyle=w?'#e8e0c0':'#e8654d';c.fillText(t,cx,IN_FLOOR-139);}}
+    c.fillRect(cx-70,IN_FLOOR-160,140,28);c.fillStyle=w?'#e8e0c0':'#e8654d';c.fillText(t,cx,IN_FLOOR-139);}}}
   if(dk>0.05){c.fillStyle='rgba(10,12,30,'+(dk*0.45).toFixed(3)+')';c.fillRect(0,0,IN_W,IN_H);
     for(const lx of[100,320,540]){const g=c.createRadialGradient(lx,40,4,lx,40,150);g.addColorStop(0,'rgba(255,214,120,'+(dk*0.5).toFixed(3)+')');g.addColorStop(1,'rgba(255,214,120,0)');c.fillStyle=g;c.fillRect(lx-150,0,300,260);
       c.fillStyle='#ffd35a';c.fillRect(lx-6,30,12,8);c.fillStyle='#24242c';c.fillRect(lx-1,12,2,18);}}
   if(o.bug){c.fillStyle='rgba(60,10,10,.5)';c.fillRect(0,0,IN_W,IN_H);}
   if(o.bug||!on){c.font='bold 24px system-ui,sans-serif';c.textAlign='center';const t=o.bug?'Rota: arreglala desde el mapa':'Parada';c.fillStyle='#1b1a24';c.fillRect(IN_W/2-200,8,400,36);c.fillStyle='#e8654d';c.fillText(t,IN_W/2,34);}}
+// Los puestos de un oficio: lo que usa (HS['inp_'+id]) con quien trabaja al lado; el que viene en camino; el libre, con un +.
+function ofProps(c,o,i,now){const n=Math.min(o.of||0,OF_MAX),ws=vil.filter(v=>v.post===i&&v.inside),pr=HS['inp_'+o.t];c.font='bold 20px system-ui,sans-serif';c.textAlign='center';
+  for(let j=0;j<OF_MAX;j++){const cx=IN_X[j];c.fillStyle='rgba(0,0,0,.25)';c.fillRect(cx-66,IN_FLOOR+4,132,22);
+    if(j<n){if(pr){const fr=Array.isArray(pr)?pr[0]:pr;c.drawImage(fr,Math.round(cx-60-fr.width/2+56),IN_FLOOR+20-fr.height);}
+      const v=ws[j];if(v){const fr=HS.vil[v.skin%3][Math.floor(now*4+j)%2];c.drawImage(fr,cx+6,IN_FLOOR+22-64-(Math.sin(now*12+j)>0?3:0));}
+      else{c.fillStyle='#1b1a24';c.fillRect(cx-70,IN_FLOOR-160,140,28);c.fillStyle='#e8e0c0';c.fillText('va uno',cx,IN_FLOOR-139);}continue;}
+    c.strokeStyle='rgba(232,224,192,.55)';c.lineWidth=3;c.setLineDash([10,8]);c.strokeRect(cx-52,IN_FLOOR-100,104,120);c.setLineDash([]);
+    c.fillStyle='rgba(232,224,192,.7)';c.fillRect(cx-4,IN_FLOOR-56,8,32);c.fillRect(cx-16,IN_FLOOR-44,32,8);}}
 function lvProps(c,o,now){const lv=lvOf(o),pr=HS['inp_'+o.t]||(o.t==='cuartel'&&HS.guard);
   for(let j=0;j<3;j++){const cx=IN_X[j];c.fillStyle='rgba(0,0,0,.25)';c.fillRect(cx-66,IN_FLOOR+4,132,22);
     if(j<lv){if(pr){const fr=Array.isArray(pr)?pr[Math.floor(now*2+j*0.7)%pr.length]:pr;c.drawImage(fr,Math.round(cx-fr.width/2),IN_FLOOR+20-fr.height);}continue;}
@@ -2076,7 +2125,7 @@ function lvProps(c,o,now){const lv=lvOf(o),pr=HS['inp_'+o.t]||(o.t==='cuartel'&&
 // En el mapa: el nivel de un edificio mejorado, en puntitos dorados arriba a la derecha.
 function lvBadge(px,py,lv){for(let k=0;k<lv;k++){ctx.fillStyle='#1b1a24';ctx.fillRect(px+15-k*3.2,py-1,3,3);ctx.fillStyle='#e8c05a';ctx.fillRect(px+15.5-k*3.2,py-0.5,2,2);}}
 // En el mapa: un engranaje que gira sobre el edificio que tiene máquinas trabajando.
-function inBadge(px,py,i){if(!INL.length||!obj[i].m||!CREW.has(i))return;
+function inBadge(px,py,i){if(!INL.length||!(obj[i].m&&CREW.has(i)||POSTN[i]))return;
   const t=performance.now()/1000,s=Math.floor(t*(obj[i].bug?0:4))%2;ctx.fillStyle='#1b1a24';ctx.fillRect(px,py-1,7,7);ctx.fillStyle=obj[i].bug?'#a39b88':'#e8c05a';
   ctx.fillRect(px+2,py+1,3,3);if(s){ctx.fillRect(px+3,py,1,1);ctx.fillRect(px+3,py+4,1,1);ctx.fillRect(px+1,py+2,1,1);ctx.fillRect(px+5,py+2,1,1);}else{ctx.fillRect(px+1,py,1,1);ctx.fillRect(px+5,py,1,1);ctx.fillRect(px+1,py+4,1,1);ctx.fillRect(px+5,py+4,1,1);}}
 /* ---------- inventos que se ven ---------- */
@@ -2439,7 +2488,7 @@ function renderSheet(){
     const was=nameOf(o);$('sheetTitle').textContent=was;$('sheetSub').textContent=old?'Viene de '+(ERAS[o.era-1]||'otra era')+': rinde '+Math.round(oldW(o)*100)+'%':'Al día con la era';
     body.innerHTML='<div class="item"><h3>'+(was!==b.name?was+' → ':'')+b.name+'</h3>'+(old?(open?'<button class="btn" data-modern="'+i+'"'+(can?'':' disabled')+'>Modernizar</button>':'<span class="tag">Bloqueado</span>'):'<span class="tag ok">Modernizado</span>')+
       '<p>'+b.desc+(old?' Modernizado rinde '+(oldW(o)<0.5?Math.round(1/oldW(o))+' veces más':'el doble')+'.':'')+'</p>'+(old?(open?costHTML(c):'<p>Requiere: '+TECH[b.req].name+'</p>'):'')+'</div>'+
-      '<p class="note">Lo que viene de otra era rinde la mitad por cada era de atraso hasta que lo modernizás.</p>'+(hasIn(o)||hasLv(o)?'<button class="btn ghost" data-in="'+i+'">Entrar</button>':'');
+      '<p class="note">Lo que viene de otra era rinde la mitad por cada era de atraso hasta que lo modernizás.</p>'+(hasIn(o)||hasLv(o)||hasOf(o)?'<button class="btn ghost" data-in="'+i+'">Entrar</button>':'');
   }else if(sheetMode==='tribe'){
     const{pr,us}=economy(),hungry=vil.filter(v=>v.hungry).length,working=vil.filter(v=>v.state!=='idle').length,sick=vil.filter(sickHome).length;
     $('sheetTitle').textContent='Tribu';$('sheetSub').textContent='Aldeanos, prioridades y economía';
@@ -2467,6 +2516,7 @@ $('sheetBody').addEventListener('click',e=>{
     if(mu&&!mu.disabled){inArmed=-1;inSel=+mu.dataset.mu;upMachine(sheetSel,+mu.dataset.mu);sheetSig='';renderSheet();hud();}
     if(md){const j=+md.dataset.md;inSel=j;if(inArmed!==j)inArmed=j;else{inArmed=-1;dropMachine(sheetSel,j);toast('Sacaste la máquina: el obrero vuelve a juntar.');}sheetSig='';renderSheet();hud();}
     {const lv=e.target.closest('[data-lv]');if(lv&&!lv.disabled){lvUp(+lv.dataset.lv);sheetSig='';renderSheet();hud();}}
+    {const of=e.target.closest('[data-of]');if(of&&!of.disabled){setOficio(sheetSel,+of.dataset.of);sheetSig='';renderSheet();hud();}}
     if(en){sheetSel=+en.dataset.in;inSel=0;inArmed=-1;inItems=[];sheetMode='in';sheetSig='';renderSheet();}}
   if(b&&!b.disabled)startPlace(b.dataset.build);
   if(p){st.prio=p.dataset.prio;vil.forEach(v=>{if(v.state==='go'){v.state='idle';v.t=0.2;v.target=null;v.path=[];}});renderSheet();toast(st.prio==='auto'?'Aldeanos en automático':'Aldeanos priorizan '+RN[st.prio].toLowerCase());}
@@ -2608,7 +2658,7 @@ function onTap(tx,ty){
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);
   if(o){
     if(isOld(o)){sheetSel=ty*MW+tx;openSheet('bld');return;}
-    if(hasIn(o)||hasLv(o)){sheetSel=ty*MW+tx;inSel=0;inArmed=-1;inItems=[];openSheet('in');return;}
+    if(hasIn(o)||hasLv(o)||hasOf(o)){sheetSel=ty*MW+tx;inSel=0;inArmed=-1;inItems=[];openSheet('in');return;}
     if(!RES[o.t]){const b=BUILD[o.t];toast(INFO[o.t]+(o.t==='rival'?' Va '+Math.floor(st.rival)+'%.':'')+(o.t==='ciudad'?(grid().on.has(ty*MW+tx)?' Ya está conectada.':' Todavía no está conectada.'):'')+(b&&b.prod?prodLine(b):'')+(b&&b.elec?(grid().powered.has(ty*MW+tx)?' Tiene luz.':' Sin luz: poné un poste cerca.'):''));return;}
     if(!HANDS){if(o.hp<=0)toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');else sendWorker(tx,ty);return;}
     if(o.hp<=0){toast(RES[o.t].empty+': vuelve en '+Math.ceil(Math.max(0,o.regen))+' s.');P.act=null;P.task=null;const p=bfs(px,py,(x,y)=>x===tx&&y===ty);if(p)P.path=p;return;}
@@ -2669,7 +2719,7 @@ if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;}
   botTaps:()=>{const Q=[];for(const m of AM)if(m.botTaps)Q.push(...m.botTaps());else if(m.targets)m.targets((x,y,tx,ty)=>Q.push([tx,ty]));return Q;},prueba:()=>amEach('prueba')};
 if(location.search.indexOf('debug')>=0)for(const m of AMENAZAS)Object.assign(window.__rtagiDebug,m.debug);
 // Adentro de las industrias, para el bot y las pruebas.
-if(location.search.indexOf('debug')>=0)Object.assign(window.__rtagiDebug,{INL:()=>INL,MACH,MACH_COST,putMachine,upMachine,dropMachine,lvUp,lvCost:(id,lv)=>lvCost(BUILD[id],lv),LVX:()=>LVX,inFx:i=>inFx(i),inRate:i=>inRate(i),crew:()=>vil.filter(v=>v.job!=null),drawInside});
+if(location.search.indexOf('debug')>=0)Object.assign(window.__rtagiDebug,{INL:()=>INL,MACH,MACH_COST,putMachine,upMachine,dropMachine,lvUp,lvCost:(id,lv)=>lvCost(BUILD[id],lv),LVX:()=>LVX,setOficio,postN:i=>POSTN[i]||0,inFx:i=>inFx(i),inRate:i=>inRate(i),crew:()=>vil.filter(v=>v.job!=null),drawInside});
 })();
 </script>
 </body></html>
