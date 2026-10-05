@@ -178,7 +178,7 @@ function render(){
   MUNDO.forEach((e,i)=>{
     const s=ms[i],natural=i===0||!!s||!!(ms[i-1]&&ms[i-1].won),open=test||natural,main=i===cur?'btn':'btn ghost';
     let cls,state,action;
-    if(!natural&&open){cls='open';state='Modo prueba: arranca sin la ciudad de la era anterior';action='<button class="btn ghost" data-mundo="'+i+'">Probar</button>';}
+    if(!natural&&open){cls='open';state='Modo prueba: arranca sin la ciudad de la era anterior'+(e.n>=5?', con lo básico ya armado':'');action='<button class="btn ghost" data-mundo="'+i+'">Probar</button>';}
     else if(s&&s.won){cls='done';state=(e.n===10?'Carrera ganada':'Terminada')+' en el día '+s.dia;action='<button class="'+main+'" data-mundo="'+i+'">Jugar</button>';}
     else if(!open){cls='locked';state='Terminá la era anterior para desbloquearla';action='<span class="tag">Bloqueada</span>';}
     else if(s&&s.seen){cls='open';state=(s.lost?'Carrera perdida':'En curso')+' · día '+s.dia;action='<button class="'+main+'" data-mundo="'+i+'">Continuar</button>';}
