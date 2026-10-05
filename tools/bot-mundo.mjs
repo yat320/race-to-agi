@@ -68,6 +68,8 @@ function threats(){const o=D.obj();let n=0;
 // Qué construir y cuántos, en orden de prioridad.
 function wants(){const V=D.vil.filter(v=>!v.bot).length,nT=Object.keys(D.st.techs).length,w=[];
   w.push(['granja',1+Math.floor((V+1)/4)],['aserradero',1],['casa',Math.min(4,1+Math.ceil(nT/2))]);
+  // Si el próximo invento pide un objeto, primero el edificio que lo hace (y el que hace lo que ese gasta).
+  {const t=nextTech(),seen=new Set(),add=k=>{const b=E.builds.find(b=>b.craft&&b.prod&&b.prod[k]);if(!b||seen.has(b.id))return;seen.add(b.id);for(const u in b.use){add(u);const pb=E.builds.find(p=>!p.craft&&p.prod&&p.prod[u]&&p.req);if(pb&&!seen.has(pb.id)){seen.add(pb.id);w.push([pb.id,2]);}}w.push([b.id,1]);};if(t)for(const k in t.cost)add(k);}
   if(E.grid==='data'&&B.servidor)w.push(['servidor',1]);
   if(E.grid==='power'){const els=E.builds.filter(b=>b.elec).reduce((s,b)=>s+cnt(b.id),0);
     w.push(['usina',1+Math.floor(els/6)]);if(B.represa)w.push(['represa',1]);}
@@ -93,12 +95,15 @@ function antenas(){const g=D.grid();if(!cnt('servidor')||g.linked.length>=2)retu
   if(!best)return false;const[c,n]=best;
   return !!place('antena',{any:true,at:[n.x,n.y],r:5,ok:(x,y)=>Math.hypot(x-n.x,y-n.y)<=4.9&&Math.hypot(x-c.x,y-c.y)<bd-1.5});}
 // Juntar lo que más falta para el próximo invento (o el próximo edificio); si no falta nada juntable, lo que menos hay.
+// Los objetos (ERA.items) no se juntan: si falta uno, falta lo que gasta el edificio que lo hace (y lo de ese, si es otro objeto).
+const SRC={};for(const b of E.builds)if(b.craft&&b.prod)for(const k in b.prod)SRC[k]=b.use;
+function need(c){const m={},walk=(k,v,d)=>{if(d>3)return;if(SRC[k])for(const u in SRC[k])walk(u,v,d+1);else m[k]=(m[k]||0)+v;};for(const k in c)if((c[k]||0)>R()[k])walk(k,c[k]-R()[k],0);return m;}
 function nextTech(){return E.techs.find(t=>!has(t.id)&&t.req.every(r=>has(r)));}
 function gather(){const P=D.P;if(P.task||P.act||P.path.length)return;
   let k=null;if(R().comida<6)k='comida';
   const hands=E.n<5;
   if(!k){const t=nextTech(),goals=[t&&t.cost].concat(wants().slice(0,3).map(([id])=>D.buildCost(id))).filter(Boolean);
-    for(const c of goals){const miss=GATHER.filter(r=>(c[r]||0)>R()[r]).sort((a,b)=>(c[b]-R()[b])-(c[a]-R()[a]));if(miss.length){k=miss[0];break;}}}
+    for(const c of goals){const nd=need(c),miss=GATHER.filter(r=>nd[r]>0).sort((a,b)=>nd[b]-nd[a]);if(miss.length){k=miss[0];break;}}}
   if(!k)k=GATHER.filter(r=>R()[r]<D.cap(r)).sort((a,b)=>R()[a]-R()[b])[0];if(!k)return;
   // Desde la Industria no se junta a mano: como una persona, se les dice a los aldeanos qué priorizar.
   if(!hands){D.st.prio=k;return;}

@@ -6,6 +6,10 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','laboratorio','fabrica','estacion','puerto','palacio','sindicato'],
   // Los ludditas salen de las casas a romper las máquinas de fábricas y minas; el sindicato los calma a 4 casilleros (reglas en motor.html).
+  // Objetos que se fabrican (la prueba de la fabricación, octubre de 2026): el acero sale de la fundición, con carbón y piedra, y
+  // los engranajes del taller mecánico, con acero y madera. Los piden el tren, los barcos y la máquina analítica, entre otros.
+  items:[{id:'acero',name:'Acero',col:'#c8d2dc',icon:[['........','........','...kkkkk','..kwWWsk','.kwWWssk','kssssskk','kSSSSSk.','kkkkkk..'],{w:'#ffffff',W:'#dfe4ea',s:'#a3abb8',S:'#7a8290'}]},
+    {id:'engranajes',name:'Engranajes',col:'#e0b060',icon:[['.k.kk.k.','kgkGGkgk','.kgGGgk.','kgGkkGgk','kgGkkGgk','.kgGGgk.','kgkGGkgk','.k.kk.k.'],{g:'#c8a050',G:'#f0d080'}]}],
   luddites:['fabrica','mina'],defense:{id:'sindicato',r:4,label:'Sindicatos',of:['fabrica','mina']},
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'policia',building:'Comisaría',unit:'Policía',done:'Comisaría lista: llegó un policía',desc:'Trae un policía que sale solo a calmar a los ludditas y a arreglar las máquinas rotas, a 8 casilleros o menos.',info:'Comisaría: su policía calma a los ludditas cerca.',tip:'una comisaría: el policía sale solo a calmar a los ludditas.'},
@@ -15,15 +19,15 @@ const ERA={
     ['botanica','agri',1.25,'Botánica: granjas +25%']
   ]},
   techs:[
- {id:'vapor',name:'Máquina de vapor',cost:{carbon:15,ideas:30},req:[],desc:'Desbloquea la mina de carbón, la herrería y la cantera a vapor.'},
+ {id:'vapor',name:'Máquina de vapor',cost:{carbon:15,ideas:30},req:[],desc:'Desbloquea la mina de carbón, la herrería, la cantera a vapor y la fundición, que hace acero.'},
  {id:'quimica',name:'Química',cost:{piedra:15,ideas:35},req:[],desc:'Desbloquea el laboratorio, que genera muchas ideas. Ideas +50%.'},
- {id:'telar',name:'Telar mecánico',cost:{carbon:20,ideas:50},req:['vapor'],desc:'Desbloquea la fábrica, que quema carbón, da muchas monedas y echa humo, y el sindicato, donde los obreros negocian.'},
- {id:'ferrocarril',name:'Ferrocarril',cost:{madera:40,piedra:20,ideas:65},req:['vapor'],desc:'Desbloquea la estación de tren, que potencia las granjas.'},
- {id:'barcos',name:'Barco de vapor',cost:{madera:60,carbon:20,ideas:95},req:['telar'],desc:'Desbloquea el puerto: barcos que traen monedas e ideas.'},
+ {id:'telar',name:'Telar mecánico',cost:{carbon:20,ideas:50},req:['vapor'],desc:'Desbloquea la fábrica, que quema carbón, da muchas monedas y echa humo; el taller mecánico, que hace engranajes, y el sindicato.'},
+ {id:'ferrocarril',name:'Ferrocarril',cost:{madera:40,piedra:20,acero:10,ideas:65},req:['vapor'],desc:'Desbloquea la estación de tren, que potencia las granjas.'},
+ {id:'barcos',name:'Barco de vapor',cost:{madera:60,carbon:20,acero:15,ideas:95},req:['telar'],desc:'Desbloquea el puerto: barcos que traen monedas e ideas.'},
  {id:'exposiciones',name:'Exposiciones',cost:{monedas:30,ideas:130},req:['quimica','telar'],desc:'Desbloquea el palacio de cristal. Ideas +50%.'},
  {id:'gas',name:'Alumbrado a gas',cost:{monedas:45,ideas:270},req:['barcos','exposiciones'],desc:'Se lee de noche: ideas +50% y ves más lejos en la oscuridad.'},
- {id:'tarjetas',name:'Tarjetas perforadas',cost:{carbon:60,monedas:45,ideas:320},req:['vapor','exposiciones'],desc:'Máquinas que siguen instrucciones: todos los edificios producen +50%.'},
- {id:'analitica',name:'Máquina analítica',cost:{piedra:110,carbon:90,monedas:100,ideas:650},req:['gas','tarjetas'],desc:'Babbage y Ada Lovelace: la primera computadora programable. Cierra la Industria.'}],
+ {id:'tarjetas',name:'Tarjetas perforadas',cost:{carbon:40,monedas:45,engranajes:12,ideas:320},req:['vapor','exposiciones'],desc:'Máquinas que siguen instrucciones: todos los edificios producen +50%.'},
+ {id:'analitica',name:'Máquina analítica',cost:{piedra:80,carbon:60,acero:15,engranajes:20,monedas:100,ideas:650},req:['gas','tarjetas'],desc:'Babbage y Ada Lovelace: la primera computadora programable. Cierra la Industria.'}],
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
@@ -36,20 +40,22 @@ const ERA={
  {id:'cantera',req:'vapor',base:{madera:20,carbon:8},grow:1.35,prod:{piedra:0.12}},
  {id:'mina',name:'Mina de carbón',req:'vapor',base:{madera:30,piedra:15},grow:1.4,done:'Mina abierta',desc:'Una bomba de vapor saca carbón sola. Echa algo de humo.',prod:{carbon:0.12},smoke:0.03,smk:[[2.2,1.4]]},
  {id:'laboratorio',name:'Laboratorio',req:'quimica',base:{piedra:40,carbon:10},grow:1.5,done:'Laboratorio abierto',desc:'Químicos e inventores: genera muchas ideas.',prod:{ideas:0.35}},
+ {id:'fundicion',name:'Fundición',req:'vapor',base:{madera:25,piedra:30},grow:1.5,craft:true,done:'Fundición encendida',desc:'Funde carbón y piedra en acero: gasta 9 de carbón y 6 de piedra por minuto y hace 15 de acero. Se frena si falta alguno o si ya no entra.',prod:{acero:0.25},use:{carbon:0.15,piedra:0.1}},
+ {id:'torneria',name:'Taller mecánico',req:'telar',base:{madera:30,piedra:20,acero:5},grow:1.5,craft:true,done:'Taller mecánico en marcha',desc:'Tornea acero y madera en engranajes: gasta 6 de acero y 6 de madera por minuto y hace 9 engranajes.',prod:{engranajes:0.15},use:{acero:0.1,madera:0.1}},
  {id:'fabrica',name:'Fábrica',req:'telar',base:{madera:30,piedra:25,carbon:5},grow:1.4,done:'Fábrica en marcha',desc:'Quema carbón y da muchas monedas. Echa mucho humo. Sin carbón, se frena.',prod:{monedas:0.3},use:{carbon:0.1},smoke:0.06,smk:[[13,0]],puffs:4},
  {id:'sindicato',name:'Sindicato',req:'telar',base:{madera:25,piedra:20,carbon:5},grow:1.4,done:'Sindicato abierto',desc:'Los obreros negocian en vez de romper: los ludditas que pasan a 4 casilleros se calman solos.'},
- {id:'estacion',name:'Estación de tren',req:'ferrocarril',base:{madera:35,piedra:30},grow:1.6,done:'Llegó el tren',desc:'El tren reparte la cosecha: cada estación hace rendir +50% a todas las granjas. Echa algo de humo.',smoke:0.02,smk:[[2.6,7]]},
- {id:'puerto',name:'Puerto',req:'barcos',base:{madera:40,carbon:20},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. Los barcos de vapor traen monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.',smoke:0.015,smk:[[6,2.5],[10,3]]},
- {id:'palacio',name:'Palacio de cristal',req:'exposiciones',base:{madera:30,piedra:35,monedas:25},grow:1.6,done:'Exposición inaugurada',desc:'Los inventos se muestran al mundo: ideas +30% por cada palacio.'}],
-  info:{casa:'Casa: acá viven 2 aldeanos.',parque:'Parque: limpia el humo.',herreria:'Herrería: los aldeanos juntan más rápido.',mina:'Mina: saca carbón. Echa humo.',laboratorio:'Laboratorio: genera ideas.',sindicato:'Sindicato: calma a los ludditas a 4 casilleros.',fabrica:'Fábrica: quema carbón y da monedas. Echa mucho humo.',estacion:'Estación: potencia las granjas. Echa humo.',puerto:'Puerto: trae monedas e ideas.',palacio:'Palacio de cristal: más ideas.'},
+ {id:'estacion',name:'Estación de tren',req:'ferrocarril',base:{madera:35,piedra:30,acero:8},grow:1.6,done:'Llegó el tren',desc:'El tren reparte la cosecha: cada estación hace rendir +50% a todas las granjas. Echa algo de humo.',smoke:0.02,smk:[[2.6,7]]},
+ {id:'puerto',name:'Puerto',req:'barcos',base:{madera:40,carbon:20,acero:8},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. Los barcos de vapor traen monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.',smoke:0.015,smk:[[6,2.5],[10,3]]},
+ {id:'palacio',name:'Palacio de cristal',req:'exposiciones',base:{madera:30,piedra:35,monedas:25,acero:12},grow:1.6,done:'Exposición inaugurada',desc:'Los inventos se muestran al mundo: ideas +30% por cada palacio.'}],
+  info:{casa:'Casa: acá viven 2 aldeanos.',fundicion:'Fundición: hace acero con carbón y piedra.',torneria:'Taller mecánico: hace engranajes con acero y madera.',parque:'Parque: limpia el humo.',herreria:'Herrería: los aldeanos juntan más rápido.',mina:'Mina: saca carbón. Echa humo.',laboratorio:'Laboratorio: genera ideas.',sindicato:'Sindicato: calma a los ludditas a 4 casilleros.',fabrica:'Fábrica: quema carbón y da monedas. Echa mucho humo.',estacion:'Estación: potencia las granjas. Echa humo.',puerto:'Puerto: trae monedas e ideas.',palacio:'Palacio de cristal: más ideas.'},
   // Pistas: las de tips1 van antes del humo espeso; las de tips2, después de "granero lleno".
   tips1:[['telar','sindicato','un sindicato cerca de las fábricas y minas: calma a los ludditas.']],
-  tips2:[['quimica','laboratorio','un laboratorio: genera muchas ideas.'],['telar','fabrica','una fábrica para conseguir monedas.'],['barcos','puerto','un puerto pegado al agua.']],
+  tips2:[['vapor','fundicion','una fundición: hace acero, que piden el tren, los barcos y la máquina analítica.'],['telar','torneria','un taller mecánico: hace engranajes con el acero.'],['quimica','laboratorio','un laboratorio: genera muchas ideas.'],['telar','fabrica','una fábrica para conseguir monedas.'],['barcos','puerto','un puerto pegado al agua.']],
   smogTip:'Más parques o menos fábricas.',done:'Industria completa.',
   text:{
     when:'1780 d.C.',title:'La Revolución Industrial',
     intro:'Tu ciudad descubre el carbón y el vapor. Las fábricas producen como nunca, pero llenan el aire de humo, y no todos están contentos: los ludditas salen a romper las máquinas. La meta: construir la máquina analítica, la primera computadora programable.',
-    news:'Novedades: carbón, minas, fábricas, trenes, humo y ludditas. Con mucho humo tu gente junta y cosecha menos: los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos.',
+    news:'Novedades: carbón, minas, fábricas, trenes, humo y ludditas, y cosas que se fabrican: la fundición hace acero y el taller mecánico, engranajes. Con mucho humo tu gente junta y cosecha menos: los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos.',
     legacy:'Lo que trae tu ciudad del Renacimiento',
     noLegacy:'No hay un Renacimiento terminado en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del depósito, lo que sobra se pierde. Las fábricas, minas, trenes y barcos echan humo: con mucho humo se junta y se cosecha menos, y los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos, y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos. En la compu: flechas o WASD.',
@@ -132,3 +138,15 @@ const VILPAL2=[{c:'#4a4e5a',C:'#33363f',j:'#7a5434',y:'#3a2418'},{c:'#6b4f38',C:
 const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:coalOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:epArt('fogata'),
   casa:brickHouseArt(),granja:epArt('granja'),aserradero:epArt('aserradero'),granero:epArt('granero'),herreria:epArt('herreria'),cantera:epArt('cantera'),parque:parkArt(),mina:mineArt(),laboratorio:labArt(),fabrica:factoryArt(),estacion:stationArt(),puerto:steamshipArt(),palacio:crystalArt(),sindicato:unionArt(),luddite:[ludditeArt(0),ludditeArt(1)],
   hero:[personArt({c:'#2f6b6b',C:'#1f4a4a',j:'#d4ae62'},0),personArt({c:'#2f6b6b',C:'#1f4a4a',j:'#d4ae62'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
+// Fundición: un alto horno de ladrillo con chimenea, la boca encendida y lingotes de acero al costado.
+function foundryArt(){return mkA(64,64,a=>{brickWall(a,6,28,40,30);rect(a,6,56,40,2,BRICK[0]);
+  poly(a,[[6,28],[46,28],[38,16],[14,16]],(x,y)=>((y>>1)&1)?BRICK[1]:BRICK[2]);rect(a,20,2,10,15,BRICK[1]);rect(a,19,2,12,3,BRICK[0]);
+  ell(a,26,50,9,10,(i,j)=>j>5?null:Math.hypot(i/9,j/10)>0.8?BRICK[0]:j>-1?hx('#ffd35a'):hx('#f08a24'));rect(a,16,54,20,4,hx('#2a2a34'));
+  for(const[x,y]of[[47,52],[51,48],[55,52]]){rect(a,x,y,8,4,IRON[2]);rect(a,x,y,8,1,IRON[3]);}
+  outlineAll(a,OUTL);a.set(24,46,hx('#fff6c8'));a.set(28,47,hx('#fff6c8'));});}
+// Taller mecánico: un galpón de ladrillo con portón y un engranaje grande en la fachada.
+function latheArt(){return mkA(64,64,a=>{brickWall(a,4,28,56,30);rect(a,4,56,56,2,BRICK[0]);
+  poly(a,[[2,28],[62,28],[56,16],[8,16]],(x,y)=>((x>>2)&1)?SLATE[1]:SLATE[2]);rect(a,8,36,18,20,DKW);rect(a,8,36,18,2,IRON[2]);rect(a,16,38,2,18,IRON[1]);
+  ell(a,43,42,12,12,(i,j)=>{const d=Math.hypot(i,j),an=Math.atan2(j,i);return d<2.5?DKW:d<7.5?hx('#c8a050'):d<9.5||(Math.cos(an*8)>0.35&&d<12)?hx('#a8782e'):null;});
+  outlineAll(a,OUTL);a.set(41,40,hx('#f0d080'));a.set(42,39,hx('#f0d080'));});}
+HS.fundicion=foundryArt();HS.torneria=latheArt();
