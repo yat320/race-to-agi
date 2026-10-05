@@ -29,3 +29,35 @@ Se frenan si les falta algo o si el depósito de objetos está lleno (40, y 40 m
 
 Se probó con la fábrica pidiendo engranajes y con la mitad de producción: la economía se frenaba y la era sola tardaba 11,8 a 13 min. Con el bot (la era sola, 3 corridas): tocando, 10,6 min (antes 9,6); solo cuarteles, 10,8; solo sindicatos, 12,3; sin nada, 14,9. Encadenada, 5,5 (antes 5,1): la ciudad del Renacimiento trae bancos que pasan a ser fábricas y queman carbón, así que hacen falta 2 minas.
 
+
+## Adentro de las industrias (la prueba, octubre de 2026)
+
+Juani: "que se pueda entrar en cada industria". Eligió puestos y máquinas, y probarlo primero en la Industria. Tocar una mina, la fundición, el taller mecánico, la fábrica o el laboratorio (`puestos:true`) abre su interior (la hoja `in`):
+
+- Un dibujo del adentro, que se mueve. A la izquierda, el corazón de cada industria (`HS.in_<id>`, en dos cuadros): la boca del túnel con la vagoneta, el horno con la cuchara que vuelca acero, el torno con su correa, los telares y la mesa de matraces. A la derecha, una cinta lleva lo que hace hacia la puerta.
+- Tres puestos. En cada uno va una máquina, de las que le sirven a ese edificio:
+  - **Rápida:** produce +100% con lo mismo que gasta, pero echa humo en proporción.
+  - **Limpia:** humo −50%, solo en lo que echa humo.
+  - **Ahorradora:** gasta −40%, solo en lo que consume.
+- Cada máquina sube hasta el nivel 3 (rápida +150% y +200%; limpia −70% y −90%; ahorradora −60% y −80%).
+- Cuestan (`ERA.machine`):
+  - nivel 1: 20 de madera y 20 de piedra;
+  - nivel 2: 8 de acero y 20 de piedra;
+  - nivel 3: 12 de acero, 8 engranajes y 30 monedas.
+- Las máquinas de una industria las maneja **un obrero**. El aldeano libre más cercano deja de juntar, camina hasta el edificio y trabaja adentro: no se ve en el mapa, va de máquina en máquina en el dibujo y sigue comiendo. Sin obrero, o con la industria rota por los ludditas, las máquinas no hacen nada.
+- Sobre el edificio, en el mapa, gira un engranaje cuando las máquinas andan.
+- La pista "Entrá:" sale una vez, hasta poner la primera máquina, si alcanza para una.
+
+La decisión es qué industria potenciar, con qué máquina y cuántos aldeanos dejan de juntar.
+
+Lo que se probó con el bot antes de llegar a esto. El cuello de botella de la era es lo que juntan los aldeanos (uno junta ~21 por minuto, más que una mina entera) y, a la vez, ideas y monedas.
+
+- **Un obrero por máquina:** la era tardaba entre 11,4 y 14,8 min, contra 10,6 sin máquinas. Una máquina de nivel 1 sumaba menos de lo que juntaba el aldeano que se llevaba.
+- **La rápida gastando en proporción:** la fundición se comía el carbón.
+- **Máquinas sin obrero:** tampoco fue más rápido, porque el acero y los engranajes que pedían competían con los inventos.
+
+Con lo de arriba, el bot pone rápidas (o limpias, con mucho humo) en la industria que hace lo que le falta al próximo invento, con una persona de cada 3 como mucho de obrero, y las mejora. Termina la era sola en 9,5 a 10,3 min (10 en promedio, contra 10,6 sin máquinas; `sinmaquinas` lo compara) y encadenada en 5,3 (5,7 sin), con humo hasta ~30%. No es obligatorio: bien elegidas ayudan y mal elegidas atrasan. Cuando el bot las ponía en la fábrica y el laboratorio aunque no faltaran monedas ni ideas, tardaba más que sin máquinas.
+
+De paso, el bot junta primero para el edificio que fabrica lo que pide el próximo invento. Si no, la fundición se comía la piedra y el taller mecánico no se hacía nunca: una corrida encadenada tardó 11,7 min.
+
+Se guardan con el edificio (`m`, el octavo dato, como `["r2","l1",""]`) y el obrero con la persona (`job`, el octavo dato). Una partida anterior se lee igual. A otra era pasan si el edificio sigue igual y ahí también tiene puestos (por ahora, solo la Industria tiene).

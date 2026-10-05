@@ -10,6 +10,8 @@ const ERA={
   // los engranajes del taller mecánico, con acero y madera. Los piden el tren, los barcos y la máquina analítica, entre otros.
   items:[{id:'acero',name:'Acero',col:'#c8d2dc',icon:[['........','........','...kkkkk','..kwWWsk','.kwWWssk','kssssskk','kSSSSSk.','kkkkkk..'],{w:'#ffffff',W:'#dfe4ea',s:'#a3abb8',S:'#7a8290'}]},
     {id:'engranajes',name:'Engranajes',col:'#e0b060',icon:[['.k.kk.k.','kgkGGkgk','.kgGGgk.','kgGkkGgk','kgGkkGgk','.kgGGgk.','kgkGGkgk','.k.kk.k.'],{g:'#c8a050',G:'#f0d080'}]}],
+  // Adentro de la mina, la fundición, el taller mecánico, la fábrica y el laboratorio (`puestos`) van máquinas: lo que cuesta cada nivel.
+  machine:[{madera:20,piedra:20},{acero:8,piedra:20},{acero:12,engranajes:8,monedas:30}],
   luddites:['fabrica','mina'],defense:{id:'sindicato',r:4,label:'Sindicatos',of:['fabrica','mina']},
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'policia',building:'Comisaría',unit:'Policía',done:'Comisaría lista: llegó un policía',desc:'Trae un policía que sale solo a calmar a los ludditas y a arreglar las máquinas rotas, a 8 casilleros o menos.',info:'Comisaría: su policía calma a los ludditas cerca.',tip:'una comisaría: el policía sale solo a calmar a los ludditas.'},
@@ -38,11 +40,11 @@ const ERA={
  {id:'parque',name:'Parque',req:null,base:{madera:15,piedra:10},grow:1.3,done:'Parque plantado: el aire se limpia',desc:'Árboles que limpian el humo. Cada parque compensa casi una fábrica.'},
  {id:'herreria',name:'Herrería',req:'vapor',base:{madera:25,piedra:20,carbon:10},grow:1.6,done:'Herrería lista',desc:'Herramientas de acero: los aldeanos juntan +30% por cada herrería.'},
  {id:'cantera',req:'vapor',base:{madera:20,carbon:8},grow:1.35,prod:{piedra:0.12}},
- {id:'mina',name:'Mina de carbón',req:'vapor',base:{madera:30,piedra:15},grow:1.4,done:'Mina abierta',desc:'Una bomba de vapor saca carbón sola. Echa algo de humo.',prod:{carbon:0.12},smoke:0.03,smk:[[2.2,1.4]]},
- {id:'laboratorio',name:'Laboratorio',req:'quimica',base:{piedra:40,carbon:10},grow:1.5,done:'Laboratorio abierto',desc:'Químicos e inventores: genera muchas ideas.',prod:{ideas:0.35}},
- {id:'fundicion',name:'Fundición',req:'vapor',base:{madera:25,piedra:30},grow:1.5,craft:true,done:'Fundición encendida',desc:'Funde carbón y piedra en acero: gasta 9 de carbón y 6 de piedra por minuto y hace 15 de acero. Se frena si falta alguno o si ya no entra.',prod:{acero:0.25},use:{carbon:0.15,piedra:0.1}},
- {id:'torneria',name:'Taller mecánico',req:'telar',base:{madera:30,piedra:20,acero:5},grow:1.5,craft:true,done:'Taller mecánico en marcha',desc:'Tornea acero y madera en engranajes: gasta 6 de acero y 6 de madera por minuto y hace 9 engranajes.',prod:{engranajes:0.15},use:{acero:0.1,madera:0.1}},
- {id:'fabrica',name:'Fábrica',req:'telar',base:{madera:30,piedra:25,carbon:5},grow:1.4,done:'Fábrica en marcha',desc:'Quema carbón y da muchas monedas. Echa mucho humo. Sin carbón, se frena.',prod:{monedas:0.3},use:{carbon:0.1},smoke:0.06,smk:[[13,0]],puffs:4},
+ {id:'mina',name:'Mina de carbón',req:'vapor',base:{madera:30,piedra:15},grow:1.4,done:'Mina abierta',desc:'Una bomba de vapor saca carbón sola. Echa algo de humo.',prod:{carbon:0.12},smoke:0.03,smk:[[2.2,1.4]],puestos:true},
+ {id:'laboratorio',name:'Laboratorio',req:'quimica',base:{piedra:40,carbon:10},grow:1.5,done:'Laboratorio abierto',desc:'Químicos e inventores: genera muchas ideas.',prod:{ideas:0.35},puestos:true},
+ {id:'fundicion',name:'Fundición',req:'vapor',base:{madera:25,piedra:30},grow:1.5,craft:true,done:'Fundición encendida',desc:'Funde carbón y piedra en acero: gasta 9 de carbón y 6 de piedra por minuto y hace 15 de acero. Se frena si falta alguno o si ya no entra.',prod:{acero:0.25},use:{carbon:0.15,piedra:0.1},puestos:true},
+ {id:'torneria',name:'Taller mecánico',req:'telar',base:{madera:30,piedra:20,acero:5},grow:1.5,craft:true,done:'Taller mecánico en marcha',desc:'Tornea acero y madera en engranajes: gasta 6 de acero y 6 de madera por minuto y hace 9 engranajes.',prod:{engranajes:0.15},use:{acero:0.1,madera:0.1},puestos:true},
+ {id:'fabrica',name:'Fábrica',req:'telar',base:{madera:30,piedra:25,carbon:5},grow:1.4,done:'Fábrica en marcha',desc:'Quema carbón y da muchas monedas. Echa mucho humo. Sin carbón, se frena.',prod:{monedas:0.3},use:{carbon:0.1},smoke:0.06,smk:[[13,0]],puffs:4,puestos:true},
  {id:'sindicato',name:'Sindicato',req:'telar',base:{madera:25,piedra:20,carbon:5},grow:1.4,done:'Sindicato abierto',desc:'Los obreros negocian en vez de romper: los ludditas que pasan a 4 casilleros se calman solos.'},
  {id:'estacion',name:'Estación de tren',req:'ferrocarril',base:{madera:35,piedra:30,acero:8},grow:1.6,done:'Llegó el tren',desc:'El tren reparte la cosecha: cada estación hace rendir +50% a todas las granjas. Echa algo de humo.',smoke:0.02,smk:[[2.6,7]]},
  {id:'puerto',name:'Puerto',req:'barcos',base:{madera:40,carbon:20,acero:8},grow:1.5,done:'Puerto abierto',desc:'Va pegado al agua. Los barcos de vapor traen monedas e ideas.',prod:{monedas:0.2,ideas:0.1},water:'El puerto tiene que ir pegado al agua.',smoke:0.015,smk:[[6,2.5],[10,3]]},
@@ -55,10 +57,10 @@ const ERA={
   text:{
     when:'1780 d.C.',title:'La Revolución Industrial',
     intro:'Tu ciudad descubre el carbón y el vapor. Las fábricas producen como nunca, pero llenan el aire de humo, y no todos están contentos: los ludditas salen a romper las máquinas. La meta: construir la máquina analítica, la primera computadora programable.',
-    news:'Novedades: carbón, minas, fábricas, trenes, humo y ludditas, y cosas que se fabrican: la fundición hace acero y el taller mecánico, engranajes. Con mucho humo tu gente junta y cosecha menos: los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos.',
+    news:'Novedades: carbón, minas, fábricas, trenes, humo y ludditas, y cosas que se fabrican: la fundición hace acero y el taller mecánico, engranajes. Y se puede entrar a las industrias: tocá una mina, la fundición, el taller, una fábrica o el laboratorio y ponele máquinas; un obrero las maneja. Con mucho humo tu gente junta y cosecha menos: los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos.',
     legacy:'Lo que trae tu ciudad del Renacimiento',
     noLegacy:'No hay un Renacimiento terminado en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del depósito, lo que sobra se pierde. Las fábricas, minas, trenes y barcos echan humo: con mucho humo se junta y se cosecha menos, y los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos, y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos. En la compu: flechas o WASD.',
+    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; adentro de la mina, la fundición, el taller mecánico, la fábrica y el laboratorio van máquinas (tocalos). Las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del depósito, lo que sobra se pierde. Las fábricas, minas, trenes y barcos echan humo: con mucho humo se junta y se cosecha menos, y los parques lo limpian. Los ludditas salen de las casas a romper fábricas y minas: tocalos para calmarlos, y tocá lo roto para arreglarlo. Con más humo salen más seguido; los sindicatos los calman solos. En la compu: flechas o WASD.',
     win:'Industria superada',winText:()=>'Terminaste la máquina analítica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ada Lovelace ya escribió el primer programa.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Electricidad.'}
 };
@@ -150,3 +152,53 @@ function latheArt(){return mkA(64,64,a=>{brickWall(a,4,28,56,30);rect(a,4,56,56,
   ell(a,43,42,12,12,(i,j)=>{const d=Math.hypot(i,j),an=Math.atan2(j,i);return d<2.5?DKW:d<7.5?hx('#c8a050'):d<9.5||(Math.cos(an*8)>0.35&&d<12)?hx('#a8782e'):null;});
   outlineAll(a,OUTL);a.set(41,40,hx('#f0d080'));a.set(42,39,hx('#f0d080'));});}
 HS.fundicion=foundryArt();HS.torneria=latheArt();
+// Adentro de las industrias (lo que se ve al tocarlas): el corazón de cada una, en dos cuadros, a la izquierda del interior.
+// La mina: la boca del túnel con su farol, los rieles y una vagoneta con carbón.
+function inMineArt(f){return mkA(176,200,a=>{const RK=P4('#2e2a2a','#3e3836','#524a46','#6a605a'),K=hx('#0e0d14');
+  blob(a,[[40,90,60],[120,80,62],[88,40,44],[150,140,40],[20,150,40]],RK,null);for(const[x,y,r]of[[30,50,8],[140,60,7],[160,110,6],[18,120,6],[110,30,5]])blob(a,[[x,y,r]],COALT,null);
+  rect(a,30,78,100,122,K);ell(a,80,80,50,26,(i,j)=>j<0?K:null);rect(a,26,72,10,128,WOOD[2]);rect(a,26,72,3,128,WOOD[3]);rect(a,124,72,10,128,WOOD[1]);rect(a,20,64,120,12,WOOD[2]);rect(a,20,64,120,3,WOOD[3]);
+  for(let x=0;x<176;x+=14)rect(a,x,188,8,6,WOOD[0]);rect(a,0,186,176,3,IRON[3]);rect(a,0,194,176,3,IRON[3]);
+  poly(a,[[96,150],[166,150],[158,182],[104,182]],IRON[2]);rect(a,96,150,70,4,IRON[3]);for(const x of[110,150]){ell(a,x,186,8,8,IRON[1]);ell(a,x,186,3,3,IRON[3]);}
+  blob(a,[[112,148,9],[126,144,10],[142,146,9],[154,149,7]],COALT,null);
+  rect(a,44,76,2,10,IRON[1]);rect(a,38,86,14,16,IRON[0]);rect(a,40,88,10,12,f?hx('#ffb24a'):hx('#ffe680'));rect(a,36,84,18,3,IRON[2]);
+  outlineAll(a,OUTL);});}
+// La fundición: el horno de ladrillo con la boca encendida y una cuchara que vuelca acero en los moldes.
+function inFoundryArt(f){return mkA(176,200,a=>{const HOT=f?[hx('#ff7a1a'),hx('#ffb24a'),hx('#ffe680')]:[hx('#ff8a2a'),hx('#ffd35a'),hx('#fff2b0')];
+  brickWall(a,44,0,30,46);brickWall(a,8,40,108,160);rect(a,4,36,116,6,STONE2[2]);
+  ell(a,62,150,30,30,(i,j)=>j<8?(i*i+j*j<14*14?HOT[2]:i*i+j*j<22*22?HOT[1]:HOT[0]):null);rect(a,32,158,60,42,HOT[0]);rect(a,44,164,36,36,HOT[1]);rect(a,26,154,72,4,STONE2[3]);
+  line(a,148,0,148,92,IRON[2],2);ell(a,148,104,18,14,(i,j)=>j>=-2?IRON[1]:null);rect(a,130,100,36,4,HOT[2]);line(a,132,108,126,116,IRON[2],3);
+  rect(a,f?123:124,116,f?5:3,62,HOT[1]);rect(a,f?124:125,116,1,62,HOT[2]);
+  for(const x of[112,136,160]){rect(a,x-10,182,22,14,IRON[1]);rect(a,x-8,184,18,8,x===136?HOT[1]:hx('#c8d2dc'));}
+  for(let k=0;k<3;k++)rect(a,14+k*3,186-k*7,26,6,hx('#a3abb8'));
+  outlineAll(a,OUTL);});}
+// El taller mecánico: el eje de transmisión con sus correas y un torno que hace un engranaje (saltan chispas).
+function inLatheArt(f){return mkA(176,200,a=>{const BR=hx('#c8a050'),BRL=hx('#f0d080');
+  rect(a,0,16,176,6,IRON[2]);for(const x of[50,130]){ell(a,x,19,12,12,IRON[1]);ell(a,x,19,4,4,BR);}
+  for(const x of[44,56])for(let y=30;y<120;y+=6)if(((y/6|0)+f)%2===0)rect(a,x,y,3,4,hx('#3a2418'));
+  rect(a,4,152,168,14,IRON[2]);rect(a,4,152,168,3,IRON[3]);for(const x of[14,154])rect(a,x,166,10,34,IRON[1]);
+  rect(a,14,108,44,44,IRON[1]);rect(a,14,108,44,4,IRON[3]);ell(a,50,120,10,10,IRON[2]);
+  ell(a,70,130,14,14,IRON[2]);for(let s=0;s<3;s++){const an=s*2.094+f*1.05;rect(a,Math.round(70+Math.cos(an)*9)-2,Math.round(130+Math.sin(an)*9)-2,4,4,IRON[0]);}
+  rect(a,84,124,52,12,BR);for(let x=88;x<134;x+=6)rect(a,x,124,3,12,BRL);rect(a,136,112,28,40,IRON[1]);rect(a,136,112,28,4,IRON[3]);
+  rect(a,102,138,12,14,IRON[0]);rect(a,104,132,4,8,IRON[3]);
+  for(const[x,y]of f?[[100,118],[96,112],[110,114]]:[[106,116],[98,120],[112,110]])rect(a,x,y,2,2,hx('#ffe680'));
+  rect(a,100,52,72,6,WOOD[2]);for(const x of[114,140,162])ell(a,x,44,8,8,(i,j)=>{const d=Math.hypot(i,j),an=Math.atan2(j,i);return d<2?DKW:d<5?BRL:d<6.5||(Math.cos(an*6)>0.3&&d<8.5)?BR:null;});
+  outlineAll(a,OUTL);});}
+// La fábrica: dos telares con su eje arriba; la lanzadera va y viene y la tela se enrolla abajo.
+function inLoomArt(f){return mkA(176,200,a=>{const TH=[hx('#e8eef4'),hx('#7ea6dc')],CL=[hx('#c8413b'),hx('#4a78b8')];
+  rect(a,0,14,176,6,IRON[2]);for(const x of[44,132]){ell(a,x,17,10,10,IRON[1]);ell(a,x,17,3,3,GOLD);line(a,x-8,24,x-8,90,hx('#3a2418'),2);line(a,x+8,24,x+8,90,hx('#3a2418'),2);}
+  for(let k=0;k<2;k++){const x0=8+k*88;rect(a,x0,88,72,8,WOOD[2]);rect(a,x0,88,72,2,WOOD[3]);for(const x of[x0,x0+64])rect(a,x,88,8,108,WOOD[1]);
+    for(let x=x0+12;x<x0+62;x+=4)line(a,x,96,x+((x>>2)&1?2:-2),150,TH[(x>>2)&1],1);
+    rect(a,x0+8,146,58,8,WOOD[2]);const sx=x0+12+(f?36:6);rect(a,sx,140,16,6,WOOD[3]);rect(a,sx+2,141,12,4,WOOD[2]);
+    ell(a,x0+36,176,26,12,CL[k]);ell(a,x0+36,172,22,6,mulc(CL[k],1.25));rect(a,x0+8,154,56,10,CL[k]);}
+  outlineAll(a,OUTL);});}
+// El laboratorio: una mesa con matraces que burbujean, estantes con frascos y una pizarra con fórmulas.
+function inLabArt(f){return mkA(176,200,a=>{const GL=[hx('#5fe3d0'),hx('#e8654d'),hx('#93d36c'),hx('#f0cc4a')],GW=hx('#e8f4ff');
+  rect(a,8,26,92,58,hx('#2f4a3a'));rect(a,8,26,92,4,WOOD[2]);rect(a,8,80,92,4,WOOD[2]);
+  for(const[x,y,w]of[[16,38,30],[52,38,22],[16,52,18],[40,52,34],[16,66,26],[48,66,16]])rect(a,x,y,w,2,hx('#e8eef4'));
+  for(const y of[100,124]){rect(a,112,y,60,4,WOOD[2]);for(let k=0;k<5;k++){const x=116+k*11;rect(a,x,y-12,7,12,GL[(k+y)%4]);rect(a,x+2,y-16,3,4,GW);}}
+  rect(a,4,150,168,8,WOOD[2]);rect(a,4,150,168,3,WOOD[3]);for(const x of[10,160])rect(a,x,158,8,42,WOOD[1]);
+  for(const[x,c]of[[28,0],[66,1],[104,2],[138,3]]){ell(a,x,138,11,11,GW);ell(a,x,140,9,8,GL[c]);rect(a,x-3,114,6,16,GW);
+    const b=(f+c)%2;a.set(x-3,132-b*3,GW);a.set(x+2,128-b*2,GW);a.set(x,122-b*4,GW);}
+  line(a,66,114,104,108,IRON[2],2);rect(a,58,146,16,4,IRON[1]);rect(a,62,142,8,4,f?hx('#ffb24a'):hx('#ffe680'));
+  outlineAll(a,OUTL);});}
+HS.in_laboratorio=[inLabArt(0),inLabArt(1)];HS.in_mina=[inMineArt(0),inMineArt(1)];HS.in_fundicion=[inFoundryArt(0),inFoundryArt(1)];HS.in_torneria=[inLatheArt(0),inLatheArt(1)];HS.in_fabrica=[inLoomArt(0),inLoomArt(1)];
