@@ -16,14 +16,15 @@ El build la engancha sola en el inicio, en la fila de eras del motor y de la Pre
 - `CLAUDE.md` ni `README.md`
 - los archivos de otras eras
 
-Si de verdad hace falta algo nuevo en el motor, que sea chico y genérico (que sirva a cualquier amenaza, como `v.held`), que no cambie nada en las otras eras (la huella de la 2 a la 16 tiene que dar igual) y que quede anotado en el doc de la era.
+Si de verdad hace falta algo nuevo en el motor, que sea chico y genérico (que sirva a cualquier amenaza, como `v.held`, `v.slow` o el gancho `drawBug`), que no cambie nada en las otras eras (la huella de la 2 a la 16 tiene que dar igual) y que quede anotado en el doc de la era.
 
 ## 1. El archivo de la era
 
 Copiá la estructura de `src/mundo/multiversal.js`, que es la más nueva.
 
 - **Arriba, `const ERA={...}`:**
-  - `n`, `name`, `de` y `obra`.
+  - `n`, `name`, `de`, `obra` y `short` (el nombre corto de la fila de eras: "Conciencia", "Génesis"; si no está, sale de `name` sacándole "Era ").
+  - En `text`, `when` con la fecha de la intro (las anteriores: año 1.000.000 la multiversal, 1.000.000.000 el génesis).
   - `next:null` y sin `winNote`: el build pone el pase a la siguiente cuando exista.
   - `ore` (recurso con su ícono), `storage`, `ideaBuild`, `ideaTechs`, `boostTech`, `farmBuild` y `nightTech`.
   - `lights`.
@@ -35,7 +36,7 @@ Copiá la estructura de `src/mundo/multiversal.js`, que es la más nueva.
 - **Abajo de la marca `/* ---------- arte de la era ---------- */`:** las funciones que dibujan el recurso y cada edificio con `mkA`, y al final dónde va cada sprite. Mirá cómo lo hace la multiversal. Los básicos (granja, fogata, aserradero, cantera, granero, taller) ya tienen dibujo por época en el motor.
 - **Ids de edificios nuevos:** que no se repitan con los de otras eras, salvo que cumplan el mismo papel (mirá `ROLE` en el motor).
 - **Papeles:** el build los deduce de `ideaBuild`, `farmBuild`, `defense`, `storage` y de lo que produce cada uno. Si querés otro, poné `role:'ideas'` (o `'monedas'`, `'ideaBuild'`, `'farmBuild'`, `'defense'`, `'storage'`, `'ore'`, `'drop'`) en el edificio.
-- **Edificios rotos:** si tu amenaza los rompe (`o.bug`), dibujá encima lo que corresponda desde `ERA.deco` (por ejemplo, `drawDamage(px,py)` o tu escarcha).
+- **Edificios rotos:** si tu amenaza los rompe (`o.bug`), dibujalos con el gancho `drawBug` de la amenaza (si no, el motor dibuja un bicho con `HS.bug`).
 
 ## 2. El archivo de la amenaza
 

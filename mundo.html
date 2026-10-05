@@ -782,6 +782,7 @@ function checkHitos(){
 /* ---------- actualización ---------- */
 function update(dt){
   st.time+=dt;
+  trapT-=dt;if(trapT<=0){trapT=1;unstick();}
   const si=seasonIdx();if(si!==st.lastSeason){st.lastSeason=si;onSeason(si);}
   const winter=si===3,d=darkness();
   st.energy=Math.max(0,st.energy-dt/4*(winterPenalty()?1.6:1)*(winter&&d>0.3&&!nearFire(P.x,P.y,5)?1.4:1));
@@ -1091,6 +1092,25 @@ function bubble(txt,wx,wy){
   ctx.fillStyle='#1b1a24';ctx.fillRect(x-1,y-1,w+2,10);ctx.fillStyle='#f6f1e4';ctx.fillRect(x,y,w,8);ctx.fillRect(Math.round(wx)-1,y+8,3,2);ctx.fillStyle='#1b1a24';ctx.textAlign='left';ctx.fillText(txt,x+3,y+6);
 }
 function corners(x,y,col){const X=x*T,Y=y*T;ctx.fillStyle=col;[[0,0],[13,0],[0,13],[13,13]].forEach(([a,b])=>{ctx.fillRect(X+a,Y+b,3,1);ctx.fillRect(X+a+(a?2:0),Y+b,1,3);});}
+// Encerrados (octubre de 2026, Juani quedó encerrado después de construir): no se puede construir donde vos o alguien de la
+// tribu quedaría sin salida, y si igual alguien queda encerrado (lo rodeó lo que vuelve a crecer), cada segundo se lo saca al
+// lugar libre más cercano que tenga salida. reachCount: cuántos casilleros se pisan desde (sx,sy), hasta `cap`, como si en
+// `skip` hubiera algo construido.
+function reachCount(sx,sy,cap,skip){if(!inb(sx,sy))return 0;const s=sy*MW+sx,seen=new Set([s]),q=[s];
+  for(let h=0;h<q.length&&q.length<cap;h++){const c=q[h],cx=c%MW,cy=(c/MW)|0;
+    for(const[dx,dy]of DIRS){const nx=cx+dx,ny=cy+dy;if(!inb(nx,ny))continue;const n=ny*MW+nx;if(n===skip||seen.has(n)||!passable(nx,ny))continue;seen.add(n);q.push(n);}}
+  return Math.min(q.length,cap);}
+const ENCLOSE_CAP=150,TRAP_MIN=12,FREE_MIN=40;
+const freeWho=()=>[P].concat(vil);
+// Un puente se pisa: construirlo nunca encierra a nadie.
+function wouldEnclose(id,x,y){if(id==='puente')return null;const skip=y*MW+x;
+  for(const e of freeWho()){const[ex,ey]=tileOf(e);const a=reachCount(ex,ey,ENCLOSE_CAP,-1);if(reachCount(ex,ey,ENCLOSE_CAP,skip)<a-1)return e;}return null;}
+const TRAP_NEAR=[];for(let dy=-20;dy<=20;dy++)for(let dx=-20;dx<=20;dx++)if(dx||dy)TRAP_NEAR.push([dx,dy]);TRAP_NEAR.sort((a,b)=>Math.hypot(a[0],a[1])-Math.hypot(b[0],b[1]));
+let trapT=1;
+function unstick(){for(const e of freeWho()){const[ex,ey]=tileOf(e);if(reachCount(ex,ey,TRAP_MIN,-1)>=TRAP_MIN)continue;
+    const to=TRAP_NEAR.map(([dx,dy])=>[ex+dx,ey+dy]).find(([x,y])=>passable(x,y)&&reachCount(x,y,FREE_MIN,-1)>=FREE_MIN);if(!to)continue;
+    e.x=to[0];e.y=to[1];e.path=[];float(to[0],to[1]-1,'¡afuera!','#5fe3d0');
+    if(e===P){P.task=null;P.act=null;toast('Quedaste encerrado: te saqué al lugar libre más cercano.');}else{e.state='idle';e.target=null;e.t=0.5;}}}
 function canPlace(id,x,y){
   if(!inb(x,y))return false;const i=y*MW+x,g=ground[i];if(obj[i])return false;
   if(id==='puente')return g===WATER&&DIRS.some(([dx,dy])=>{const u=x+dx,w=y+dy;return inb(u,w)&&(ground[w*MW+u]!==WATER||(obj[w*MW+u]&&obj[w*MW+u].t==='puente'));});
@@ -1293,6 +1313,7 @@ function tryPlace(x,y){
   const b=BUILD[placing],c=buildCost(b);
   if(!afford(c)){toast('Te faltan recursos.','bad');stopPlace();return;}
   if(!canPlace(placing,x,y)){toast(placing==='puente'?'El puente va sobre el agua, pegado a tierra o a otro puente.':'Ahí no se puede construir.');SFX.nope();return;}
+  {const w=wouldEnclose(placing,x,y);if(w){toast(w===P?'Ahí te quedarías encerrado: elegí otro lugar.':'Ahí alguien de la tribu quedaría encerrado: elegí otro lugar.','bad');SFX.nope();return;}}
   pay(c);obj[y*MW+x]={t:placing,lv:0,work:0,need:b.lv[0].w,stage:0,grow:0};recount();
   toast('Obra de '+b.name.toLowerCase()+' ubicada. Tocala para construir.');SFX.click();burst(x,y,'#c9a45a',6,30);
   const keep=(placing==='cultivo'||placing==='puente')&&afford(buildCost(b));if(!keep)stopPlace();

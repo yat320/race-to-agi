@@ -20,6 +20,9 @@ Las eras que siguen a la multiversal. Cada una suma una amenaza con una mecánic
 | Era intergaláctica | grietas | hacen retroceder en el tiempo |
 | Era cósmica | agujeros negros | tiran y piden varios toques |
 | Era multiversal | dobles | se disfrazan y roban |
+| Era de la conciencia | sirenas | atraen a la gente |
+| Era del génesis | devoradores | se multiplican |
+| Era omega | olas de frío | un frente que cruza el mapa |
 
 Los nombres son piel: lo que importa es que la mecánica sea nueva y que se pueda tocar. Lo que queda fijo para que las eras se puedan hacer en paralelo es:
 
@@ -29,7 +32,7 @@ Los nombres son piel: lo que importa es que la mecánica sea nueva y que se pued
 
 Cómo se arma una era: [`nueva-era.md`](nueva-era.md).
 
-**Estado (octubre de 2026):** las eras 17, 18 y 19 ya están hechas, armadas en paralelo por tres agentes. Al balancearlas con el bot cambiaron algunos números de los de abajo (cada cuánto vienen, cuánto duran); los que quedaron están en el doc de cada era. Lo que sigue de acá es la especificación con la que se armaron.
+**Estado (octubre de 2026):** las eras 17, 18 y 19 están hechas; las 20, 21 y 22 se arman ahora. De las 17 a 19: ya están hechas, armadas en paralelo por tres agentes. Al balancearlas con el bot cambiaron algunos números de los de abajo (cada cuánto vienen, cuánto duran); los que quedaron están en el doc de cada era. Lo que sigue de acá es la especificación con la que se armaron.
 
 ## Era 17: Era de la conciencia
 
@@ -147,4 +150,119 @@ Los universos se enfrían. La última era: juntar el calor que queda para llegar
   - `genesis`: `ideaMult` 1,25.
   - `cosecha`: `agri` 1,25.
   - `leyes`: `speed` 1,2.
+- Es la última por ahora (`next:null`).
+
+## Era 20: Era alfa
+
+Del punto omega nace un universo nuevo, y tu ciudad es lo primero que hay en él.
+
+- **Archivos.** `src/mundo/alfa.js` (`n:20`, `name:'Era alfa'`, `de:'de la era alfa'`, `obra:'la primera luz'`, `short:'Alfa'`). Doc en `docs/eras/20-alfa.md`.
+- **Recurso.** `foton`, fotones: luz condensada en cristales dorados.
+- **Amenaza: torbellinos de luz** (`whirls:true`, `src/mundo/amenazas/torbellinos.js`). La mecánica nueva es que **desparraman lo guardado**.
+  - Desde los 2 minutos, cada ~40 s se forma un torbellino a 10–13 casilleros. Viene más seguido con cada invento y con el mercado del espectro.
+  - Va hacia el granero o hacia lo que más produce.
+  - Cuando pasa por un edificio, cada pocos segundos chupa un poco de lo que más tenés y lo tira alrededor, a 1–4 casilleros, como motas de luz con su número.
+  - Una mota se recupera si la tocás o si alguien de tu gente pasa por encima. Si nadie la junta, se apaga a los ~45 s y se pierde.
+  - Tocar el torbellino lo deshace (+2 ideas). Si nadie lo toca, se deshace solo a los ~60 s.
+  - La calma de los campos hace que chupen la mitad.
+- **Defensa.** `estabilizador`, el estabilizador de campo (r = 4). Deshace los torbellinos que entran y las motas que caen cerca vuelven solas. La barra del HUD cuenta qué parte de los edificios cubre.
+- **Guardián.** `cazavientos`. El cuartel es el puesto de cazavientos; el guardián es un cazatormentas con antiparras y un frasco para atrapar la luz.
+- **Inventos**, en este orden, con estos ids:
+  1. `fotones`: desbloquea el prisma de ideas; ideas +50%.
+  2. `estabilizador`, estabilizadores de campo.
+  3. `espectro`, mercado del espectro: da monedas; vienen 30% más torbellinos.
+  4. `cultivoluz`, cultivo de luz: el huerto de luz potencia las granjas.
+  5. `condensador`, condensador de fotones: hace fotones solo.
+  6. `calma`, campos en calma: chupan la mitad.
+  7. `catedral`, catedral de luz: la de ideas de la era; ideas +50% y de noche ves más lejos.
+  8. `resonancia`: todo produce +50%.
+  9. `primeraluz`, la primera luz: la obra.
+- **Edificios propios:**
+  - `casa`, casa de luz.
+  - `prisma`, prisma de ideas: ideas.
+  - `estabilizador`: defensa.
+  - `espectro`, mercado del espectro: monedas.
+  - `huertoluz`, huerto de luz: `farmBuild`.
+  - `condensador`: da foton.
+  - `catedral`: `ideaBuild`.
+- **Hereda de la omega** (`legacy.key:'rtagi-mundo19-v1'`):
+  - `omega`: `ideaMult` 1,25.
+  - `invernadero`: `agri` 1,25.
+  - `cronica`: `speed` 1,2.
+- **Antes:** la omega queda con `next:null` y sin `winNote`: el build la engancha sola.
+
+## Era 21: Era de la vida
+
+El universo nuevo se llena de vida, y no toda es amiga.
+
+- **Archivos.** `src/mundo/vida.js` (`n:21`, `name:'Era de la vida'`, `de:'de la era de la vida'`, `obra:'el Edén cósmico'`, `short:'Vida'`). Doc en `docs/eras/21-vida.md`.
+- **Recurso.** `espora`, esporas: bolitas verdes y celestes que brillan.
+- **Amenaza: polizones** (`riders:true`, `src/mundo/amenazas/polizones.js`). La mecánica nueva es que **se suben a tu gente**.
+  - Desde los 2 minutos, cada ~40 s sale del bosque un bichito que corre hacia la persona más cercana y se le sube a la cabeza. Viene más seguido con cada invento y con la feria de especies.
+  - Mientras lo lleva, cada entrega de esa persona se la come el polizón: se ve el número y se pierde.
+  - Cuando comió bastante, salta a otra persona que tenga cerca (a 3 casilleros o menos), y así recorre la ciudad.
+  - Tocar a la persona que lo lleva (o al polizón) lo baja y lo espanta (+2 ideas).
+  - Si nadie lo toca, se va al bosque, lleno, a los ~90 s.
+  - El repelente hace que coman la mitad.
+- **Defensa.** `arco`, el arco de limpieza (r = 4). La gente que pasa cerca queda limpia y los polizones que corren cerca se espantan. La barra del HUD cuenta qué parte de tu gente trabaja cerca de uno.
+- **Guardián.** `cuidador`. El cuartel es el refugio de cuidadores; el guardián es un cuidador con sombrero de safari y una red chica.
+- **Inventos**, en este orden, con estos ids:
+  1. `esporas`: desbloquea el árbol sabio; ideas +50%.
+  2. `limpieza`, arcos de limpieza.
+  3. `trueque`, feria de especies: da monedas; vienen 30% más polizones.
+  4. `pradera`, pradera viva: potencia las granjas.
+  5. `hongar`, hongar de esporas: hace esporas solo.
+  6. `repelente`: comen la mitad.
+  7. `simbiosis`, templo de la simbiosis: la de ideas de la era; ideas +50% y de noche ves más lejos.
+  8. `ecosistema`: todo produce +50%.
+  9. `eden`, el Edén cósmico: la obra.
+- **Edificios propios:**
+  - `casa`, casa árbol.
+  - `arbolsabio`, árbol sabio: ideas.
+  - `arco`: defensa.
+  - `especies`, feria de especies: monedas.
+  - `pradera`: `farmBuild`.
+  - `hongar`: da espora.
+  - `simbiosis`: `ideaBuild`.
+- **Hereda de la alfa** (`legacy.key:'rtagi-mundo20-v1'`):
+  - `primeraluz`: `ideaMult` 1,25.
+  - `cultivoluz`: `agri` 1,25.
+  - `catedral`: `speed` 1,2.
+
+## Era 22: Era de los soles
+
+Con la vida en marcha, la humanidad aprende a encender estrellas, pero no todas salen estables.
+
+- **Archivos.** `src/mundo/soles.js` (`n:22`, `name:'Era de los soles'`, `de:'de la era de los soles'`, `obra:'la galaxia nueva'`, `short:'Soles'`). Doc en `docs/eras/22-soles.md`.
+- **Recurso.** `helio`: burbujas de gas dorado.
+- **Amenaza: estrellas inestables** (`novas:true`, `src/mundo/amenazas/novas.js`). La mecánica nueva es **una cuenta regresiva que explota en un área**.
+  - Desde los 2 minutos, cada ~45 s cae del cielo una estrella chica junto a donde hay más edificios juntos. Viene más seguido con cada invento y con la subasta de estrellas.
+  - Se queda en el suelo latiendo, con un número grande que cuenta para atrás desde ~20 s.
+  - Si llega a cero, explota y rompe (`o.bug`) todo lo que está a 2 casilleros. Lo roto se arregla tocándolo o solo a los ~45 s.
+  - Tocarla la apaga (+2 ideas).
+  - El enfriado hace que cuente el doble de lento.
+- **Defensa.** `blindaje`, el blindaje solar (r = 4). Las estrellas que caen cerca cuentan a la mitad y su explosión no rompe lo que cubre. La barra del HUD cuenta qué parte de los edificios cubre.
+- **Guardián.** `artificiero`. El cuartel es la brigada de artificieros; el guardián es un artificiero con traje acolchado, visor y pinza.
+- **Inventos**, en este orden, con estos ids:
+  1. `helio`: desbloquea el planetario; ideas +50%.
+  2. `blindaje`, blindaje solar.
+  3. `subasta`, subasta de estrellas: da monedas; caen 30% más estrellas.
+  4. `jardinsolar`, jardín solar: potencia las granjas.
+  5. `extraccion`, destilador de helio: hace helio solo.
+  6. `enfriado`: cuentan el doble de lento.
+  7. `cartas`, cartas estelares: el gran astrolabio, la de ideas de la era; ideas +50% y de noche ves más lejos.
+  8. `sinfonia`, sinfonía de las esferas: todo produce +50%.
+  9. `galaxia`, la galaxia nueva: la obra.
+- **Edificios propios:**
+  - `casa`, casa solar.
+  - `planetario`: ideas.
+  - `blindaje`: defensa.
+  - `subasta`, subasta de estrellas: monedas.
+  - `jardinsolar`: `farmBuild`.
+  - `destilador`, destilador de helio: da helio.
+  - `astrolabio`, gran astrolabio: `ideaBuild`.
+- **Hereda de la vida** (`legacy.key:'rtagi-mundo21-v1'`):
+  - `eden`: `ideaMult` 1,25.
+  - `pradera`: `agri` 1,25.
+  - `simbiosis`: `speed` 1,2.
 - Es la última por ahora (`next:null`).

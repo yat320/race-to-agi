@@ -22,6 +22,7 @@ Como todos los archivos van al mismo script que el motor, las otras amenazas y e
 | `ents(list)` | dibujo | sumar `{k:y+1,z:1,e,f:sprite,post}` a la lista de gente, que se ordena por profundidad; `post(e)`, si está, dibuja algo encima de `e` |
 | `drawUnder()` | dibujo, antes de la gente | lo que va en el suelo: portales, marcas, sombras |
 | `drawOver()` | dibujo, después de la gente | lo que vuela o tapa: nubes, naves, rayos |
+| `drawBug(px,py,o)` | dibujo, encima de cada edificio roto (`o.bug`) | cómo se ve lo que rompió tu amenaza (escarcha, chamuscado, una marca); si no está, el motor dibuja un bicho con `HS.bug`, que la era tiene que definir |
 | `drawTop()` | dibujo, encima de la oscuridad de la noche | lo que tiene que verse siempre igual de noche |
 | `lights(L)` | de noche | `L.push([x,y,radio,alfa])`, con x e y en píxeles del mundo (`casillero*T+8`) y el radio en casilleros |
 | `arrows()` | siempre | lista de `{x,y}`, en casilleros, para la flecha roja del borde cuando están fuera de pantalla |
@@ -35,8 +36,9 @@ Como todos los archivos van al mismo script que el motor, las otras amenazas y e
 ## Lo que ya hace el motor
 
 - **Defensa y guardianes.** El edificio de defensa sale de `ERA.defense` (`{id, r, label}`). `towersXY()` da dónde están los que andan y `jammed(T,x,y)` dice si un punto queda a `r` o menos de alguno. Los guardianes (`ERA.guard`) usan `targets` y `tap` sin que haya que hacer nada más.
-- **Edificios rotos.** Uno con `o.bug` no produce (`broken()`), se guarda con la partida y lo buscan los guardianes y el bot. Arreglarlo con un toque va en tu `tap`: mirar `obj[ty*MW+tx]`, sacarle el `bug`, poner `BROKEN=null` y devolver `'b'`. Para que se vea roto, dibujá `drawDamage(px,py)` desde `ERA.deco` de la era.
+- **Edificios rotos.** Uno con `o.bug` no produce (`broken()`), se guarda con la partida y lo buscan los guardianes y el bot. Arreglarlo con un toque va en tu `tap`: mirar `obj[ty*MW+tx]`, sacarle el `bug`, poner `BROKEN=null` y devolver `'b'`. Para que se vea roto, usá el gancho `drawBug` (por ejemplo, `drawDamage(px,py)`, el marco rojo con humo que usan los meteoritos).
 - **Gente agarrada.** Si la amenaza se lleva o retiene a alguien de tu gente, poné `v.held` en algo que no sea falso (la amenaza misma, por ejemplo) y `v.state='idle';v.path=[];v.target=null`: el motor deja de moverlo y de mandarlo a trabajar, y ahí lo movés vos. Para soltarlo, `v.held=null` y otra vez `v.state='idle'`. No se guarda: en `reset()` soltá a todos.
+- **Radio de los guardianes.** Salen a 8 casilleros de su cuartel (`GUARD_R`) y en la ciudad compacta del bot llegan a casi todo: si solo con cuarteles la era da menos de 10 min, que la amenaza dure poco en un lugar o aparezca lejos.
 - **Gente lenta.** `v.slow` en algo que no sea falso hace que ande y trabaje a la mitad, como la de una casa con peste; la amenaza lo prende y lo apaga (el frío de la era omega lo usa mientras dura el entumecimiento).
 - **Caminar.** `stepEnt(e,dt,vel)` mueve algo por su `path`; `pathAdj(x,y,tx,ty)` y `bfs(x,y,meta)` arman caminos; `tileOf(e)` y `passable(x,y)` sirven para ubicarse.
 - **Mostrar.** `float(x,y,texto,color)` (números que suben), `toast(texto)` (aviso abajo) y `zaps.push({x,y,t:0.5})` (destello).
