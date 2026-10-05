@@ -33,6 +33,8 @@ img.px{image-rendering:pixelated;width:16px;height:16px;flex:none}
 .tick{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--night)}
 .res{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
 @media (min-width:640px){.res{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.res.many{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.res.many .chip{padding:3px 5px;column-gap:4px}
+@media (min-width:640px){.res.many{grid-template-columns:repeat(8,minmax(0,1fr))}}
 .chip{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;column-gap:6px;align-items:center;background:rgba(32,29,39,.92);border:1px solid var(--line);padding:3px 7px;min-width:0;transition:border-color .3s}
 .chip img{grid-row:1/span 2}
 .chip b{font:600 16px/1 var(--f-display);font-variant-numeric:tabular-nums}
@@ -191,6 +193,10 @@ const PAL={k:'#1b1a24',g:'#2f6b3a',G:'#3f8f47',l:'#6cbf5a',b:'#7a5434',B:'#4f352
   T:'#a8472f',t:'#d06a45',m:'#ece6d6',M:'#bdb5a2',q:'#cf7a3c',Q:'#8c4a22',v:'#5fb39a',a:'#4a78b8',A:'#2e5288',z:'#f0cc4a',Z:'#b38b1f',j:'#c8413b',i:'#7a8090'};
 function sprite(rows,w,pal){w=w||16;const c=document.createElement('canvas');c.width=w;c.height=rows.length;const x=c.getContext('2d');
   rows.forEach((row,j)=>{for(let i=0;i<w;i++){const ch=row[i];if(!ch||ch==='.')continue;const col=(pal&&pal[ch])||PAL[ch];if(!col)continue;x.fillStyle=col;x.fillRect(i,j,1,1);}});return c;}
+// Objetos que se fabrican (ERA.items, octubre de 2026, Juani: "poder craftear o que hagan falta elementos más específicos"; la
+// prueba es la Industria): son recursos más, con su ficha en el HUD, que hacen los edificios de fabricación (`craft`) gastando
+// otros (`use`) y que piden algunos inventos y edificios. No se juntan: solo se fabrican.
+const ITEMS=ERA.items||[];
 const I={
   madera:sprite(['........','.kkkkkk.','kbBbbBhk','kbbBbbhk','kBbbbBhk','.kkkkkk.','........','........'],8),
   piedra:sprite(['........','..kkkk..','.kSwwSk.','kSSwSSsk','kSSSSssk','kssssssk','.kkkkkk.','........'],8),
@@ -198,13 +204,14 @@ const I={
   [ERA.ore.id]:sprite(ERA.ore.icon[0],8,ERA.ore.icon[1]),
   monedas:sprite(['..kkkk..','.kzzzZk.','kzZzzzZk','kzzkkzZk','kzzzzzZk','kZzzzZZk','.kZZZZk.','..kkkk..'],8),
   ideas:sprite(['...kk...','..kuuk..','.kuWWuk.','kuWWWWuk','kuWWWWuk','.kuWWuk.','..kuuk..','...kk...'],8)};
+for(const it of ITEMS)I[it.id]=sprite(it.icon[0],8,it.icon[1]);
 const ICON={};for(const k in I)ICON[k]=I[k].toDataURL();
 
 /* ---------- datos ---------- */
 const ORE=ERA.ore.id;
-const RK=['madera','piedra','comida',ORE,'monedas','ideas'];
-const RN={madera:'Madera',piedra:'Piedra',comida:'Comida',[ORE]:ERA.ore.name,monedas:'Monedas',ideas:'Ideas'};
-const RCOL={madera:'#e0b27a',piedra:'#d6dae2',comida:'#ff9a8a',[ORE]:ERA.ore.col,monedas:'#f0cc4a',ideas:'#5fe3d0'};
+const RK=['madera','piedra','comida',ORE,'monedas','ideas'].concat(ITEMS.map(i=>i.id));
+const RN={madera:'Madera',piedra:'Piedra',comida:'Comida',[ORE]:ERA.ore.name,monedas:'Monedas',ideas:'Ideas'};for(const it of ITEMS)RN[it.id]=it.name;
+const RCOL={madera:'#e0b27a',piedra:'#d6dae2',comida:'#ff9a8a',[ORE]:ERA.ore.col,monedas:'#f0cc4a',ideas:'#5fe3d0'};for(const it of ITEMS)RCOL[it.id]=it.col;
 const RES={tree:{give:'madera',hp:4,regen:50,empty:'Tocón'},rock:{give:'piedra',hp:6,regen:90,empty:'Piedras sueltas'},bush:{give:'comida',hp:3,regen:35,empty:'Arbusto sin frutos'},ore:{give:ORE,hp:5,regen:110,empty:ERA.ore.empty}};
 const TYPE_OF={madera:'tree',piedra:'rock',comida:'bush',[ORE]:'ore'};
 const TECHS=ERA.techs,FINAL=TECHS[TECHS.length-1].id;
@@ -341,7 +348,7 @@ function readLegacy(){
   }
   return out;
 }
-function freshState(){return{res:{madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
+function freshState(){return{res:Object.assign({madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},Object.fromEntries(ITEMS.map(i=>[i.id,0]))),energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
 function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;const w=wOf(o);if(w<1)OLDC[o.t]=(OLDC[o.t]||0)+1-w;if(isOld(o))OLDN[o.t]=(OLDN[o.t]||0)+1;}if(BUILD.cuartel)syncGuards();}
 // Edificios que vienen de otra era (importCity): rinden la mitad por cada era de atraso (oldW: la mitad si es de la anterior,
 // un cuarto si es de dos eras atrás) hasta que se modernizan pagando lo mismo que uno nuevo: el primero al precio base y cada
@@ -430,7 +437,9 @@ const passable=(x,y)=>inb(x,y)&&ground[y*MW+x]!==WATER&&(!obj[y*MW+x]||spent(obj
 // Alguien parado en el casillero: ahí un recurso no vuelve a crecer hasta que quede libre.
 const occupied=(x,y)=>{const on=e=>Math.round(e.x)===x&&Math.round(e.y)===y;return on(P)||vil.some(on);};
 const canGather=o=>!!o&&!!RES[o.t]&&o.hp>0;
-const cap=k=>k==='ideas'?Infinity:150+150*(counts[ERA.storage.id]||0);
+// Los objetos se guardan en menos lugar (40 y 40 más por depósito): la fabricación se frena antes y no se come los recursos.
+const ITEM_ID=new Set(ITEMS.map(i=>i.id));
+const cap=k=>k==='ideas'?Infinity:ITEM_ID.has(k)?40+40*(counts[ERA.storage.id]||0):150+150*(counts[ERA.storage.id]||0);
 const add=(k,v)=>{st.res[k]=Math.min(cap(k),st.res[k]+v);};
 const afford=c=>Object.entries(c).every(([k,v])=>st.res[k]>=v);
 const pay=c=>{for(const k in c)st.res[k]-=c[k];};
@@ -447,7 +456,8 @@ function prodOf(b){ // producción por segundo de un tipo de edificio (todas sus
   return out;
 }
 // Un edificio que gasta algo se frena cuando le falta.
-const runs=b=>!!counts[b.id]&&(!b.use||Object.keys(b.use).every(k=>st.res[k]>=1));
+// Un edificio de fabricación (`craft`) se frena si le falta lo que gasta o si ya no entra lo que hace (no tira nada).
+const runs=b=>!!counts[b.id]&&(!b.use||Object.keys(b.use).every(k=>st.res[k]>=1))&&!(b.craft&&Object.keys(b.prod||{}).every(k=>st.res[k]>=cap(k)));
 // Cuánto cambia el humo por segundo: lo echan los edificios en marcha, lo limpian los parques y el aire se aclara de a poco.
 function smogRate(){let em=0;for(const b of BUILDS)if(b.smoke&&runs(b))em+=b.smoke*counts[b.id];return Math.max(0,em-0.05*(counts.parque||0))-st.smog/400;}
 // Dos redes posibles (ERA.grid). La eléctrica: usinas y represas son fuentes; un poste se conecta si hay otra parte de la red a
@@ -2017,7 +2027,7 @@ function render(){
 /* ---------- HUD ---------- */
 const chipEl={};
 (function(){
-  const res=$('res');
+  const res=$('res');if(RK.length>6)res.classList.add('many');
   for(const k of RK){const d=document.createElement('div');d.className='chip';d.innerHTML='<img class="px" alt="" src="'+ICON[k]+'"><b>0</b><small>'+RN[k]+'</small>';res.appendChild(d);chipEl[k]=d;}
   const bar=$('agiBar');for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=(i*10)+'%';bar.appendChild(t);}
   document.title='Race to AGI · Mundo abierto · '+ERA.name;fitEra();$('buildHint').textContent=BUILDS.filter(b=>!b.hidden).length+' edificios';
@@ -2103,7 +2113,9 @@ function hud(){
     chipEl[k].querySelector('b').textContent=Math.floor(st.res[k]);
     const sm=chipEl[k].querySelector('small'),net=(pr[k]-us[k])*60,full=st.res[k]>=cap(k);
     sm.classList.toggle('full',full||net<-0.05&&st.res[k]<5);
-    sm.textContent=full?'lleno':Math.abs(net)>=0.05?(net>0?'+':'')+fmt(net)+'/min':RN[k];
+    // Con objetos las fichas son más angostas: los números grandes van sin decimales.
+    const nv=RK.length>6&&Math.abs(net)>=100?Math.round(net):net;
+    sm.textContent=full?'lleno':Math.abs(net)>=0.05?(net>0?'+':'')+fmt(nv)+'/min':RN[k];
   }
   const e=st.energy;$('eFill').style.width=e+'%';$('eFill').classList.toggle('low',e<25);$('eNum').textContent=Math.ceil(e);
   hudRows();

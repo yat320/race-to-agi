@@ -36,6 +36,7 @@ Copiá la estructura de `src/mundo/multiversal.js`, que es la más nueva.
 - **Abajo de la marca `/* ---------- arte de la era ---------- */`:** las funciones que dibujan el recurso y cada edificio con `mkA`, y al final dónde va cada sprite. Mirá cómo lo hace la multiversal. Los básicos (granja, fogata, aserradero, cantera, granero, taller) ya tienen dibujo por época en el motor.
 - **Ids de edificios nuevos:** que no se repitan con los de otras eras, salvo que cumplan el mismo papel (mirá `ROLE` en el motor).
 - **Papeles:** el build los deduce de `ideaBuild`, `farmBuild`, `defense`, `storage` y de lo que produce cada uno. Si querés otro, poné `role:'ideas'` (o `'monedas'`, `'ideaBuild'`, `'farmBuild'`, `'defense'`, `'storage'`, `'ore'`, `'drop'`) en el edificio.
+- **Objetos (opcional):** una era puede tener objetos que se fabrican (`ERA.items` y edificios con `craft:true`, `use` y `prod`), como el acero y los engranajes de la Industria. Ver CLAUDE.md.
 - **Edificios rotos:** si tu amenaza los rompe (`o.bug`), dibujalos con el gancho `drawBug` de la amenaza (si no, el motor dibuja un bicho con `HS.bug`).
 
 ## 2. El archivo de la amenaza
