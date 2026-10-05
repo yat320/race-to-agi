@@ -17,3 +17,63 @@ La Antigüedad tiene **piratas** (`ERA.pirates`, desde que se inventa la moneda)
 ## Arte
 
 La colina (`HILL`) reemplaza al suelo rocoso y hay sprites propios para el cobre, sus edificios, la atalaya con brasero, el barco pirata y los piratas (pañuelo rojo, parche y sable, con un halo rojo).
+
+## Adentro: oficios y niveles (octubre de 2026)
+
+Juani probó lo de entrar a las construcciones en la Prehistoria ("se siente bastante bien") y pidió llevarlo a la era siguiente. En la Antigüedad se entra a todo lo que se construye. Arriba de la hoja va el adentro dibujado: paredes de piedra con ventanas altas (el cielo cambia con la hora), piso de tablas y, a la izquierda, lo propio de cada edificio (`HS.in_<id>`, en dos cuadros):
+
+- **Granja:** ánforas, gavillas y una hoz.
+- **Fogata:** el fuego entre piedras.
+- **Aserradero:** la sierra de dos que corta un tronco.
+- **Cantera:** la pared escalonada y un bloque sobre rodillos.
+- **Templo:** el altar con fuego entre columnas.
+- **Mercado:** el puesto con toldo y la balanza.
+- **Puerto:** el barco en el muelle y las ánforas.
+- **Casa:** el telar y el fogón.
+- **Depósito:** ánforas apiladas.
+- **Herrería:** el horno y el yunque.
+- **Atalaya:** la escalera y el cuerno.
+- **Acueducto:** los arcos con el agua que corre.
+- **Biblioteca:** la estantería de rollos.
+- **Cuartel:** las lanzas y los escudos.
+
+**Oficios** (`ERA.oficios`, en el motor, para cualquier era que los quiera). Lo que produce tiene 3 puestos para aldeanos. Uno con oficio deja de juntar, camina hasta el edificio (dice "¡voy!") y trabaja adentro: no se ve en el mapa y sigue comiendo. Adentro se lo ve en su puesto, con lo que usa, y lo que hace sube sobre su cabeza (en la época antigua no hay cinta).
+
+| Oficio | Dónde | Qué suma cada uno |
+|---|---|---|
+| Labrador | granja | comida +50% |
+| Cuentacuentos | fogata | ideas +50% |
+| Leñador | aserradero | madera +50% |
+| Picapedrero | cantera | piedra +50% |
+| Escriba | templo | ideas +40% |
+| Mercader | mercado | monedas +50% (con la misma comida) |
+| Marinero | puerto | monedas e ideas +50% |
+
+En la hoja: "Escribas · 1 de 3", "Produce +40% → +80%", Sumar y Sacar uno. El edificio guarda cuántos quiere (`of`, décimo dato) y la persona su puesto (`post`, décimo dato, después del de obrero); se acomodan solos cada segundo (`syncPosts`). Al pasar a una era sin ese oficio, la gente vuelve a juntar.
+
+**Niveles** (`ERA.niveles`). Lo que no produce se mejora hasta el nivel 3; cada nivel suma algo que se ve adentro:
+
+| Edificio | Qué sube | Niveles 1 → 2 → 3 | Qué se ve |
+|---|---|---|---|
+| Casa | aldeanos | 2 → 3 → 4 | una cama más |
+| Depósito | lo que guarda | 150 → 225 → 300 de cada cosa | un estante con ánforas |
+| Herrería | cuánto junta tu gente | +30% → +45% → +60% | un yunque más |
+| Atalaya | alcance | 4 → 5 → 6 casilleros | un brasero más |
+| Acueducto | potencia a las granjas | +50% → +75% → +100% | una fuente más |
+| Biblioteca | potencia a las ideas | +30% → +45% → +60% | una estantería más |
+| Cuartel | soldados | 1 → 2 → 3 | un soldado más |
+
+Cada nivel cuesta 1,5 y 2,5 veces lo que costó el edificio, y el 3 pide además 8 de cobre (`ERA.levelExtra`).
+
+**Balance.** Con el bot (la era sola, 10 corridas), lo que más falta son ideas y monedas, y algo de cobre:
+
+| Con el bot | Minutos |
+|---|---|
+| Sin oficios ni niveles | 9,3 (9,3 a 9,5) |
+| Solo niveles | 9,8 (9,4 a 10,3) |
+| Solo oficios | 8,7 (8,6 a 9,1) |
+| Con todo | 8,7 (8,3 a 9,4) |
+
+- **Los oficios ayudan si van donde falta.** El bot pone uno donde suma al menos 0,12 por segundo de lo que le falta al próximo invento, con una persona de cada 4 como mucho: escribas en el templo y marineros en el puerto. Un labrador hace menos que el aldeano que se lleva.
+- **Los niveles, como los usa el bot, atrasan un poco.** Mejora la herrería, el acueducto y las casas sin mirar qué falta, y se gasta el cobre de los inventos. Sacando las casas, la herrería o el acueducto de a uno da lo mismo (9,7 a 9,9): pesa el total. Son una decisión, no un atajo.
+- **Encadenada,** la Antigüedad da 7,5 (antes 7,4), y la Edad Media y el Renacimiento que siguen, 4,8 y 4,5.
