@@ -119,6 +119,11 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
 #toasts{position:absolute;left:16px;right:16px;top:var(--hud-h,200px);display:grid;justify-items:center;gap:6px;pointer-events:none;z-index:6}
 .toast{background:var(--panel);border:1px solid var(--line);padding:6px 12px;font-size:13px;max-width:100%;animation:tin .25s ease-out}
 @keyframes tin{from{opacity:0;transform:translateY(-6px)}}
+#invent{position:absolute;left:16px;right:16px;top:calc(var(--hud-h,200px) + 6px);margin:0 auto;max-width:340px;display:grid;gap:2px;justify-items:center;text-align:center;padding:8px 12px;background:var(--panel);border:1px solid #ffd35a;box-shadow:0 0 0 1px rgba(255,211,90,.25),0 6px 18px rgba(0,0,0,.4);pointer-events:none;z-index:7}
+#invent b{font-family:var(--f-display);color:#ffd35a;font-size:15px}#invent span{font-size:12px;color:var(--bone)}
+#invent.go{animation:inv 3.2s ease-out forwards}@keyframes inv{0%{opacity:0;transform:scale(.85)}8%{opacity:1;transform:scale(1.04)}14%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+#bBuild.nuevo{animation:nuevo 1s ease-in-out infinite}@keyframes nuevo{50%{box-shadow:0 0 0 3px rgba(255,211,90,.6)}}
+@media (prefers-reduced-motion:reduce){#invent.go,#bBuild.nuevo{animation:none}}
 #place{position:absolute;left:16px;right:16px;bottom:var(--bar-h,84px);display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--panel);border:1px solid var(--signal);padding:8px 8px 8px 12px;z-index:4;font-size:13px}
 @media (prefers-reduced-motion:reduce){.toast{animation:none}.agi-fill{transition:none}}
 @media (min-width:700px){#bar{max-width:680px;margin:0 auto}#hud{max-width:760px;margin:0 auto}}
@@ -138,6 +143,7 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
     <div id="goal"></div>
   </div>
   <div id="toasts" aria-live="polite"></div>
+  <div id="invent" aria-live="polite" hidden></div>
   <div id="place" hidden><span id="placeTxt">Tocá un lugar libre</span><button class="btn ghost" id="placeCancel">Cancelar</button></div>
   <nav id="bar">
     <button id="bEat">Comer<small id="eatHint">+12</small></button>
@@ -1164,6 +1170,8 @@ function updateVillager(v,dt){
 function update(dt){
   st.time+=dt;
   trapT-=dt;if(trapT<=0){trapT=1;unstick();}
+  for(const s of sparks)s.t-=dt;if(sparks.length)sparks=sparks.filter(s=>s.t>-1);
+  vehT-=dt;if(vehT<=0){vehT=2;syncVehicles();}updateVehicles(dt);
   st.energy=HANDS?Math.max(0,st.energy-dt/4):100;
   for(const b of BUILDS){
     if(!counts[b.id]||!b.prod)continue;
@@ -1607,8 +1615,35 @@ const EP_ART={granja:[granjaArt,steamFarmArt,pivotFarmArt,domeFarmArt],fogata:[f
 const EPCACHE={};
 function epArt(id,e=EPOCH){const k=id+e;if(!EPCACHE[k]){const fn=EP_ART[id][e];EPCACHE[k]=id==='fogata'?[fn(0),fn(1)]:fn();}return EPCACHE[k];}
 /*@arte*/
+// Inventos que se ven: el equipo de la gente (GEAR[0], la herramienta en la mano derecha; GEAR[1], la herramienta y algo en la
+// cabeza) y el vehículo que lleva la carga, según la época de la era.
+function gearArt(ep,head){return mkA(64,64,a=>{const K=hx('#1b1a24');
+  if(ep===0){line(a,49,50,53,31,hx('#7a5434'),2);rect(a,47,25,11,6,hx('#9a9a9a'));rect(a,47,25,11,2,hx('#c8c8c8'));}
+  else if(ep===1){line(a,49,50,53,33,hx('#8a93a3'),3);rect(a,49,26,9,7,hx('#8a93a3'));rect(a,52,26,3,3,K);rect(a,49,26,9,1,hx('#c8d2dc'));}
+  else if(ep===2){rect(a,46,33,11,14,hx('#2a2a3a'));rect(a,47,34,9,11,hx('#5fe3d0'));rect(a,48,35,4,2,hx('#bff8f0'));}
+  else{rect(a,45,37,11,5,hx('#e8eef4'));rect(a,45,40,11,2,hx('#b8c2cc'));ell(a,57,39,2.5,2.5,hx('#7ff0ff'));a.set(58,38,hx('#ffffff'));}
+  if(head){
+    if(ep===0){ell(a,32,10,14,6,(i,j)=>j<=1?(i<-4?hx('#a8783e'):hx('#8a5a2b')):null);rect(a,18,10,28,2,hx('#5a3a1e'));}
+    else if(ep===1){ell(a,32,10,13,6,(i,j)=>j<=1?hx('#2f4a6e'):null);rect(a,32,11,16,2,hx('#1f3450'));}
+    else if(ep===2){ell(a,32,12,15,9,(i,j)=>j<=2?(i<-5?hx('#ffe680'):hx('#f0c838')):null);rect(a,16,13,32,2,hx('#c8a020'));}
+    else{rect(a,21,17,23,5,hx('#7ff0ff'));rect(a,21,17,23,1,hx('#e8ffff'));rect(a,18,18,3,3,hx('#e8eef4'));rect(a,44,18,3,3,hx('#e8eef4'));}}
+  outlineAll(a,OUTL);});}
+// Vehículos, mirando a la derecha, en dos cuadros (las ruedas o las hélices).
+function vehicleArt(ep,f){return mkA(64,64,a=>{const K=hx('#1b1a24'),W=P4('#5a3a20','#7a5434','#a8783e','#c8995a');
+  const wheel=(cx,cy,r,c)=>ell(a,cx,cy,r,r,(i,j)=>{const d=Math.hypot(i,j);return d>r-1.6?K:((f?i:j)===0||(f?j:i)===0)&&d>1.4?K:c;});
+  if(ep===0){rect(a,6,30,24,13,W[2]);rect(a,6,30,24,2,W[3]);rect(a,9,24,9,7,hx('#c8a050'));line(a,30,40,40,40,W[1],2);
+    ell(a,46,38,9,6,hx('#8a8f9c'));rect(a,52,26,6,10,hx('#8a8f9c'));ell(a,57,27,4,4,hx('#9aa0ac'));rect(a,54,21,2,5,hx('#6a6f7c'));rect(a,58,21,2,5,hx('#6a6f7c'));
+    for(const x of[40,44,49,53])rect(a,x,43,2,9+(f&&x%2?-1:0),hx('#6a6f7c'));wheel(18,47,8,W[1]);}
+  else if(ep===1){rect(a,6,28,30,16,hx('#7a2a24'));rect(a,6,28,30,3,hx('#a83a2a'));rect(a,36,24,16,20,hx('#2a2a34'));ell(a,44,30,8,6,hx('#3f3f4a'));rect(a,46,10,6,16,K);
+    rect(a,45,10,8,3,hx('#5a5a66'));rect(a,10,32,10,8,hx('#c8a050'));wheel(16,49,7,hx('#5a5a66'));wheel(44,49,7,hx('#5a5a66'));}
+  else if(ep===2){rect(a,4,22,34,24,hx('#e6ecf2'));rect(a,4,22,34,3,hx('#ffffff'));rect(a,8,30,26,3,hx('#4a78b8'));rect(a,38,28,18,18,hx('#2f5a96'));rect(a,42,30,10,8,hx('#a8d8f0'));
+    rect(a,54,40,4,4,hx('#ffd35a'));wheel(16,50,6,hx('#5a5a66'));wheel(46,50,6,hx('#5a5a66'));}
+  else{ell(a,32,18,15,5,(i,j)=>j<0?hx('#ffffff'):hx('#b8c2cc'));rect(a,30,12,4,3,hx('#7ff0ff'));const rw=f?6:14;rect(a,16-rw/2,9,rw,2,hx('#5d6270'));rect(a,48-rw/2,9,rw,2,hx('#5d6270'));
+    rect(a,15,10,2,5,hx('#5d6270'));rect(a,47,10,2,5,hx('#5d6270'));line(a,32,23,32,33,hx('#5d6270'),1);rect(a,23,33,18,14,W[2]);rect(a,23,33,18,2,W[3]);rect(a,23,39,18,2,hx('#7ff0ff'));}
+  outlineAll(a,OUTL);});}
 // El cuartel y su guardián, en las eras que tienen (ERA.guard).
 if(BUILD.cuartel){HS.cuartel=epArt('cuartel');HS.guard=[guardArt(ERA.guard.kind,0),guardArt(ERA.guard.kind,1)];}
+const GEAR=[gearArt(EPOCH,false),gearArt(EPOCH,true)];HS.vehicle=[vehicleArt(EPOCH,0),vehicleArt(EPOCH,1)];
 // Dibuja un sprite en alta con el tamaño que tenía el de 16 px.
 // Los robots que vienen de la IA siguen en las eras siguientes; el monumento es para todas.
 if(!HS.robot){HS.robot=[robotArt(0,0),robotArt(1,0)];HS.robotBad=[robotArt(0,1),robotArt(1,1)];}
@@ -1783,6 +1818,7 @@ function drawObj(o,x,y){
       if(b&&b.smk&&runs(b))for(const[sx,sy]of b.smk)puffs(px+sx,py+sy,b.puffs||3);
       const lit=grid().powered.has(y*MW+x);if(b&&b.elec&&!lit&&!isOld(o))noPower(px,py);if(ERA.deco)ERA.deco(o,px,py,lit);if(o.bug){const bm=AM.find(m=>m.drawBug);if(bm)bm.drawBug(px,py,o);else if(ERA.hijack)drawClips(px,py);else if(ERA.meteors||ERA.luddites||ERA.storms||ERA.holes)drawDamage(px,py);else if(sickable(o))drawPlague(px,py);else drawBug(px,py);}}
   }
+  if(o.t==='casa'&&lampOn())drawLamp(px,py);
   if(isOld(o))oldBadge(px,py,canModern(o));
   if(o.past)pastBadge(px,py,o.past);
   const cfg=RES[o.t];
@@ -1802,6 +1838,53 @@ function pastArt(id,n){const k=id+n;if(!PASTC[k]){const c=Array.isArray(HS[id])?
 // Edificio que vino de otra era: una flechita para arriba en la esquina (late cuando ya se puede modernizar).
 function oldBadge(px,py,can){const t=performance.now()/1000,hi=can&&Math.sin(t*5)>-0.3;ctx.globalAlpha=can?1:0.6;ctx.fillStyle='#1b1a24';ctx.fillRect(px+8,py-1,8,8);
   ctx.fillStyle=hi?'#b6f08a':can?'#93d36c':'#a39b88';ctx.fillRect(px+11,py,2,1);ctx.fillRect(px+10,py+1,4,1);ctx.fillRect(px+9,py+2,6,1);ctx.fillRect(px+11,py+3,2,3);ctx.globalAlpha=1;}
+/* ---------- inventos que se ven ---------- */
+// Octubre de 2026, Juani: "los inventos no se notan visualmente". Todo esto es solo dibujo: no toca el estado que se guarda ni
+// el azar, así que el juego y el bot dan igual.
+// - celebrate(id): al investigar, un cartel con lo que trae y brillos sobre lo que cambia; si desbloquea edificios, late Construir.
+// - gearTier(): la gente se equipa a medida que avanza la era: desde un tercio de los inventos, una herramienta en la mano; desde
+//   dos tercios, algo en la cabeza. Cambia con la época: martillo y gorro de cuero, llave inglesa y gorra de obrero, tableta y
+//   casco, herramienta láser y visor.
+// - Vehículos: desde el invento del comercio (el que desbloquea el primer edificio que da monedas; ERA.vehicleTech lo pisa) van
+//   y vienen entre lo que produce y el depósito con la carga a la vista: carreta con burro, carro a vapor, camioncito o dron.
+// - Faroles: con el invento de la noche (ERA.nightTech), un farol junto a cada casa, que de noche alumbra.
+let sparks=[],vehicles=[],vehT=0,vehK=0;
+const gearTier=()=>{const n=TECHS.filter(t=>st.techs[t.id]).length;return n>=Math.ceil(TECHS.length*2/3)?2:n>=Math.ceil(TECHS.length/3)?1:0;};
+function celebrate(id){const t=TECH[id],news=BUILDS.filter(b=>b.req===id&&!b.hidden),hit=[];
+  const boost=id===ERA.boostTech,idea=(ERA.ideaTechs||[]).includes(id);
+  obj.forEach((o,i)=>{const b=o&&BUILD[o.t];if(!b||!b.prod)return;if(boost||idea&&b.prod.ideas)hit.push(i);});
+  hit.slice(0,24).forEach((i,k)=>sparks.push({x:i%MW,y:(i/MW)|0,t:1.6,d:k*0.06}));
+  if(!hit.length)sparks.push({x:P.x,y:P.y,t:1.6,d:0,big:true});
+  const el=$('invent');el.innerHTML='<b>'+t.name+'</b><span>'+(news.length?'Nuevo para construir: '+news.map(b=>b.name.toLowerCase()).join(', ')+'.':t.desc)+'</span>';
+  el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');clearTimeout(el._t);el._t=setTimeout(()=>{if(alive())el.hidden=true;},3200);
+  if(news.length){const bb=$('bBuild');bb.classList.add('nuevo');clearTimeout(bb._t);bb._t=setTimeout(()=>{if(alive())bb.classList.remove('nuevo');},7000);}}
+function drawSparks(){if(!sparks.length)return;
+  for(const s of sparks){const p=1-(s.t-0)/1.6+s.d;if(p<0||p>1)continue;const cx=s.x*T+8,cy=s.y*T+6-p*8,a=Math.min(1,(1-p)*2);
+    for(let k=0;k<(s.big?7:4);k++){const an=k*1.7+p*3,r=(s.big?7:4)+p*(s.big?10:5),x=cx+Math.cos(an)*r,y=cy+Math.sin(an)*r*0.6,z=(s.big?1.6:1.1)*(1-p*0.4);
+      ctx.fillStyle='rgba(255,226,120,'+a.toFixed(2)+')';ctx.fillRect(x-z,y-0.3,z*2,0.6);ctx.fillRect(x-0.3,y-z,0.6,z*2);}}}
+// El depósito adonde llevan la carga y lo que produce.
+function vehStore(){let s=-1;obj.forEach((o,i)=>{if(s<0&&o&&o.t===ERA.storage.id)s=i;});if(s<0)obj.forEach((o,i)=>{if(s<0&&o&&o.t==='casa')s=i;});return s;}
+function vehTech(){if(ERA.vehicleTech!==undefined)return ERA.vehicleTech;const b=BUILDS.find(b=>b.prod&&b.prod.monedas&&b.req);return b?b.req:null;}
+function syncVehicles(){const tk=vehTech(),s=vehStore();if(!tk||!st.techs[tk]||s<0){vehicles=[];return;}
+  const n=obj.filter(o=>o&&BUILD[o.t]&&BUILD[o.t].prod&&o.t!=='fogata').length,want=Math.min(3,Math.ceil(n/5));
+  while(vehicles.length>want)vehicles.pop();
+  while(vehicles.length<want){const sx=s%MW,sy=(s/MW)|0,sp=DIRS8.map(([a,b])=>[sx+a,sy+b]).find(([x,y])=>passable(x,y))||[sx,sy];
+    vehicles.push({x:sp[0],y:sp[1],path:[],face:1,moving:false,state:'home',wait:1+vehicles.length*2,to:-1,carry:0,kind:null,lift:EPOCH===3?0.5:0});}}
+function updateVehicles(dt){if(!vehicles.length)return;const fly=EPOCH===3,s=vehStore();if(s<0)return;
+  for(const v of vehicles){if(v.wait>0){v.wait-=dt;v.moving=false;continue;}
+    const goal=v.state==='go'?v.to:s,gx=goal%MW,gy=(goal/MW)|0;
+    if(fly){const dx=gx-v.x,dy=gy+0.6-v.y,d=Math.hypot(dx,dy),k=2.2*dt;if(Math.abs(dx)>0.05)v.face=dx>0?1:-1;v.moving=true;if(d>1){v.x+=dx/d*k;v.y+=dy/d*k;continue;}}
+    else{if(v.path.length){stepEnt(v,dt,2.2);if(v.blocked){v.blocked=false;v.path=[];}if(v.path.length)continue;}
+      const[x,y]=tileOf(v);if(!adj(x,y,gx,gy)&&!(x===gx&&y===gy)){v.path=pathAdj(x,y,gx,gy)||[];if(v.path.length)continue;}}
+    // Llegó: en el depósito descarga y elige el próximo que produce (en orden, sin azar); en el que produce, carga.
+    if(v.state==='go'){const o=obj[v.to],b=o&&BUILD[o.t];v.carry=1;v.kind=b&&b.prod?Object.keys(b.prod)[0]:null;if(!I[v.kind])v.kind=null;v.state='back';v.wait=0.8;}
+    else{v.carry=0;v.kind=null;const ps=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]&&BUILD[o.t].prod&&o.t!=='fogata')ps.push(i);});if(!ps.length){v.wait=2;continue;}
+      v.to=ps[(vehK++)%ps.length];v.state='go';v.wait=0.8;}}}
+// Faroles junto a cada casa con el invento de la noche: de madera con una antorcha, de hierro a gas, eléctrico o de luz fría.
+const lampOn=()=>!!ERA.nightTech&&!!st.techs[ERA.nightTech];
+function drawLamp(px,py){const x=px+14.2,c=['#7a5434','#2a2a34','#5d6270','#e8eef4'][EPOCH],L=['#ffb24a','#ffd35a','#fff2b0','#7ff0ff'][EPOCH];
+  ctx.fillStyle=c;ctx.fillRect(x,py+6,0.8,9);ctx.fillRect(x-0.6,py+14.4,2,0.8);ctx.fillRect(x-0.5,py+4.2,1.8,0.6);
+  ctx.fillStyle=L;ctx.globalAlpha=darkness()>0.2?1:0.75;ctx.fillRect(x-0.3,py+4.8,1.4,1.4);ctx.globalAlpha=1;}
 // Gente transparente (octubre de 2026, Juani: desde la era estelar los aldeanos y los robots molestaban): la gente, los robots
 // y los guardianes que pasan por delante de un edificio se dibujan transparentes, así no tapan los edificios ni sus flechas. Desde
 // la era estelar viene prendido; el menú lo prende o lo apaga para todas las eras (rtagi-gente: '1' o '0'). Pasa de a poco
@@ -1815,7 +1898,10 @@ function drawEnt(e,frames,isP){
   const px=Math.round(e.x*T),py=Math.round(e.y*T);shadow(px+8,py+15,5,1.5);
   const fr=e.moving?frames[Math.floor(st.time*8)%2]:frames[0];
   const bob=(isP&&P.act)||e.state==='work'||e.state==='smash'?(Math.sin(st.time*18)>0?-1:0):0;
-  ctx.save();if(e.face<0){ctx.translate(px*2+16,0);ctx.scale(-1,1);}hd(fr,px,py-3+bob-Math.round((e.lift||0)*12));ctx.restore();
+  ctx.save();if(e.face<0){ctx.translate(px*2+16,0);ctx.scale(-1,1);}const gy=py-3+bob-Math.round((e.lift||0)*12);hd(fr,px,gy);
+  // El equipo de la gente (inventos que se ven): no los robots ni los guardianes, que tienen el suyo.
+  if(frames===HS.hero||HS.vil.includes(frames)){const tr=gearTier();if(tr)hd(GEAR[tr-1],px,gy);}
+  ctx.restore();
   if(isP){const k=Math.sin(st.time*4)>0?0:1;ctx.fillStyle='#5fe3d0';ctx.fillRect(px+6,py-8+k,5,1);ctx.fillRect(px+7,py-7+k,3,1);ctx.fillRect(px+8,py-6+k,1,1);}
   else if(e.carry&&e.kind)ctx.drawImage(I[e.kind],px+4,py-11);
   else if(e.hungry){ctx.fillStyle='#e8654d';ctx.fillRect(px+8,py-10,1,3);ctx.fillRect(px+8,py-6,1,1);}
@@ -1865,6 +1951,7 @@ function render(){
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*MW+x];if(o)list.push({k:y+1,z:0,o,x,y});}
   list.push({k:P.y+1,z:1,e:P,f:HS.hero,p:true});for(const v of vil)if(!v.away)list.push({k:v.y+1,z:1,e:v,f:v.bot?(v.bad?HS.robotBad:HS.robot):HS.vil[v.skin%3],ghost:!v.bad});
   for(const g of guards)list.push({k:g.y+1,z:1,e:g,f:HS.guard,ghost:true});
+  for(const v of vehicles)list.push({k:v.y+1,z:1,e:v,f:HS.vehicle,ghost:true});
   for(const m of AM)if(m.ents)m.ents(list);
   // Piratas y sus barcos (un barco por desembarco, en el agua junto a la costa).
   {const seen=new Set();for(const p of pirates){const k=p.boat&&p.boat.join();if(k&&!seen.has(k)){seen.add(k);hd(HS.boat,p.boat[0]*T,p.boat[1]*T);}if(!(p.wait>0))list.push({k:p.y+1,z:1,e:p,f:HS.pirate});}}
@@ -1905,6 +1992,7 @@ function render(){
     for(const u of ufos)lights.push([u.x*T+8,u.y*T-12,2.2,0.9]);
     for(const r of rifts)if(riftOut(r))lights.push([r.x*T+8,r.y*T+6,2.6,0.9]);
     for(const m of AM)if(m.lights)m.lights(lights);
+    if(lampOn())for(let y=Math.max(0,y0-5);y<=Math.min(MH-1,y1+5);y++)for(let x=Math.max(0,x0-5);x<=Math.min(MW-1,x1+5);x++){const o=obj[y*MW+x];if(o&&o.t==='casa')lights.push([x*T+15,y*T+5,1.6,0.85]);}
     for(const[fx,fy,r,a]of lights)hole(fx,fy,T*s*(r+0.15*Math.sin(st.time*9+fx)),a);
     hole(P.x*T+8,P.y*T+8,T*s*(st.techs[ERA.nightTech]?4:2.2),0.75);
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(lc,0,0);
@@ -1915,6 +2003,7 @@ function render(){
   // Los agujeros negros van arriba de la oscuridad: el centro siempre negro y el disco que brilla de noche.
   drawHoles();
   amEach('drawTop');
+  drawSparks();
   ctx.font='600 7px "Pixelify Sans", monospace';ctx.textAlign='center';ctx.lineWidth=2;ctx.lineJoin='round';
   for(const f of floats){ctx.globalAlpha=Math.min(1,f.t*1.5);ctx.strokeStyle='#1b1a24';ctx.strokeText(f.txt,f.x,f.y);ctx.fillStyle=f.col;ctx.fillText(f.txt,f.x,f.y);}
   ctx.globalAlpha=1;
@@ -2134,7 +2223,7 @@ $('sheetBody').addEventListener('click',e=>{
 function research(id){
   const t=TECH[id];if(st.techs[id]||!t.req.every(r=>st.techs[r])||!afford(t.cost))return;
   if(ERA.rival&&id===FINAL&&(st.lost||st.safety<100)){toast(st.lost?'El rival ya llegó: reintentá la era desde el menú.':'Falta seguridad: la AGI necesita 100%.');return;}
-  pay(t.cost);st.techs[id]=true;if(t.safety)st.safety=Math.min(100,st.safety+t.safety);toast('Investigaste: '+t.name);renderSheet();hud();
+  pay(t.cost);st.techs[id]=true;if(t.safety)st.safety=Math.min(100,st.safety+t.safety);celebrate(id);renderSheet();hud();
   if(id===FINAL&&!st.won){st.won=true;save();if(sheetMode){sheetMode=null;$('sheet').hidden=true;skipPush=true;}showWin();}
   save();
 }
@@ -2320,6 +2409,7 @@ if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;}
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),virusEvery:()=>virusEvery(),spies:()=>spies,spawnSpies:()=>spawnSpies(),spyEvery:()=>spyEvery(),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
   rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),rifts:()=>rifts,spawnRift:()=>spawnRift(),riftEvery:()=>riftEvery(),holes:()=>holes,spawnHoles:()=>spawnHoles(),holeEvery:()=>holeEvery(),guards:()=>guards,threatTargets:()=>threatTargets(),guardArt:(k,f)=>guardArt(k,f),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k),
   // Las amenazas en archivos propios: dónde tocarlas (el bot) y una tanda a propósito (la huella); cada una suma sus funciones.
+  vehicles:()=>vehicles,celebrate:id=>celebrate(id),gearTier:()=>gearTier(),
   botTaps:()=>{const Q=[];for(const m of AM)if(m.botTaps)Q.push(...m.botTaps());else if(m.targets)m.targets((x,y,tx,ty)=>Q.push([tx,ty]));return Q;},prueba:()=>amEach('prueba')};
 if(location.search.indexOf('debug')>=0)for(const m of AMENAZAS)Object.assign(window.__rtagiDebug,m.debug);
 })();
