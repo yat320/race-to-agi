@@ -61,3 +61,29 @@ Con lo de arriba, el bot pone rápidas (o limpias, con mucho humo) en la industr
 De paso, el bot junta primero para el edificio que fabrica lo que pide el próximo invento. Si no, la fundición se comía la piedra y el taller mecánico no se hacía nunca: una corrida encadenada tardó 11,7 min.
 
 Se guardan con el edificio (`m`, el octavo dato, como `["r2","l1",""]`) y el obrero con la persona (`job`, el octavo dato). Una partida anterior se lee igual. A otra era pasan si el edificio sigue igual y ahí también tiene puestos (por ahora, solo la Industria tiene).
+
+## Todo se puede tocar (octubre de 2026)
+
+Juani: "tal vez podemos hacer que todas las construcciones sean interactivas". Eligió que cada una tenga lo suyo y probarlo primero en la Industria. Ahora se entra a todo lo que se construye:
+
+- **Lo que produce tiene puestos y máquinas.** Además de las industrias, la granja a vapor (trilladora y fardos), el café (barra con cafetera y mesas), el aserradero a vapor (sierra circular), la cantera a vapor (grúa con un bloque) y el puerto (muelle, barco y cajas).
+- **Lo que no produce se mejora hasta el nivel 3** (`ERA.niveles`). Cada nivel suma algo que se ve adentro:
+
+| Edificio | Qué sube | Niveles 1 → 2 → 3 | Qué se ve |
+|---|---|---|---|
+| Casa | aldeanos | 2 → 3 → 4 (llega uno más en cada nivel) | una cama más |
+| Depósito | lo que guarda | 150 → 225 → 300 de cada cosa | una estantería más |
+| Parque | cuánto limpia | ×1 → ×1,5 → ×2 | un árbol con su banco |
+| Herrería | cuánto junta tu gente | +30% → +45% → +60% | un estante de herramientas |
+| Sindicato | alcance | 4 → 5 → 6 casilleros | una mesa de delegados con su estandarte |
+| Estación de tren | potencia a las granjas | +50% → +75% → +100% | un vagón con cosecha |
+| Palacio de cristal | potencia a las ideas | +30% → +45% → +60% | una vitrina con un invento |
+| Comisaría | policías | 1 → 2 → 3 | un policía más |
+
+- **Costo de cada nivel:** 1,5 y 2,5 veces lo que costó el edificio. El nivel 3 pide además 6 de acero y 20 monedas (`ERA.levelExtra`).
+- **Lo que vino de otra era** hay que modernizarlo primero.
+- **En el mapa**, los edificios mejorados muestran puntitos dorados arriba a la derecha.
+- **La pista "Entrá:"** sale como mucho unos 45 s, así no tapa las otras.
+- **Partidas:** el nivel se guarda con el edificio (`lv`, el noveno dato). Las partidas de antes se leen igual.
+
+El bot elige las máquinas por cuánto hacen de lo que le falta, y como mínimo 0,15 por segundo. Antes, la primera la ponía en el café a los 25 s y la era tardaba 11,9 min. Los niveles los usa así: mejora las casas cuando ya tiene 4, el depósito cuando se llena, la herrería, el parque con humo, y el palacio y la estación. Con todo, la era sola le da 10 min (9,7 a 10,4) y encadenada 5,5; sin máquinas ni niveles, 10,6. La Electricidad que sigue, con esa ciudad, da 5,5.
