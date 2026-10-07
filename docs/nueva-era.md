@@ -30,7 +30,7 @@ Copiá la estructura de `src/mundo/multiversal.js`, que es la más nueva.
   - `lights`.
   - La clave de su amenaza (`sirens:true`), `defense` y `guard`.
   - `legacy`: la clave de la era anterior y los tres bonos.
-  - `techs`: 9; el último es la obra.
+  - `techs`: 9; el último es la obra. Las ideas de sus costos (y lo que dan de ideas los edificios) van en la unidad de la Antigüedad, como en las otras eras: el motor las multiplica ×2 por cada era (`IX`).
   - `builds`: los básicos con sus ids de siempre, más los propios.
   - `info`, `tips1` y `tips2`, `deco` y `text`.
 - **Abajo de la marca `/* ---------- arte de la era ---------- */`:** las funciones que dibujan el recurso y cada edificio con `mkA`, y al final dónde va cada sprite. Mirá cómo lo hace la multiversal. Los básicos (granja, fogata, aserradero, cantera, granero, taller) ya tienen dibujo por época en el motor.

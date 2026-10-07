@@ -126,7 +126,7 @@ amenaza({on:'sirens',
   // Flota arriba de su casillero: se la alcanza desde uno vecino, como a un edificio (b), y se la toca donde se la ve.
   targets(add){for(const s of sirens)if(sirenOut(s))add(s.x,s.y,Math.round(s.x),Math.round(s.y-SIREN_UP),true);},
   tap(tx,ty){const hit=sirens.find(s=>sirenOut(s)&&(Math.hypot(s.x-tx,s.y-SIREN_UP-ty)<=1.4||Math.hypot(s.x-tx,s.y-ty)<=1.1));
-    if(hit){const n=sirenEnd(hit,'hush','¡callada!');st.res.ideas+=2;float(hit.x,hit.y-1,'+2 ideas',RCOL.ideas);
+    if(hit){const n=sirenEnd(hit,'hush','¡callada!');st.res.ideas+=2*IX;float(hit.x,hit.y-1,ideaTxt(2),RCOL.ideas);
       toast(n?'¡Sirena callada! '+(n===1?'Soltó a uno de tu gente.':'Soltó a '+n+' de tu gente.'):'¡Sirena callada!');return true;}
     return false;},
   drawUnder:drawSirenSong,

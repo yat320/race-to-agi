@@ -168,7 +168,7 @@ amenaza({on:'riders',
   row:riderRow,
   // Un toque en la persona que lo lleva (o en el bichito, que va arriba de su cabeza) lo baja y lo espanta.
   tap(tx,ty){let hit=null,bd=RIDER_HIT;for(const r of riders){if(!riderOut(r))continue;const p=riderAt(r),d=Math.min(Math.hypot(p.x-tx,p.y-ty),Math.hypot(p.x-tx,p.y-0.7-ty));if(d<bd){bd=d;hit=r;}}
-    if(!hit)return false;const v=hit.host,a=riderAte(hit);riderScare(hit,'¡fuera!');st.res.ideas+=2;float(hit.x,hit.y-0.8,'+2 ideas',RCOL.ideas);
+    if(!hit)return false;const v=hit.host,a=riderAte(hit);riderScare(hit,'¡fuera!');st.res.ideas+=2*IX;float(hit.x,hit.y-0.8,ideaTxt(2),RCOL.ideas);
     toast(v?'¡Polizón espantado! '+(v.bot?'Tu robot':'Tu aldeano')+' vuelve a entregar todo'+(a?' (se comió '+a+')':'')+'.':'¡Polizón espantado!');return true;},
   // Tres a propósito.
   prueba(){for(let k=0;k<3;k++)spawnRider();},

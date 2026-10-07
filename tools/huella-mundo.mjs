@@ -41,7 +41,7 @@ const INIT = `(()=>{let a=12345;Math.random=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Mat
 // Ayudas que corren dentro de la página (usan solo lo que todas las eras exponen con ?debug).
 const HELP = `window.__H={t:2000,step(n){for(let k=0;k<(n||2);k++){this.t+=200;__step(this.t);}},
   get D(){return window.__rtagiDebug;},
-  fill(){const r=this.D.st.res;for(const k in r)if(k!=='ideas')r[k]=Math.max(r[k],140);r.ideas=Math.max(r.ideas,3000);},
+  fill(){const r=this.D.st.res;for(const k in r)if(k!=='ideas')r[k]=Math.max(r[k],140);r.ideas=Math.max(r.ideas,3000*(this.D.IX||1));},
   research(id){this.fill();document.getElementById('bTech').click();const b=document.querySelector('[data-tech="'+id+'"]');const ok=!!b&&!b.disabled;if(ok)b.click();const c=document.getElementById('sheetClose');if(c&&!document.getElementById('sheet').hidden)c.click();return ok;},
   pos:{},
   place(id,pred){this.fill();document.getElementById('bBuild').click();const b=document.querySelector('[data-build="'+id+'"]');if(!b||b.disabled){document.getElementById('sheetClose').click();return null;}b.click();
@@ -77,7 +77,7 @@ const HELP = `window.__H={t:2000,step(n){for(let k=0;k<(n||2);k++){this.t+=200;_
   fp(){const D=this.D,seen=new WeakSet(),j=v=>JSON.parse(JSON.stringify(v,(k,x)=>{if(typeof x==='number')return Math.round(x*1e4)/1e4;if(x&&typeof x==='object'){if(seen.has(x))return'~';seen.add(x);}return x;}));
     return{st:j(D.st),P:j(D.P),vil:j(D.vil),obj:D.obj().map((o,i)=>o?[i,j(o)]:0).filter(Boolean),vir:D.viruses?j(D.viruses()):[]};},
   // Recursos a la mitad, así se ve lo que produce y consume cada cosa (lleno, el tope lo tapa todo).
-  mid(){const r=this.D.st.res;for(const k in r)r[k]=k==='ideas'?100:60;},
+  mid(){const r=this.D.st.res;for(const k in r)r[k]=k==='ideas'?100*(this.D.IX||1):60;},
   sprites(){const out={};for(const k in this.D.HS){const v=this.D.HS[k],a=Array.isArray(v)?v.flat():[v];out[k]=a.map(c=>c.toDataURL());}return out;},
   html(sel){const e=document.querySelector(sel);return e?e.innerHTML:null;},
   sheet(m){document.getElementById(m==='build'?'bBuild':m==='tech'?'bTech':'bTribe').click();const h={title:this.html('#sheetTitle'),sub:this.html('#sheetSub'),body:this.html('#sheetBody')};document.getElementById('sheetClose').click();return h;},

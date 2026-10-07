@@ -59,14 +59,14 @@ function whirlThrow(w,k,n){let tx=-1,ty=-1;
   if(tx<0){tx=clamp(Math.round(w.x),0,MW-1);ty=clamp(Math.round(w.y),0,MH-1);}
   whirlMotes.push({x:w.x,y:w.y,sx:w.x,sy:w.y-1,tx,ty,k,n,state:'fly',t:0,ph:Math.random()*6.28});}
 // Chupa de lo que más tenés y lo desparrama en 1 a 3 motas.
-function whirlSuck(w){const k=['ideas','monedas',ORE].sort((a,b)=>st.res[b]-st.res[a])[0],have=Math.floor(st.res[k]);if(have<=0)return;
-  const n=Math.min(have,Math.max(WHIRL_MIN,Math.min(WHIRL_MAX,Math.round(have*whirlCut())))),parts=n>=12?3:n>=6?2:1;st.res[k]-=n;whirlStats.suck+=n;
+function whirlSuck(w){const k=['ideas','monedas',ORE].sort((a,b)=>relRes(b)-relRes(a))[0],have=Math.floor(st.res[k]),u=unitOf(k);if(have<=0)return;
+  const n=Math.min(have,u*Math.max(WHIRL_MIN,Math.min(WHIRL_MAX,Math.round(have/u*whirlCut())))),parts=n/u>=12?3:n/u>=6?2:1;st.res[k]-=n;whirlStats.suck+=n;
   for(let p=0,left=n;p<parts;p++){const q=p===parts-1?left:Math.floor(n/parts);left-=q;whirlThrow(w,k,q);}
-  float(w.x,w.y-2.2,'−'+n+' '+whirlRN(k,n),'#e8654d');
-  if(!w.told&&st.time-whirlToldT>=30){w.told=true;whirlToldT=st.time;toast('¡El torbellino desparramó '+n+' '+whirlRN(k,n)+'! Tocá las motas para recuperarlas antes de que se apaguen.');}}
+  float(w.x,w.y-2.2,'−'+fmt(n)+' '+whirlRN(k,n),'#e8654d');
+  if(!w.told&&st.time-whirlToldT>=30){w.told=true;whirlToldT=st.time;toast('¡El torbellino desparramó '+fmt(n)+' '+whirlRN(k,n)+'! Tocá las motas para recuperarlas antes de que se apaguen.');}}
 function whirlEnd(w,state,txt,col){if(!whirlOut(w))return;w.state=state;w.t=0;if(state==='break')zaps.push({x:w.x,y:w.y-0.5,t:0.5});if(txt)float(w.x,w.y-1.6,txt,col||'#5fe3d0');}
 // Una mota vuelve: lo que tenía se suma de nuevo.
-function whirlGet(m){if(m.state!=='lie'&&m.state!=='fly'&&m.state!=='home')return 0;add(m.k,m.n);float(m.x,m.y-0.6,'+'+m.n+' '+whirlRN(m.k,m.n),RCOL[m.k]);m.state='got';m.t=0;return m.n;}
+function whirlGet(m){if(m.state!=='lie'&&m.state!=='fly'&&m.state!=='home')return 0;add(m.k,m.n);float(m.x,m.y-0.6,'+'+fmt(m.n)+' '+whirlRN(m.k,m.n),RCOL[m.k]);m.state='got';m.t=0;return m.n;}
 // El estabilizador más cercano a la mota, si la tiene a ERA.defense.r casilleros o menos: la mota vuela hasta él.
 function whirlHome(m,TW){let b=null,bd=ERA.defense.r+0.01;for(const[a,c]of TW){const d=Math.hypot(a-m.x,c-m.y);if(d<bd){bd=d;b=[a,c];}}
   if(!b)return false;m.state='home';m.t=0;m.sx=m.x;m.sy=m.y;m.tx=b[0];m.ty=b[1];return true;}
@@ -176,7 +176,7 @@ amenaza({on:'whirls',
   row:whirlRow,
   // El torbellino se toca donde se lo ve (es alto: también un casillero más arriba); si no, las motas a un casillero o menos.
   tap(tx,ty){const hit=whirls.find(w=>whirlOut(w)&&(Math.hypot(w.x-tx,w.y-ty)<=WHIRL_HIT||Math.hypot(w.x-tx,w.y-1-ty)<=WHIRL_HIT));
-    if(hit){whirlStats.taps++;whirlEnd(hit,'break','¡deshecho!');st.res.ideas+=2;float(hit.x,hit.y-1,'+2 ideas',RCOL.ideas);toast('¡Torbellino deshecho!');return true;}
+    if(hit){whirlStats.taps++;whirlEnd(hit,'break','¡deshecho!');st.res.ideas+=2*IX;float(hit.x,hit.y-1,ideaTxt(2),RCOL.ideas);toast('¡Torbellino deshecho!');return true;}
     let n=0;for(const m of whirlMotes)if(whirlLie(m)&&Math.hypot(m.x-tx,m.y-ty)<=WHIRL_MOTE_HIT){whirlStats.tap+=whirlGet(m);n++;}
     if(n){zaps.push({x:tx,y:ty,t:0.4});return true;}
     return false;},

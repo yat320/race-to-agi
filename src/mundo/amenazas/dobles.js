@@ -23,10 +23,10 @@ function spawnTwin(){const bs=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t])bs.push(i)
 function twinFlee(w){w.state='flee';const[x,y]=tileOf(w);w.path=bfs(x,y,(a,b)=>a===w.home[0]&&b===w.home[1])||[];if(!w.path.length&&(x!==w.home[0]||y!==w.home[1])){w.x=w.home[0];w.y=w.home[1];}}
 // Lo manda de vuelta a su universo y devuelve lo que llevaba.
 function expelTwin(w,txt){if(!twinOut(w))return;const got=Object.entries(w.loot).filter(([,v])=>v>0);for(const[k,v]of got)add(k,v);
-  w.state='gone';w.gt=0;w.loot={};zaps.push({x:w.x,y:w.y,t:0.5});float(w.x,w.y-1,txt,'#5fe3d0');if(got.length)float(w.x,w.y-0.4,'+'+got.map(([k,v])=>v+' '+RN[k].toLowerCase()).join(' y '),'#93d36c');}
-function twinSteal(w){const ks=['ideas','monedas',ORE].sort((a,b)=>st.res[b]-st.res[a]),k=ks[0],have=Math.floor(st.res[k]),n=Math.min(have,Math.max(TWIN_MIN,Math.floor(have*twinCut())));
-  w.trips++;if(n<=0)return;st.res[k]-=n;w.loot[k]=(w.loot[k]||0)+n;w.reveal=1.5;float(w.x,w.y-1,'−'+n+' '+RN[k].toLowerCase(),'#d08cff');
-  if(!w.told){w.told=true;toast('¡Alguien de tu gente te robó '+n+' '+RN[k].toLowerCase()+'! Es un doble: tocalo para devolverlo a su universo.');}}
+  w.state='gone';w.gt=0;w.loot={};zaps.push({x:w.x,y:w.y,t:0.5});float(w.x,w.y-1,txt,'#5fe3d0');if(got.length)float(w.x,w.y-0.4,'+'+got.map(([k,v])=>fmt(v)+' '+RN[k].toLowerCase()).join(' y '),'#93d36c');}
+function twinSteal(w){const ks=['ideas','monedas',ORE].sort((a,b)=>relRes(b)-relRes(a)),k=ks[0],have=Math.floor(st.res[k]),n=Math.min(have,Math.max(TWIN_MIN*unitOf(k),Math.floor(have*twinCut())));
+  w.trips++;if(n<=0)return;st.res[k]-=n;w.loot[k]=(w.loot[k]||0)+n;w.reveal=1.5;float(w.x,w.y-1,'−'+fmt(n)+' '+RN[k].toLowerCase(),'#d08cff');
+  if(!w.told){w.told=true;toast('¡Alguien de tu gente te robó '+fmt(n)+' '+RN[k].toLowerCase()+'! Es un doble: tocalo para devolverlo a su universo.');}}
 function updateTwins(dt){if(!twins.length)return;const T=towersXY();
   for(const w of twins){
     if(w.state==='gone'){w.gt+=dt;continue;}
@@ -40,7 +40,7 @@ function updateTwins(dt){if(!twins.length)return;const T=towersXY();
       continue;}
     // Llegó a su portal: se va con lo robado.
     if(!w.path.length){const got=Object.entries(w.loot).filter(([,v])=>v>0);w.state='gone';w.gt=0;zaps.push({x:w.x,y:w.y,t:0.5});
-      if(got.length){float(w.x,w.y-1,'se escapó','#e8654d');toast('Un doble se escapó a su universo con '+got.map(([k,v])=>v+' '+RN[k].toLowerCase()).join(' y ')+'.');}}}
+      if(got.length){float(w.x,w.y-1,'se escapó','#e8654d');toast('Un doble se escapó a su universo con '+got.map(([k,v])=>fmt(v)+' '+RN[k].toLowerCase()).join(' y ')+'.');}}}
   twins=twins.filter(w=>twinOut(w)||w.gt<0.8);}
 // Doble: titila cada tanto con un corte de colores (más fuerte justo después de robar); su portal es un óvalo violeta que gira.
 function drawGlitch(w){const t=performance.now()/1000+w.ph;if(!(w.reveal>0)&&t%1.8>0.16)return;const px=w.x*T,py=w.y*T-3,f=Math.floor(t*24);
@@ -75,7 +75,7 @@ amenaza({on:'twins',
   row:twinRow,
   // Un doble se toca donde está, aunque haya alguien de tu gente al lado.
   tap(tx,ty){const hit=twins.find(w=>twinOut(w)&&Math.hypot(w.x-tx,w.y-ty)<=1.0);
-    if(hit){expelTwin(hit,'¡era un doble!');st.res.ideas+=2;float(hit.x,hit.y-1.6,'+2 ideas',RCOL.ideas);toast('¡Era un doble! Volvió a su universo.');return true;}
+    if(hit){expelTwin(hit,'¡era un doble!');st.res.ideas+=2*IX;float(hit.x,hit.y-1.6,ideaTxt(2),RCOL.ideas);toast('¡Era un doble! Volvió a su universo.');return true;}
     return false;},
   prueba(){for(let k=0;k<3;k++)spawnTwin();},
   debug:{twins:()=>twins,spawnTwin:()=>spawnTwin(),twinEvery:()=>twinEvery()},

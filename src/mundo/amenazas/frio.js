@@ -124,7 +124,7 @@ amenaza({on:'frost',
   row:frostRow,
   // El corazón se toca donde se lo ve; un edificio congelado, encima.
   tap(tx,ty){const hit=frosts.find(w=>frostOut(w)&&Math.hypot(w.x-tx,w.y-ty)<=1.3);
-    if(hit){breakFrost(hit,'¡rota!');st.res.ideas+=2;float(hit.x,hit.y-1.5,'+2 ideas',RCOL.ideas);toast('¡Ola de frío rota!');return true;}
+    if(hit){breakFrost(hit,'¡rota!');st.res.ideas+=2*IX;float(hit.x,hit.y-1.5,ideaTxt(2),RCOL.ideas);toast('¡Ola de frío rota!');return true;}
     if(!inb(tx,ty))return false;const i=ty*MW+tx,o=obj[i];
     if(o&&o.bug&&BUILD[o.t]){thawFrost(i,'¡descongelado!');zaps.push({x:tx,y:ty,t:0.4});toast('¡Fuera el hielo! '+nameOf(o)+' vuelve a producir.');save();return 'b';}
     return false;},
