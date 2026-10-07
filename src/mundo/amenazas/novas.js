@@ -162,7 +162,7 @@ amenaza({on:'novas',
   tap(tx,ty){let hit=null,bd=NOVA_HIT;for(const n of novas){if(!novaOut(n))continue;const d=Math.hypot(n.x-tx,n.y-ty);if(d<=bd){bd=d;hit=n;}}
     if(hit&&quiet){hit.wk=(hit.wk||0)+Math.min(0.5,st.time-(hit.wt==null?st.time-0.3:hit.wt));hit.wt=st.time;
       if(!hit.told){hit.told=true;float(hit.x,hit.y-1.4,'¡desarmando!','#7fe8ff');}if(hit.wk<NOVA_DEFUSE)return false;}
-    if(hit){novaOff(hit,'¡apagada!');st.res.ideas+=2;float(hit.x,hit.y-1.6,'+2 ideas',RCOL.ideas);toast('¡Estrella apagada!');return true;}
+    if(hit){novaOff(hit,'¡apagada!');st.res.ideas+=2*IX;float(hit.x,hit.y-1.6,ideaTxt(2),RCOL.ideas);toast('¡Estrella apagada!');return true;}
     if(!inb(tx,ty))return false;const i=ty*MW+tx,o=obj[i];
     if(o&&o.bug&&BUILD[o.t]){novaFix(i,'¡arreglado!');zaps.push({x:tx,y:ty,t:0.4});toast('¡Arreglado! '+nameOf(o)+' vuelve a producir.');save();return 'b';}
     return false;},

@@ -180,13 +180,17 @@ const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
 const $=id=>document.getElementById(id);
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const fmt=n=>n.toLocaleString('es-AR',{maximumFractionDigits:1});
+// Los números grandes (las ideas crecen ×2 por era) van cortos para que entren en la ficha: 123 mil, 4,5 M, 1.271 M.
+const big=n=>{const a=Math.abs(n),d=(x,u)=>(x<10?Math.floor(x*10)/10:Math.floor(x)).toLocaleString('es-AR',{maximumFractionDigits:1})+u;
+  return a<1e5?Math.floor(n).toLocaleString('es-AR'):a<1e6?d(n/1e3,' mil'):d(n/1e6,' M');};
+const fmt=n=>Math.abs(n)>=1e5?big(n):n.toLocaleString('es-AR',{maximumFractionDigits:Math.abs(n)>=1000?0:1});
+const num=n=>n>=1e5?big(n):n;
 const inb=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH;
 // Lo que trae la ciudad desde la era anterior del mundo abierto, si terminó su obra. No usa el legado de las eras.
 // La Prehistoria guarda distinto: todo adentro de `st`.
 function prevEra(){const L=ERA.legacy;try{const d=JSON.parse(localStorage.getItem(L.key));
   if(L.st){if(d&&d.st&&d.st.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor((d.st.res&&d.st.res.ideas)||0),techs:Object.keys(d.st.techs||{})};}
-  else if(d&&d.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor((d.res&&d.res.ideas)||0),monedas:Math.floor((d.res&&d.res.monedas)||0),techs:Object.keys(d.techs||{})};}catch(e){}return null;}
+  else if(d&&d.won)return{aldeanos:(d.vil||[]).length,ideas:Math.floor(((d.res&&d.res.ideas)||0)*IXP/(d.ix||1)),monedas:Math.floor((d.res&&d.res.monedas)||0),techs:Object.keys(d.techs||{})};}catch(e){}return null;}
 
 /* ---------- sprites ---------- */
 const PAL={k:'#1b1a24',g:'#2f6b3a',G:'#3f8f47',l:'#6cbf5a',b:'#7a5434',B:'#4f3522',s:'#5d6270',S:'#8a8f9c',w:'#c3c7cf',r:'#c8413b',R:'#f08a7c',f:'#f08a24',F:'#ffd35a',o:'#c43d20',h:'#d4ae62',H:'#9a7a3a',p:'#e3ab7d',P:'#b97a55',c:'#8b5a2b',C:'#63401f',y:'#3a2418',d:'#7a5634',D:'#5a3d24',n:'#8fd06a',N:'#5aa347',W:'#f6f1e4',u:'#5fe3d0',x:'#ecd67e',
@@ -215,6 +219,14 @@ const RCOL={madera:'#e0b27a',piedra:'#d6dae2',comida:'#ff9a8a',[ORE]:ERA.ore.col
 const RES={tree:{give:'madera',hp:4,regen:50,empty:'Tocón'},rock:{give:'piedra',hp:6,regen:90,empty:'Piedras sueltas'},bush:{give:'comida',hp:3,regen:35,empty:'Arbusto sin frutos'},ore:{give:ORE,hp:5,regen:110,empty:ERA.ore.empty}};
 const TYPE_OF={madera:'tree',piedra:'rock',comida:'bush',[ORE]:'ore'};
 const TECHS=ERA.techs,FINAL=TECHS[TECHS.length-1].id;
+// Las ideas crecen ×2 por era (octubre de 2026, Juani: "el requerimiento de ideas y la generación deberían ser exponenciales"):
+// la Antigüedad es la base y cada era pide el doble de ideas que la anterior; lo que se hace en ella (edificios, juntar, tocar
+// amenazas) da el doble. Lo que viene de otra era da lo de su era, a la mitad (oldW), hasta que se moderniza.
+const IX=Math.pow(2,Math.max(0,ERA.n-2)),IXP=ERA.n>2?IX/2:1;
+if(IX>1&&!ERA.ix){ERA.ix=IX;for(const t of TECHS)if(t.cost.ideas)t.cost.ideas*=IX;}
+// Para elegir "lo que más tenés" (las amenazas que roban), las ideas cuentan en la unidad de la Antigüedad.
+const unitOf=k=>k==='ideas'?IX:1,relRes=k=>st.res[k]/unitOf(k);
+const ideaTxt=n=>'+'+fmt(n*IX)+(n*IX===1?' idea':' ideas');
 const TECH={};TECHS.forEach(t=>TECH[t.id]=t);
 const BUILDS=ERA.builds;
 // Desde la Industria el jugador no junta a mano (pedido de Juani): lo hacen los aldeanos, los robots y los edificios, y tocar un
@@ -331,17 +343,17 @@ function renderGround(){
 }
 
 /* ---------- estado ---------- */
-let st,counts={},OLDC={},OLDN={};
+let st,counts={},OLDC={},OLDN={},IDF={};
 const P={x:SPAWN[0],y:SPAWN[1],path:[],task:null,act:null,face:1,moving:false,retried:false};
 const vil=[];
 let GRID=null,BROKEN=null,BROKEN_OLD={},OCEAN=null,bugT=0,viruses=[],meteors=[],goos=[],ufos=[],rifts=[],holes=[],guards=[],quiet=false,pirates=[],swarms=[],ludds=[],spies=[],storms=[],bolts=[],moths=[],zaps=[],floats=[],marker=null,placing=null,paused=false,last=performance.now();
 function readLegacy(){
   const L=ERA.legacy,e=prevEra(),out=L.monedas?{has:!!e,aldeanos:2,ideas:0,monedas:0,ideaMult:1,speed:1,agri:1,perks:[]}:{has:!!e,aldeanos:2,ideas:0,ideaMult:1,speed:1,agri:1,perks:[]};
   if(e){
-    out.aldeanos=clamp(e.aldeanos|0,2,L.aldeanos);out.ideas=clamp(e.ideas|0,0,L.ideas);if(L.monedas)out.monedas=clamp(e.monedas|0,0,L.monedas);
+    out.aldeanos=clamp(e.aldeanos|0,2,L.aldeanos);out.ideas=clamp(Math.floor(e.ideas)||0,0,L.ideas*IXP);if(L.monedas)out.monedas=clamp(e.monedas|0,0,L.monedas);
     const t=new Set(e.techs||[]);
     out.perks.push(out.aldeanos+L.mudan);
-    if(out.ideas)out.perks.push(out.ideas+' ideas guardadas '+L.de);
+    if(out.ideas)out.perks.push(fmt(out.ideas)+' ideas guardadas '+L.de);
     if(out.monedas)out.perks.push(out.monedas+' monedas para arrancar');
     // Cada invento de la era anterior que deja algo: [invento, campo, valor, texto].
     for(const[id,k,v,txt]of L.perks)if(t.has(id)){out[k]=v;out.perks.push(txt);}
@@ -349,7 +361,7 @@ function readLegacy(){
   return out;
 }
 function freshState(){return{res:Object.assign({madera:20,piedra:10,comida:15,[ORE]:0,monedas:0,ideas:0},Object.fromEntries(ITEMS.map(i=>[i.id,0]))),energy:100,techs:{},time:0,gathers:0,won:false,seen:false,prio:'auto',smog:0,rival:0,safety:0,lost:false,legacy:readLegacy()};}
-function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;const w=wOf(o);if(w<1)OLDC[o.t]=(OLDC[o.t]||0)+1-w;if(isOld(o))OLDN[o.t]=(OLDN[o.t]||0)+1;}LVX={};if(ERA.niveles)for(const o of obj)if(o&&o.lv>1&&counts[o.t]!==undefined)LVX[o.t]=(LVX[o.t]||0)+LVW[o.lv-1]-1;if(BUILD.cuartel)syncGuards();countPosts();inList();}
+function recount(){GRID=null;BROKEN=null;counts={};OLDC={};OLDN={};IDF={};const iw={},ww={};BUILDS.forEach(b=>counts[b.id]=0);for(const o of obj)if(o&&counts[o.t]!==undefined){counts[o.t]++;const w=wOf(o);if(w<1)OLDC[o.t]=(OLDC[o.t]||0)+1-w;if(isOld(o))OLDN[o.t]=(OLDN[o.t]||0)+1;if(o.era&&o.era<ERA.n)iw[o.t]=(iw[o.t]||0)+w*(1-Math.pow(2,o.era-ERA.n));ww[o.t]=(ww[o.t]||0)+w;}for(const t in iw)if(ww[t]>0)IDF[t]=1-iw[t]/ww[t];LVX={};if(ERA.niveles)for(const o of obj)if(o&&o.lv>1&&counts[o.t]!==undefined)LVX[o.t]=(LVX[o.t]||0)+LVW[o.lv-1]-1;if(BUILD.cuartel)syncGuards();countPosts();inList();}
 // Edificios que vienen de otra era (importCity): rinden la mitad por cada era de atraso (oldW: la mitad si es de la anterior,
 // un cuarto si es de dos eras atrás) hasta que se modernizan pagando lo mismo que uno nuevo: el primero al precio base y cada
 // uno más caro, contando los que ya están al día (y con el invento que lo desbloquea, si tiene). OLDC suma, por tipo, lo que
@@ -408,7 +420,7 @@ function mapId(t){if(BUILD[t])return t;const r=ROLE[t];if(r==='drop')return null
 // vienen de otra era quedan con `era` y rinden la mitad hasta modernizarlos) y los hitos de esta era en la tierra libre más cercana.
 function importCity(c){genObjects();/* el suelo junto al inicio, como en un mapa nuevo */
   const o=new Array(MW*MH).fill(null);
-  for(const[i,t,hp,regen,,era,,mm,lv,of]of c.obj){if(i<0||i>=MW*MH)continue;if(RES[t]){o[i]={t,hp,regen};continue;}const id=mapId(t);if(id)o[i]=id==='monumento'?{t:id}:{t:id,era:era||c.n};
+  for(const[i,t,hp,regen,,era,,mm,lv,of]of c.obj){if(i<0||i>=MW*MH)continue;if(RES[t]){o[i]={t,hp,regen};continue;}const id=mapId(t);if(id)o[i]=id==='monumento'?{t:id,era:t==='monumento'?era||c.n-1:era||c.n}:{t:id,era:era||c.n};
     if(id===t&&Array.isArray(mm)&&hasIn(o[i])){const m=inParse(mm);if(m)o[i].m=m;}if(id===t&&lv>1&&hasLv(o[i]))o[i].lv=Math.min(3,lv|0);if(id===t&&of>0&&hasOf(o[i]))o[i].of=Math.min(OF_MAX,of|0);}
   for(const[dx,dy,t]of ERA.landmarks||[]){let best=null,bd=1e9;
     for(let y=2;y<MH-2;y++)for(let x=2;x<MW-2;x++){if(ground[y*MW+x]===WATER||o[y*MW+x])continue;const d=Math.hypot(x-SPAWN[0]-dx,y-SPAWN[1]-dy);if(d<bd){bd=d;best=[x,y];}}
@@ -416,14 +428,16 @@ function importCity(c){genObjects();/* el suelo junto al inicio, como en un mapa
   return o;}
 function mapChanged(){OCEAN=null;chunks.clear();pending.clear();}
 function serialize(){
-  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b)||b.past)e.push(isOld(b)?b.era:0);if(b.past)e.push(b.past);if(b.m&&b.m.some(Boolean)){while(e.length<7)e.push(0);e.push(b.m.map(m=>m?m.k+m.lv:''));}if(b.lv>1){while(e.length<8)e.push(0);e.push(b.lv);}if(b.of>0){while(e.length<9)e.push(0);e.push(b.of);}o.push(e);}}
-  return{v:1,res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[...(v.orb?landTile(v):[Math.round(v.x),Math.round(v.y)]),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0,...(v.job!=null||v.post!=null?[v.job!=null?v.job:-1,v.slot||0]:[]),...(v.post!=null?[v.post]:[])]),obj:o,...(MAPN!==ERA.n?{map:MAPN}:{})};
+  const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b)||b.past||b.t==='monumento'&&b.era)e.push(isOld(b)||b.t==='monumento'?b.era:0);if(b.past)e.push(b.past);if(b.m&&b.m.some(Boolean)){while(e.length<7)e.push(0);e.push(b.m.map(m=>m?m.k+m.lv:''));}if(b.lv>1){while(e.length<8)e.push(0);e.push(b.lv);}if(b.of>0){while(e.length<9)e.push(0);e.push(b.of);}o.push(e);}}
+  return{v:1,...(IX>1?{ix:IX}:{}),res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[...(v.orb?landTile(v):[Math.round(v.x),Math.round(v.y)]),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0,...(v.job!=null||v.post!=null?[v.job!=null?v.job:-1,v.slot||0]:[]),...(v.post!=null?[v.post]:[])]),obj:o,...(MAPN!==ERA.n?{map:MAPN}:{})};
 }
 function load(d){
   if(!d||d.v!==1||!Array.isArray(d.obj))return false;
   setMap(d.map||ERA.n);mapChanged();genObjects();/* restaura el suelo modificado junto al inicio */renderGround();
   obj=new Array(MW*MH).fill(null);for(const[i,t,hp,regen,bug,era,past,mm,lv,of]of d.obj){obj[i]={t,hp,regen,bug:!!bug};if(era)obj[i].era=era;if(past>0)obj[i].past=Math.min(3,past|0);if(Array.isArray(mm)&&hasIn(obj[i])){const m=inParse(mm);if(m)obj[i].m=m;}if(lv>1&&hasLv(obj[i]))obj[i].lv=Math.min(3,lv|0);if(of>0&&hasOf(obj[i]))obj[i].of=Math.min(OF_MAX,of|0);}
   const f=freshState();
+  // Las ideas guardadas antes de que crecieran ×2 por era (sin `ix`) se pasan a la escala de la era.
+  if(IX>1&&d.res&&(d.ix||1)!==IX)d.res.ideas=(+d.res.ideas||0)*IX/(d.ix||1);
   st=Object.assign(f,{res:Object.assign(f.res,d.res),energy:d.energy,techs:d.techs||{},time:d.time||0,gathers:d.gathers||0,won:!!d.won,seen:!!d.seen,prio:d.prio||'auto',smog:clamp(+d.smog||0,0,100),rival:clamp(+d.rival||0,0,100),safety:clamp(+d.safety||0,0,100),lost:!!d.lost,legacy:d.legacy||f.legacy});
   Object.assign(P,{x:d.p[0],y:d.p[1],path:[],task:null,act:null});
   vil.length=0;(d.vil||[]).forEach(v=>{const m=mkVillager(v[0],v[1],v[2],v[3],v[4]);m.bot=!!v[5];m.bad=!!v[6];
@@ -457,7 +471,7 @@ function ideaMult(){let m=(1+0.05*vil.filter(v=>!v.away).length)*(st.legacy.idea
 function prodOf(b){ // producción por segundo de un tipo de edificio (todas sus copias)
   const n=act(b.id)+(INL.length?inSum(b.id,'sp'):0),out={};if(!n||!b.prod)return out;
   const eng=st.techs[ERA.boostTech]?1.5:1;
-  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*(act(ERA.farmBuild)+lvx(ERA.farmBuild)))*(st.legacy.agri||1)*smogPen();if(k==='ideas')v*=ideaMult();out[k]=v;}
+  for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*(act(ERA.farmBuild)+lvx(ERA.farmBuild)))*(st.legacy.agri||1)*smogPen();if(k==='ideas')v*=ideaMult()*IX*(IDF[b.id]??1);out[k]=v;}
   return out;
 }
 // Un edificio que gasta algo se frena cuando le falta.
@@ -572,8 +586,8 @@ function spawnVirus(c){const g=grid(),path=[[c.x,c.y]];let n=c;while(g.par.has(n
   viruses.push({path,seg:0,u:0,x:c.x,y:c.y,ti});}
 function virusIn(i){const o=obj[i];if(!infectable(o)||o.bug)return;
   if(ERA.infect&&guarded(i)){zaps.push({x:i%MW,y:(i/MW)|0,t:0.5});float(i%MW,(i/MW)|0,'¡bloqueado!','#5fe3d0');return;}
-  o.bug=true;o.bugAge=0;BROKEN=null;const e=ERA.infect?Math.floor(st.res.ideas*VIRUS_LOSS):0,lost=e>0?' y borró '+e+' ideas':'';
-  if(e>0){st.res.ideas-=e;float(i%MW,(i/MW)|0,'−'+e+' ideas','#e8654d');}else float(i%MW,(i/MW)|0,'¡virus!','#e8654d');
+  o.bug=true;o.bugAge=0;BROKEN=null;const e=ERA.infect?Math.floor(st.res.ideas*VIRUS_LOSS):0,lost=e>0?' y borró '+fmt(e)+' ideas':'';
+  if(e>0){st.res.ideas-=e;float(i%MW,(i/MW)|0,'−'+fmt(e)+' ideas','#e8654d');}else float(i%MW,(i/MW)|0,'¡virus!','#e8654d');
   if(o.t==='servidor'){GRID=null;toast('¡Un virus tumbó el servidor'+lost+'! Tocalo para limpiarlo.');}
   else toast('¡Un virus se metió en '+ERA.infect[o.t]+lost+'! No produce: tocá el edificio para limpiarlo.');}
 // Los técnicos limpian solos lo infectado: en VIRUS_FIX segundos, o en 15 si hay un soporte técnico cerca.
@@ -1053,7 +1067,7 @@ function plagueTick(step){const ps=[];for(let i=0;i<obj.length;i++)if(sickable(o
 function economy(){ // producción y consumo por segundo
   const pr={},us={};RK.forEach(k=>{pr[k]=0;us[k]=0;});
   for(const b of BUILDS){const p=prodOf(b);for(const k in p)pr[k]+=p[k];if(b.use&&counts[b.id])for(const k in b.use)us[k]+=b.use[k]*useN(b.id);}
-  if(ERA.cities){const r=cityRate();pr.monedas+=r;pr.ideas+=r*ideaMult();}
+  if(ERA.cities){const r=cityRate();pr.monedas+=r;pr.ideas+=r*ideaMult()*IX;}
   us.comida+=vil.filter(v=>!v.bot).length/30;
   return{pr,us};
 }
@@ -1107,7 +1121,7 @@ function updatePlayer(dt){
       const r=doGather(o);
       if(r){if(st.res[r.kind]>=cap(r.kind))toast('Depósitos llenos de '+RN[r.kind].toLowerCase()+'. Construí un depósito.');
         add(r.kind,r.n);st.energy=Math.max(0,st.energy-0.5);st.gathers++;float(P.act.x,P.act.y,'+'+fmt(r.n),RCOL[r.kind]);flashChip(r.kind);
-        if(st.gathers%8===0){st.res.ideas+=1;float(P.x,P.y-0.6,'+1 idea',RCOL.ideas);}}
+        if(st.gathers%8===0){st.res.ideas+=IX;float(P.x,P.y-0.6,ideaTxt(1),RCOL.ideas);}}
       P.act.t=gatherInt();if(!canGather(o))P.act=null;
     }
   }
@@ -1157,7 +1171,7 @@ function goHome(v){
 }
 // Sin juntar a mano, las ideas que daba juntar ahora salen de las entregas: 1 cada 2.
 function deposit(v){if(v.carry&&v.kind){add(v.kind,v.carry);float(v.x,v.y-0.5,'+'+fmt(v.carry),RCOL[v.kind]);flashChip(v.kind);
-    if(!HANDS){st.gathers++;if(st.gathers%2===0){st.res.ideas+=1;float(v.x,v.y-1.1,'+1 idea',RCOL.ideas);}}}
+    if(!HANDS){st.gathers++;if(st.gathers%2===0){st.res.ideas+=IX;float(v.x,v.y-1.1,ideaTxt(1),RCOL.ideas);}}}
   v.carry=0;v.state='idle';v.t=1.2;}
 function updateVillager(v,dt){
   // v.held: lo maneja una amenaza en archivo propio (la que lo agarró lo mueve y lo suelta).
@@ -1201,7 +1215,7 @@ function update(dt){
   st.smog=clamp(st.smog+smogRate()*dt,0,100);
   if(ERA.rival){if(!st.won&&!st.lost){st.rival=Math.min(100,st.rival+rivalRate()*dt);if(st.rival>=100){st.lost=true;save();showLose();}}
     st.safety=Math.min(100,st.safety+0.05*(counts.labseg||0)*dt);}
-  if(ERA.cities){const r=cityRate();if(r){add('monedas',r*dt);add('ideas',r*ideaMult()*dt);}}
+  if(ERA.cities){const r=cityRate();if(r){add('monedas',r*dt);add('ideas',r*ideaMult()*IX*dt);}}
   // Las amenazas se tiran cada medio segundo: bichos, virus y robots que se desalinean.
   bugT+=dt;if(bugT>=0.5){const step=bugT;bugT=0;
     if(ERA.bugs){const had=bugCount();
@@ -2339,7 +2353,7 @@ function goalText(){
   {const o=obj.find(canModern);if(o)return['Modernizá:','tocá un edificio con ↑ (viene de otra era): modernizado rinde como nuevo.'];}
   const next=TECHS.find(t=>!st.techs[t.id]&&t.req.every(r=>st.techs[r]));
   if(!next)return[ERA.done,'Seguí creciendo tu ciudad.'];
-  const miss=Object.entries(next.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>Math.ceil(v-st.res[k])+' '+RN[k].toLowerCase());
+  const miss=Object.entries(next.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>num(Math.ceil(v-st.res[k]))+' '+RN[k].toLowerCase());
   return miss.length?['Próximo: '+next.name+'.','Faltan '+miss.join(', ')+'.']:['Próximo: '+next.name+'.','Listo, abrí Inventos.'];
 }
 // La amenaza que está pasando ahora, si hay una: la carrera, un servidor caído o virus, robots desalineados o bichos.
@@ -2391,7 +2405,7 @@ let sheetMode=null,sheetSel=null,sheetSig='',sheetHeld=false,lastGoal='';
 function hud(){
   const{pr,us}=economy();
   for(const k of RK){
-    chipEl[k].querySelector('b').textContent=Math.floor(st.res[k]);
+    chipEl[k].querySelector('b').textContent=num(Math.floor(st.res[k]));
     const sm=chipEl[k].querySelector('small'),net=(pr[k]-us[k])*60,full=st.res[k]>=cap(k);
     sm.classList.toggle('full',full||net<-0.05&&st.res[k]<5);
     // Con objetos las fichas son más angostas: los números grandes van sin decimales.
@@ -2462,7 +2476,7 @@ function defenseRow(p){if(ERA.ufos){ufoRow(p);return;}if(ERA.rifts){riftRow(p);r
       nb?(ERA.plague?nb+' con peste':ERA.infect?nb+' con virus':ERA.hijack?nb+(nb===1?' tomado':' tomados'):ERA.luddites?nb+(nb===1?' roto':' rotos'):nb+(nb===1?' dañado':' dañados')):sh.length?(ERA.goo?'sin nanobots':ERA.meteors?'cielo tranquilo':ERA.infect?'compus cuidadas':ERA.hijack?'robots vigilados':ERA.plague?'sin peste':ERA.locusts?'campo tranquilo':ERA.luddites?'obreros tranquilos':'costa tranquila'):'sin '+D.label.toLowerCase();}}
 
 /* ---------- hojas ---------- */
-const costHTML=c=>'<div class="costs">'+Object.entries(c).map(([k,v])=>'<span class="cost'+(st.res[k]>=v?'':' miss')+'"><img class="px" alt="'+RN[k]+'" src="'+ICON[k]+'">'+v+'</span>').join('')+'</div>';
+const costHTML=c=>'<div class="costs">'+Object.entries(c).map(([k,v])=>'<span class="cost'+(st.res[k]>=v?'':' miss')+'"><img class="px" alt="'+RN[k]+'" src="'+ICON[k]+'">'+num(v)+'</span>').join('')+'</div>';
 function prodLine(b){const p=prodOf(b);const parts=Object.entries(p).map(([k,v])=>'+'+fmt(v*60)+' '+RN[k].toLowerCase()+'/min');return parts.length?' Ahora: '+parts.join(', ')+'.':'';}
 function renderSheet(){
   const body=$('sheetBody');
@@ -2600,49 +2614,49 @@ $('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tec
 const INFO=ERA.info;
 // Lo que resuelve un toque sobre una amenaza (o sobre un edificio que dejó una amenaza): lo usan tus toques y los guardianes.
 function tapThreat(tx,ty){
-  {const hit=viruses.find(v=>Math.hypot(v.x-tx,v.y-ty)<=1.2);if(hit){hit.dead=true;viruses=viruses.filter(v=>!v.dead);st.res.ideas+=2;float(hit.x,hit.y,'+2 ideas',RCOL.ideas);return true;}}
+  {const hit=viruses.find(v=>Math.hypot(v.x-tx,v.y-ty)<=1.2);if(hit){hit.dead=true;viruses=viruses.filter(v=>!v.dead);st.res.ideas+=2*IX;float(hit.x,hit.y,ideaTxt(2),RCOL.ideas);return true;}}
   // Un ovni se toca donde se lo ve, arriba, o en el rayo mientras levanta a alguien.
   {const hit=ufos.find(u=>ufoOut(u)&&(Math.hypot(u.x-tx,u.y-1-ty)<=1.5||(u.state==='beam'&&Math.hypot(u.x-tx,u.y-ty)<=1.2)));
-    if(hit){const held=hit.state==='beam';scareUfo(hit,'¡espantado!');st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast(held?'¡Ovni espantado! Soltó a '+(hit.prey&&hit.prey.bot?'tu robot.':'tu aldeano.'):'¡Ovni espantado!');return true;}}
+    if(hit){const held=hit.state==='beam';scareUfo(hit,'¡espantado!');st.res.ideas+=2*IX;float(hit.x,hit.y-0.6,ideaTxt(2),RCOL.ideas);toast(held?'¡Ovni espantado! Soltó a '+(hit.prey&&hit.prey.bot?'tu robot.':'tu aldeano.'):'¡Ovni espantado!');return true;}}
   for(const m of AM)if(m.tap){const r=m.tap(tx,ty);if(r)return r;}
   // Un agujero negro pide un toque por cada punto de masa: cada uno lo achica y el último lo evapora.
   {const hit=holes.find(h=>holeOut(h)&&Math.hypot(h.x-tx,h.y-ty)<=1.3);
     if(hit){hit.m-=1;zaps.push({x:hit.x,y:hit.y,t:0.4});
-      if(hit.m<=0.001){killHole(hit,'¡evaporado!');st.res.ideas+=2;float(hit.x,hit.y-0.4,'+2 ideas',RCOL.ideas);toast('¡Agujero negro evaporado!');}
-      else{st.res.ideas+=1;float(hit.x,hit.y-0.4,'+1 idea',RCOL.ideas);const n=Math.ceil(hit.m);toast('¡Se achicó! Le '+(n===1?'falta 1 toque':'faltan '+n+' toques')+'.');}
+      if(hit.m<=0.001){killHole(hit,'¡evaporado!');st.res.ideas+=2*IX;float(hit.x,hit.y-0.4,ideaTxt(2),RCOL.ideas);toast('¡Agujero negro evaporado!');}
+      else{st.res.ideas+=1*IX;float(hit.x,hit.y-0.4,ideaTxt(1),RCOL.ideas);const n=Math.ceil(hit.m);toast('¡Se achicó! Le '+(n===1?'falta 1 toque':'faltan '+n+' toques')+'.');}
       return true;}}
   // Una grieta se toca sobre el edificio que hace retroceder (o mientras salta al que sigue): se cierra y ese edificio vuelve al presente.
   {const hit=rifts.find(r=>riftOut(r)&&Math.hypot(r.x-tx,r.y-ty)<=(r.state==='move'?1.3:0.75));
-    if(hit){const back=hit.state!=='move'&&restore(hit.i);closeRift(hit,'¡cerrada!');st.res.ideas+=2;float(hit.x,hit.y-1.1,'+2 ideas',RCOL.ideas);
+    if(hit){const back=hit.state!=='move'&&restore(hit.i);closeRift(hit,'¡cerrada!');st.res.ideas+=2*IX;float(hit.x,hit.y-1.1,ideaTxt(2),RCOL.ideas);
       toast(back?'¡Grieta cerrada! '+nameOf(obj[hit.i])+' volvió al presente.':'¡Grieta cerrada!');save();return true;}}
   // Una nube de nanobots se apaga tocando cualquiera de sus casilleros.
-  if(goos.length){const g=gooAt(ty*MW+tx);if(g){killGoo(g,'¡apagada!');st.res.ideas+=2;float(tx,ty-0.6,'+2 ideas',RCOL.ideas);toast('¡Nanobots apagados!');return true;}}
+  if(goos.length){const g=gooAt(ty*MW+tx);if(g){killGoo(g,'¡apagada!');st.res.ideas+=2*IX;float(tx,ty-0.6,ideaTxt(2),RCOL.ideas);toast('¡Nanobots apagados!');return true;}}
   // Un meteorito se toca donde se lo ve, o en la marca del suelo.
   {const hit=meteors.find(m=>{const p=meteorPos(m);return Math.hypot(p.x-tx,p.y-ty)<=1.6||Math.hypot(m.x-tx,m.y-ty)<=1.2;});
-    if(hit){hit.dead=true;meteors=meteors.filter(m=>!m.dead);const p=meteorPos(hit);zaps.push({x:p.x,y:p.y,t:0.5});st.res.ideas+=2;float(p.x,p.y,'+2 ideas',RCOL.ideas);return true;}}
+    if(hit){hit.dead=true;meteors=meteors.filter(m=>!m.dead);const p=meteorPos(hit);zaps.push({x:p.x,y:p.y,t:0.5});st.res.ideas+=2*IX;float(p.x,p.y,ideaTxt(2),RCOL.ideas);return true;}}
   {const hit=pirates.find(p=>!(p.wait>0)&&Math.hypot(p.x-tx,p.y-ty)<=1.3);
-    if(hit){giveBack(hit);hit.dead=true;pirates=pirates.filter(p=>!p.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Pirata ahuyentado!');return true;}}
+    if(hit){giveBack(hit);hit.dead=true;pirates=pirates.filter(p=>!p.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2*IX;float(hit.x,hit.y-0.6,ideaTxt(2),RCOL.ideas);toast('¡Pirata ahuyentado!');return true;}}
   {const hit=moths.find(m=>loose(m)&&Math.hypot(m.x-tx,m.y-0.4-ty)<=1.4);
-    if(hit){hit.dead=true;moths=moths.filter(m=>!m.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Polilla atrapada!');return true;}}
+    if(hit){hit.dead=true;moths=moths.filter(m=>!m.dead);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2*IX;float(hit.x,hit.y-0.6,ideaTxt(2),RCOL.ideas);toast('¡Polilla atrapada!');return true;}}
   {const hit=storms.find(w=>Math.hypot(w.x-tx,w.y-0.6-ty)<=1.8);
-    if(hit){hit.dead=true;storms=storms.filter(w=>!w.dead);zaps.push({x:hit.x,y:hit.y-0.6,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-1,'+2 ideas',RCOL.ideas);toast('¡Tormenta disipada!');return true;}}
+    if(hit){hit.dead=true;storms=storms.filter(w=>!w.dead);zaps.push({x:hit.x,y:hit.y-0.6,t:0.5});st.res.ideas+=2*IX;float(hit.x,hit.y-1,ideaTxt(2),RCOL.ideas);toast('¡Tormenta disipada!');return true;}}
   {const hit=spies.find(s=>spyOut(s)&&Math.hypot(s.x-tx,s.y-ty)<=1.3);
-    if(hit){catchSpy(hit,'+2 ideas');spies=spies.filter(s=>!s.dead);st.res.ideas+=2;toast(hit.loot?'¡Espía atrapado! Recuperaste los planos.':'¡Espía atrapado!');return true;}}
+    if(hit){catchSpy(hit,ideaTxt(2));spies=spies.filter(s=>!s.dead);st.res.ideas+=2*IX;toast(hit.loot?'¡Espía atrapado! Recuperaste los planos.':'¡Espía atrapado!');return true;}}
   {const hit=ludds.find(l=>angry(l)&&Math.hypot(l.x-tx,l.y-ty)<=1.3);
-    if(hit){luddHome(hit);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('Luddita calmado: vuelve a su casa.');return true;}}
+    if(hit){luddHome(hit);zaps.push({x:hit.x,y:hit.y,t:0.5});st.res.ideas+=2*IX;float(hit.x,hit.y-0.6,ideaTxt(2),RCOL.ideas);toast('Luddita calmado: vuelve a su casa.');return true;}}
   {const hit=swarms.find(w=>Math.hypot(w.x-tx,w.y-ty)<=1.5);
-    if(hit){scatter(hit);swarms=swarms.filter(w=>!w.dead);st.res.ideas+=2;float(hit.x,hit.y-0.6,'+2 ideas',RCOL.ideas);toast('¡Langostas espantadas!');return true;}}
-  {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){realign(hit);st.res.ideas+=3;float(hit.x,hit.y-0.6,'+3 ideas',RCOL.ideas);toast('Robot realineado');save();return true;}}
+    if(hit){scatter(hit);swarms=swarms.filter(w=>!w.dead);st.res.ideas+=2*IX;float(hit.x,hit.y-0.6,ideaTxt(2),RCOL.ideas);toast('¡Langostas espantadas!');return true;}}
+  {const hit=vil.find(v=>v.bad&&Math.hypot(v.x-tx,v.y-ty)<=1.3);if(hit){realign(hit);st.res.ideas+=3*IX;float(hit.x,hit.y-0.6,ideaTxt(3),RCOL.ideas);toast('Robot realineado');save();return true;}}
   if(!inb(tx,ty))return false;
   const o=obj[ty*MW+tx];
-  if(o&&o.past&&BUILD[o.t]){const was=nameOf(o);restore(ty*MW+tx);st.res.ideas+=2;float(tx,ty,'+2 ideas',RCOL.ideas);toast((was!==nameOf(o)?was+' → ':'')+nameOf(o)+': volvió al presente.');save();return 'b';}
+  if(o&&o.past&&BUILD[o.t]){const was=nameOf(o);restore(ty*MW+tx);st.res.ideas+=2*IX;float(tx,ty,ideaTxt(2),RCOL.ideas);toast((was!==nameOf(o)?was+' → ':'')+nameOf(o)+': volvió al presente.');save();return 'b';}
   if(!o||!o.bug||!BUILD[o.t])return false;
     if(o.bug&&o.t==='servidor'){o.bug=false;o.bugAge=0;GRID=null;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Servidor limpio! La red vuelve a andar.');save();return 'b';}
-    if(o.bug&&hijackable(o)){const r=vil.find(v=>v.at===ty*MW+tx);if(r){realign(r);st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);}else{o.bug=false;BROKEN=null;}toast('Robot realineado: el edificio vuelve a producir.');save();return 'b';}
+    if(o.bug&&hijackable(o)){const r=vil.find(v=>v.at===ty*MW+tx);if(r){realign(r);st.res.ideas+=3*IX;float(tx,ty,ideaTxt(3),RCOL.ideas);}else{o.bug=false;BROKEN=null;}toast('Robot realineado: el edificio vuelve a producir.');save();return 'b';}
     if(o.bug&&infectable(o)){o.bug=false;o.bugAge=0;BROKEN=null;float(tx,ty,'¡limpio!','#5fe3d0');toast('¡Virus borrado! Vuelve a producir.');save();return 'b';}
-    if(o.bug&&sickable(o)){o.bug=false;o.bugAge=0;o.heal=0;BROKEN=null;st.res.ideas+=2;float(tx,ty,'+2 ideas',RCOL.ideas);toast('¡Peste curada!');save();return 'b';}
+    if(o.bug&&sickable(o)){o.bug=false;o.bugAge=0;o.heal=0;BROKEN=null;st.res.ideas+=2*IX;float(tx,ty,ideaTxt(2),RCOL.ideas);toast('¡Peste curada!');save();return 'b';}
     if(o.bug&&(ERA.meteors||ERA.luddites||ERA.storms||ERA.holes)){o.bug=false;BROKEN=null;GRID=null;float(tx,ty,'¡reparado!','#93d36c');o.fix=0;toast(ERA.luddites?'Máquinas arregladas: vuelve a producir.':ERA.storms?'Arreglado: vuelve la luz.':BUILD[o.t].name+' reparado.');save();return 'b';}
-    if(o.bug){o.bug=false;o.bugAge=0;st.res.ideas+=3;float(tx,ty,'+3 ideas',RCOL.ideas);toast('¡Bicho aplastado!');save();return 'b';}
+    if(o.bug){o.bug=false;o.bugAge=0;st.res.ideas+=3*IX;float(tx,ty,ideaTxt(3),RCOL.ideas);toast('¡Bicho aplastado!');save();return 'b';}
   return false;
 }
 function onTap(tx,ty){
@@ -2713,7 +2727,7 @@ if(!st.seen)showIntro();
 requestAnimationFrame(frame);
 if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;},vil,obj:()=>obj,update:dt=>update(dt),P,passable,onTap,HS,ERA,grid:()=>grid(),act:id=>act(id),
   bugCount:()=>bugCount(),bugSpread:()=>bugSpread(),viruses:()=>viruses,spawnVirus:c=>spawnVirus(c),virusEvery:()=>virusEvery(),spies:()=>spies,spawnSpies:()=>spawnSpies(),spyEvery:()=>spyEvery(),cityRate:()=>cityRate(),misalign:v=>misalign(v),badSpread:()=>badSpread(),
-  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),rifts:()=>rifts,spawnRift:()=>spawnRift(),riftEvery:()=>riftEvery(),holes:()=>holes,spawnHoles:()=>spawnHoles(),holeEvery:()=>holeEvery(),guards:()=>guards,threatTargets:()=>threatTargets(),guardArt:(k,f)=>guardArt(k,f),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k),
+  rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),rifts:()=>rifts,spawnRift:()=>spawnRift(),riftEvery:()=>riftEvery(),holes:()=>holes,spawnHoles:()=>spawnHoles(),holeEvery:()=>holeEvery(),guards:()=>guards,threatTargets:()=>threatTargets(),guardArt:(k,f)=>guardArt(k,f),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>counts,economy:()=>economy(),IX,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k),
   // Las amenazas en archivos propios: dónde tocarlas (el bot) y una tanda a propósito (la huella); cada una suma sus funciones.
   vehicles:()=>vehicles,celebrate:id=>celebrate(id),gearTier:()=>gearTier(),
   botTaps:()=>{const Q=[];for(const m of AM)if(m.botTaps)Q.push(...m.botTaps());else if(m.targets)m.targets((x,y,tx,ty)=>Q.push([tx,ty]));return Q;},prueba:()=>amEach('prueba')};

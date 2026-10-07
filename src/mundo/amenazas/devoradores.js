@@ -51,7 +51,7 @@ function eaterKill(c,e,txt){e.dead=true;c.pack=c.pack.filter(q=>q!==e);zaps.push
 function eaterClose(c){if(c.state==='close')return;c.state='close';c.ct=0;zaps.push({x:c.rift[0],y:c.rift[1],t:0.6});}
 // "1 idea", "3 ideas", "1 moneda": el nombre del recurso en singular cuando es uno.
 const eaterRN=(k,n)=>n===1&&(k==='ideas'||k==='monedas')?RN[k].toLowerCase().slice(0,-1):RN[k].toLowerCase();
-const eaterAte=c=>Object.entries(c.ate).filter(([,v])=>v>0).map(([k,v])=>v+' '+eaterRN(k,v)).join(' y ');
+const eaterAte=c=>Object.entries(c.ate).filter(([,v])=>v>0).map(([k,v])=>fmt(v)+' '+eaterRN(k,v)).join(' y ');
 function updateEaters(dt){if(!eaterBroods.length)return;const TW=towersXY(),sp=eaterSplit();
   for(const c of eaterBroods){c.t+=dt;
     if(c.state==='close'){c.ct+=dt;continue;}
@@ -78,8 +78,8 @@ function updateEaters(dt){if(!eaterBroods.length)return;const TW=towersXY(),sp=e
     if(!c.pack.length){if(c.state==='back'){const a=eaterAte(c);float(c.rift[0],c.rift[1]-1,'se fueron','#c8b8ff');if(a)toast('Los devoradores volvieron al vacío. Se comieron '+a+'.');}eaterClose(c);continue;}
     // Cada tanto comen, todos juntos, de lo que más tengas.
     if(c.state==='on'){c.bite+=dt;if(c.bite>=EATER_BITE_T){c.bite=0;const n=c.pack.filter(e=>e.state==='eat').length;
-      if(n){const k=RK.slice().sort((a,b)=>st.res[b]-st.res[a])[0],take=Math.min(Math.floor(st.res[k]),Math.round(n*EATER_BITE));
-        if(take>0){st.res[k]-=take;c.ate[k]=(c.ate[k]||0)+take;const m=eaterMid(c);float(m.x,m.y-0.6,'−'+take+' '+eaterRN(k,take),'#e8654d');}}}}}
+      if(n){const k=RK.slice().sort((a,b)=>relRes(b)-relRes(a))[0],take=Math.min(Math.floor(st.res[k]),Math.round(n*EATER_BITE*unitOf(k)));
+        if(take>0){st.res[k]-=take;c.ate[k]=(c.ate[k]||0)+take;const m=eaterMid(c);float(m.x,m.y-0.6,'−'+fmt(take)+' '+eaterRN(k,take),'#e8654d');}}}}}
   eaterBroods=eaterBroods.filter(c=>c.state!=='close'||c.ct<0.8);}
 // Devorador: una bola de vacío con estrellitas adentro, ojos dorados y una boca con dientes que se abre y se cierra (los dos
 // cuadros); abajo, unos flecos que se mueven. Se arma la primera vez que hace falta (cuando ya están las ayudas del arte).
@@ -136,7 +136,7 @@ amenaza({on:'eaters',
   row:eaterRow,
   // Cada toque mata al devorador más cercano; el último de la camada cierra la grieta.
   tap(tx,ty){let hit=null,hc=null,bd=EATER_HIT;for(const c of eaterBroods)for(const e of c.pack){const d=Math.hypot(e.x-tx,e.y-ty);if(d<=bd){bd=d;hit=e;hc=c;}}
-    if(!hit)return false;eaterKill(hc,hit,null);const last=!hc.pack.length,g=last?2:1;st.res.ideas+=g;float(hit.x,hit.y-1,'+'+g+(g===1?' idea':' ideas'),RCOL.ideas);
+    if(!hit)return false;eaterKill(hc,hit,null);const last=!hc.pack.length,g=last?2:1;st.res.ideas+=g*IX;float(hit.x,hit.y-1,ideaTxt(g),RCOL.ideas);
     if(last){eaterClose(hc);toast('¡Camada deshecha! La grieta se cerró.');}else toast('¡Uno menos! '+(hc.pack.length===1?'Queda 1.':'Quedan '+hc.pack.length+'.'));
     return true;},
   prueba(){for(let k=0;k<2;k++)spawnEaters(true);},

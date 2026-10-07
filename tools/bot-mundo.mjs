@@ -164,7 +164,10 @@ function oficios(){if(window.__noof||!E.oficios||!D.setOficio)return false;const
   if(best<0)return false;closeAll();D.onTap(best%MW,(best/MW)|0);const el=document.querySelector('[data-of="1"]');const done=!!el&&!el.disabled;
   if(done){el.click();S.of=(S.of||0)+1;(S.ofLog=S.ofLog||[]).push([Math.round(D.st.time),o[best].t]);}closeAll();return done;}
 let tick=0;const PACE=window.__pace||1;
-function step(){tick++;
+// Ideas al arrancar: cuántas por minuto da lo que hay (la ciudad que vino) y cuántos minutos de eso pagan las ideas de toda la era.
+function ideaStart(){if(!D.economy)return;const r=D.economy().pr.ideas*60,tot=E.techs.reduce((s,t)=>s+(t.cost.ideas||0),0);
+  S.ideaStart={min:Math.round(r),have:Math.round(D.st.res.ideas),cubre:r>0?Math.round(Math.max(0,tot-D.st.res.ideas)/r*10)/10:null};}
+function step(){tick++;if(tick===2)ideaStart();
   if(tick%(3*PACE)===0&&!window.__ignore)threats();
   if(tick%PACE)return;
   if(D.st.energy<30&&R().comida>=1){$('bEat').click();S.eats++;}
@@ -181,7 +184,7 @@ return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
     while(!D.st.won&&!D.st.lost&&D.st.time<maxMin*60){for(let k=0;k<10;k++)D.update(0.1);step();}
     closeAll();const n=E.builds.reduce((s,b)=>s+cnt(b.id),0);
     return{won:D.st.won,lost:!!D.st.lost,min:Math.round(D.st.time/6)/10,day:Math.floor(D.st.time/160)+1,vil:D.vil.filter(v=>!v.bot).length,bots:D.vil.filter(v=>v.bot).length,
-      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
+      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],ideaStart:S.ideaStart||null,of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
       legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety};}};
 })();`;
 
