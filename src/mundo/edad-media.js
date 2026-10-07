@@ -7,6 +7,11 @@ const ERA={
   lights:['herreria','monasterio','hospital','puerto','universidad'],
   // La peste enferma los edificios donde se junta gente y se contagia; el hospital los cuida a 4 casilleros (reglas en motor.html).
   plague:['casa','monasterio','feria','puerto','universidad'],defense:{id:'hospital',r:4,label:'Hospitales',of:['casa','monasterio','feria','puerto','universidad']},
+  // Adentro (octubre de 2026): en lo que produce, oficios (3 puestos; cada uno suma `v` a lo que produce ese edificio); lo demás
+  // se mejora hasta el nivel 3 (el efecto de cada nivel está en motor.html; el nivel 3 pide además hierro).
+  oficios:{granja:{n:'Campesino',ns:'Campesinos',v:0.5},fogata:{n:'Juglar',ns:'Juglares',v:0.5},aserradero:{n:'Leñador',ns:'Leñadores',v:0.5},
+    cantera:{n:'Cantero',ns:'Canteros',v:0.5},monasterio:{n:'Copista',ns:'Copistas',v:0.4},feria:{n:'Feriante',ns:'Feriantes',v:0.5},puerto:{n:'Marinero',ns:'Marineros',v:0.5}},
+  niveles:['casa','granero','herreria','hospital','molino','universidad','cuartel'],levelExtra:[{},{hierro:8}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'medico',building:'Casa del médico',unit:'Médico',done:'Casa del médico lista: llegó un médico',desc:'Trae un médico que sale solo a curar los edificios con peste a 8 casilleros o menos.',info:'Casa del médico: su médico cura la peste cerca.',tip:'una casa del médico: el médico sale solo a curar la peste.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
@@ -48,7 +53,7 @@ const ERA={
   text:{
     when:'476 d.C.',title:'La Edad Media',
     intro:'Tu pueblo ya es una ciudad. Hay hierro en las colinas, monasterios donde se copian libros y ferias donde se comercia. Pero también hay peste: se contagia entre casas, monasterios, ferias, puertos y universidades, y lo que se enferma rinde la mitad. La meta: construir la imprenta, para que el conocimiento se copie por miles.',
-    news:'Novedades: hierro, monasterios, ferias, molinos de viento, universidades y la peste: tocá lo que se enferma para curarlo antes de que contagie. Los hospitales cuidan lo que tienen alrededor.',
+    news:'Novedades: hierro, monasterios, ferias, molinos de viento, universidades, adentro de cada edificio oficios (copistas, juglares, feriantes…) o mejoras hasta el nivel 3, y la peste: tocá lo que se enferma para curarlo antes de que contagie. Los hospitales cuidan lo que tienen alrededor.',
     legacy:'Lo que trae tu ciudad de la Antigüedad',
     noLegacy:'No hay una Antigüedad terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. A veces brota la peste: lo que se enferma rinde la mitad (en una casa enferma, los aldeanos andan y trabajan a la mitad) y contagia lo que tiene cerca. Tocalo para curarlo; los hospitales cuidan lo que tienen alrededor. En la compu: flechas o WASD, E para juntar, F para comer.',
@@ -99,3 +104,88 @@ const VILPAL2=[{c:'#8c3a2a',C:'#5f2419',j:'#d4ae62',y:'#6b4526'},{c:'#4f6d8c',C:
 const HS={tree:treeArt(LEAF,false,false),stump:stumpArt(false),rock:rockArt(ROCK,false),rubble:rubbleArt(),ore:ironOreArt(),bush:bushArt('B'),bushE:bushArt('E'),fogata:epArt('fogata'),
   casa:halfTimberArt(),granja:epArt('granja'),aserradero:epArt('aserradero'),granero:epArt('granero'),herreria:epArt('herreria'),cantera:epArt('cantera'),monasterio:abbeyArt(),feria:fairArt(),molino:millArt(),aspas:sailsArt(),puerto:harborArt(),universidad:univArt(),hospital:hospitalArt(),
   hero:[personArt({c:'#5d7a3a',C:'#435a28',j:'#7a5434'},0),personArt({c:'#5d7a3a',C:'#435a28',j:'#7a5434'},1)],vil:VILPAL2.map(p=>[personArt(p,0),personArt(p,1)])};
+// Adentro de todo (octubre de 2026): lo que produce tiene oficios (ERA.oficios) y lo demás, niveles (ERA.niveles). Corazón de
+// cada construcción (HS.in_<id>, 176×200, dos cuadros) y lo que usa cada oficio o suma cada nivel (HS.inp_<id>).
+const MEK=hx('#1b1a24'),MEF=f=>f?[FIRE[0],FIRE[1],FIRE[2]]:[FIRE[1],FIRE[2],FIRE[3]],FLOUR=P4('#b3a98f','#d8d0bc','#ece6d6','#faf6ec');
+const BOOKC=['#8a1f1f','#2c6a98','#3f8f47','#b38b1f','#5a3a6a','#7a5434'].map(hx);
+// Una bolsa atada (de grano o de harina) y un barril con zunchos de hierro.
+const meSack=(a,x,y,c)=>{c=c||STRAW;ell(a,x,y,13,15,c[1]);ell(a,x-4,y-4,5,7,c[2]);rect(a,x-4,y-18,8,5,c[0]);ell(a,x,y-20,5,3,c[1]);};
+const meBarrel=(a,x,y,w,h)=>{w=w||32;h=h||44;const x0=x-w/2,y0=y-h/2;rect(a,x0,y0,w,h,WOOD[2]);rect(a,x0,y0,w/4,h,WOOD[3]);rect(a,x0+w*0.75,y0,w/4,h,WOOD[1]);
+  for(const k of[0.18,0.78])rect(a,x0,y0+h*k,w,3,IRON[2]);ell(a,x,y0,w/2,4,WOOD[3]);};
+const meBook=(a,x,y)=>{poly(a,[[x,y],[x+14,y-4],[x+28,y],[x+28,y+4],[x+14,y],[x,y+4]],hx('#f4f1e8'));line(a,x+14,y-4,x+14,y,MEK,1);for(let k=0;k<3;k++){rect(a,x+3,y-1+k*2-k,8,1,IRON[2]);rect(a,x+17,y-2+k*2,8,1,IRON[2]);}};
+function meCoreArt(t,f){return mkA(176,200,a=>{const F=MEF(f);
+  if(t==='granja'){for(const[x,y]of[[22,180],[50,180],[36,154]])meSack(a,x,y);meBarrel(a,96,170);
+    line(a,140,30,140,130,WOOD[2],3);rect(a,130,30,20,3,IRON[2]);for(const dx of[-8,0,8])line(a,140+dx,30,140+dx,14,IRON[3],2);
+    line(a,162,24,168,140,WOOD[2],3);ell(a,154,26,12,6,(i,j)=>j<0?IRON[3]:null);
+    const hy=f?190:184;ell(a,128,184,12,9,hx('#f4f1e8'));ell(a,138,hy-10,6,6,hx('#f4f1e8'));rect(a,136,hy-18,4,4,hx('#c8413b'));rect(a,143,hy-10,4,2,STRAW[3]);rect(a,124,192,2,6,STRAW[1]);rect(a,132,192,2,6,STRAW[1]);}
+  else if(t==='fogata'){poly(a,[[30,14],[146,14],[162,84],[14,84]],STONE2[1]);for(let y=20;y<84;y+=10)rect(a,24,y,128,1,STONE2[0]);rect(a,10,84,156,10,STONE2[3]);
+    rect(a,14,94,20,102,STONE2[2]);rect(a,142,94,20,102,STONE2[2]);rect(a,34,94,108,102,hx('#24242c'));
+    for(const x of[56,80,104])rect(a,x-14,184,30,8,WOOD[1]);const d=f?3:-3;
+    poly(a,[[52,186],[60,150],[70,162],[86+d,124],[100,160],[110,146],[122,186]],F[0]);poly(a,[[64,186],[76,156],[88-d,138],[98,160],[108,186]],F[1]);poly(a,[[76,186],[88+d,158],[98,186]],F[2]);
+    line(a,88,94,88,118,IRON[2],2);ell(a,88,132,22,15,IRON[1]);ell(a,88,120,22,4,IRON[2]);rect(a,66,118,44,3,IRON[3]);if(f)for(const[x,y]of[[80,110],[94,104]])rect(a,x,y,3,3,hx('#d6dae2'));}
+  else if(t==='aserradero'){for(const x of[34,124]){line(a,x-14,196,x+14,150,WOOD[1],4);line(a,x+14,196,x-14,150,WOOD[1],4);}
+    rect(a,8,136,158,18,WOOD[2]);rect(a,8,136,158,4,WOOD[3]);ell(a,8,145,6,9,RING[2]);ell(a,8,145,3,5,RING[1]);ell(a,166,145,6,9,RING[2]);ell(a,166,145,3,5,RING[1]);
+    const sy=f?-8:8;rect(a,88,96+sy,3,92,IRON[3]);rect(a,76,92+sy,28,6,WOOD[3]);rect(a,76,186+sy,28,6,WOOD[3]);
+    for(const x of[114,164])rect(a,x,24,5,72,WOOD[0]);for(let k=0;k<4;k++)rect(a,110,30+k*14,62,10,WOOD[1+(k%2)]);if(f)for(const[x,y]of[[84,160],[96,166],[80,170]])rect(a,x,y,3,2,RING[3]);}
+  else if(t==='cantera'){const cx=58,cy=104,R=52;line(a,cx,cy,cx-34,196,WOOD[1],5);line(a,cx,cy,cx+34,196,WOOD[1],5);
+    ell(a,cx,cy,R,R,(i,j)=>i*i+j*j>=(R-6)*(R-6)?WOOD[2]:null);for(let k=0;k<8;k++){const an=k*Math.PI/4+f*Math.PI/8;line(a,cx,cy,cx+Math.cos(an)*(R-4),cy+Math.sin(an)*(R-4),WOOD[1],3);}ell(a,cx,cy,7,7,WOOD[3]);
+    line(a,cx,cy,156,22,WOOD[2],4);line(a,156,22,156,108+(f?4:0),hx('#c9b27b'),2);rect(a,138,108+(f?4:0),36,24,STONE2[2]);rect(a,138,108+(f?4:0),36,4,STONE2[3]);
+    for(const[x,y,w]of[[112,168,58],[124,148,40]]){rect(a,x,y,w,28,STONE2[2]);rect(a,x,y,w,4,STONE2[3]);rect(a,x+w/2,y+4,2,24,STONE2[0]);}}
+  else if(t==='monasterio'){rect(a,6,36,62,160,WOOD[1]);for(let r=0;r<5;r++){const y=40+r*31;rect(a,6,y+26,62,4,WOOD[2]);for(let x=10,k=r;x<62;x+=7,k++)rect(a,x,y+2,6,24-(k%3)*2,BOOKC[k%BOOKC.length]);}
+    rect(a,116,118,8,72,WOOD[2]);rect(a,98,188,44,8,WOOD[1]);poly(a,[[90,104],[150,90],[152,100],[92,116]],WOOD[3]);meBook(a,100,100);
+    rect(a,159,170,4,26,IRON[1]);rect(a,151,166,20,4,IRON[2]);rect(a,157,142,8,24,hx('#f4f1e8'));poly(a,[[157,142],[161,126+(f?3:0)],[165,142]],F[1]);rect(a,160,136,2,6,F[2]);}
+  else if(t==='hospital'){rect(a,0,26,176,6,WOOD[1]);for(const x of[18,42,66,90]){line(a,x,32,x,46,STRAW[1]);blob(a,[[x,56,9],[x+4,62,6]],LEAF,null);}
+    rect(a,8,96,92,100,WOOD[1]);for(const y of[96,130,164])rect(a,8,y,92,4,WOOD[2]);
+    for(let r=0;r<3;r++)for(let k=0;k<4;k++){const x=22+k*22,y=118+r*34;ell(a,x,y,7,10,(r+k)%2?CLAY[2]:GLASS[1]);rect(a,x-5,y-14,10,4,WOOD[3]);}
+    rect(a,116,152,56,8,WOOD[2]);for(const x of[120,164])rect(a,x,160,5,36,WOOD[1]);ell(a,144,148,20,7,IRON[2]);ell(a,144,146,16,4,WA[f?2:3]);
+    rect(a,124,40,40,40,hx('#f4f1e8'));rect(a,140,46,8,28,hx('#c8413b'));rect(a,130,56,28,8,hx('#c8413b'));}
+  else if(t==='feria'){for(const x of[8,162])rect(a,x,56,6,140,WOOD[1]);for(let x=8;x<168;x++)rect(a,x,48,1,22,((x>>4)&1)?hx('#2c6a98'):hx('#e8c05a'));
+    for(let x=8;x<168;x+=16)ell(a,x+8,70,8,4,((x>>4)&1)?hx('#2c6a98'):hx('#e8c05a'));
+    rect(a,8,140,160,10,WOOD[2]);rect(a,12,150,152,46,WOOD[1]);for(const x of[24,84,144])rect(a,x,150,2,46,WOOD[0]);
+    for(const x of[28,52]){ell(a,x,132,12,8,hx('#e8c05a'));ell(a,x,128,12,4,hx('#f4d878'));}
+    for(const x of[86,108]){ell(a,x,132,11,7,CLAY[2]);for(const d of[-4,0,4])line(a,x+d-2,128,x+d+2,134,CLAY[0],1);}blob(a,[[140,132,8],[152,130,8],[146,124,7]],BERRY,null);
+    line(a,88,6,88,48,WOOD[2],2);poly(a,[[90,8],[120,14+(f?4:-2)],[90,24]],hx('#c8413b'));}
+  else if(t==='molino'){const cx=72,cy=74,R=46;ell(a,cx,cy,R,R,(i,j)=>i*i+j*j>=(R-7)*(R-7)?WOOD[2]:null);
+    for(let k=0;k<12;k++){const an=k*Math.PI/6+f*Math.PI/12;rect(a,Math.round(cx+Math.cos(an)*(R+2))-3,Math.round(cy+Math.sin(an)*(R+2))-3,7,7,WOOD[3]);}
+    for(let k=0;k<4;k++){const an=k*Math.PI/2+f*Math.PI/12;line(a,cx,cy,cx+Math.cos(an)*(R-6),cy+Math.sin(an)*(R-6),WOOD[1],4);}ell(a,cx,cy,8,8,WOOD[3]);
+    rect(a,cx-3,cy,6,92,WOOD[1]);rect(a,22,168,100,18,STONE2[1]);ell(a,72,168,50,9,STONE2[2]);ell(a,72,166,44,6,STONE2[3]);
+    for(const[x,y]of[[142,182],[164,182],[153,156]])meSack(a,x,y,FLOUR);if(f)for(const[x,y]of[[124,176],[128,170]])rect(a,x,y,2,2,FLOUR[3]);}
+  else if(t==='puerto'){for(let y=150;y<200;y++)for(let x=0;x<120;x++)a.set(x,y,(y+((x+f*4)>>3))%6?WA[1]:WA[3]);
+    poly(a,[[0,116],[108,116],[94,160],[0,160]],WOOD[1]);for(let y=124;y<160;y+=9)rect(a,0,y,104-(y-116)/3,1,WOOD[0]);rect(a,0,96,32,20,WOOD[2]);rect(a,0,92,34,4,WOOD[3]);
+    rect(a,58,8,4,108,WOOD[2]);const b=f?2:0;rect(a,30+b,20,58,62,FLOUR[2]);rect(a,30+b,44,58,10,hx('#c8413b'));rect(a,26,18,68,3,WOOD[2]);
+    rect(a,118,150,58,50,WOOD[2]);for(let x=118;x<176;x+=10)rect(a,x,150,2,50,WOOD[1]);meBarrel(a,134,128,26,36);meBarrel(a,162,128,26,36);meBarrel(a,148,96,26,36);}
+  else if(t==='universidad'){rect(a,14,92,50,104,WOOD[1]);poly(a,[[6,92],[72,92],[62,58],[16,58]],WOOD[2]);rect(a,10,128,58,8,WOOD[3]);meBook(a,24,124);rect(a,8,190,62,6,WOOD[2]);
+    rect(a,126,142,6,54,RING[1]);rect(a,114,192,30,4,RING[0]);const cx=129,cy=112;ell(a,cx,cy,26,26,(i,j)=>Math.abs(Math.hypot(i,j)-24)<2?RING[2]:null);
+    ell(a,cx,cy,26,10,(i,j)=>Math.abs(Math.hypot(i/24,j/8)-1)<0.12?RING[3]:null);const w=f?10:16;ell(a,cx,cy,w+2,26,(i,j)=>Math.abs(Math.hypot(i/w,j/24)-1)<0.12?RING[3]:null);ell(a,cx,cy,6,6,hx('#4a78b8'));
+    rect(a,76,170,40,8,WOOD[2]);for(const x of[80,108])rect(a,x,178,4,18,WOOD[1]);}
+  else if(t==='casa'){rect(a,14,120,52,76,STONE2[2]);rect(a,8,112,64,8,STONE2[3]);rect(a,24,140,32,56,hx('#24242c'));
+    const d=f?2:-2;poly(a,[[28,196],[36,166],[40+d,152],[46,168],[52,196]],F[1]);poly(a,[[34,196],[40-d,172],[46,196]],F[2]);line(a,40,112,40,140,IRON[2],2);ell(a,40,150,10,8,IRON[1]);
+    rect(a,100,150,66,8,WOOD[2]);for(const x of[104,158])rect(a,x,158,5,38,WOOD[1]);ell(a,118,146,10,4,CLAY[2]);rect(a,140,128,14,20,CLAY[2]);ell(a,147,128,7,3,CLAY[3]);rect(a,152,132,4,8,CLAY[1]);
+    rect(a,100,70,66,5,WOOD[2]);for(const x of[106,158])rect(a,x,75,4,10,WOOD[1]);for(const x of[114,134,152])ell(a,x,60,9,10,(i,j)=>i*i+j*j<30?CLAY[3]:CLAY[2]);}
+  else if(t==='granero'){for(let r=0;r<3;r++)for(let k=0;k<4-r;k++)meSack(a,24+k*34+r*17,182-r*28);meBarrel(a,152,174,30,42);meBarrel(a,152,130,30,42);rect(a,0,196,176,4,WOOD[1]);}
+  else if(t==='herreria'){rect(a,10,110,72,86,BRICK[1]);for(let y=114;y<196;y+=8)rect(a,10,y,72,1,MORT);rect(a,22,124,48,30,hx('#24242c'));ell(a,46,150,20,8,(i,j)=>j<0?F[f?1:0]:F[2]);
+    rect(a,6,104,80,8,STONE2[2]);poly(a,[[20,104],[72,104],[60,20],[32,20]],BRICK[2]);
+    poly(a,[[90,150],[124,138+(f?6:0)],[124,162]],HIDE[1]);rect(a,124,146,10,10,WOOD[2]);
+    rect(a,124,176,36,8,IRON[2]);rect(a,116,170,26,8,IRON[3]);rect(a,134,184,14,12,IRON[1]);
+    const hx0=f?142:150,hy0=f?150:134;line(a,hx0,hy0,hx0+20,hy0+18,WOOD[2],3);rect(a,hx0-6,hy0-6,12,10,IRON[2]);if(f)for(const[x,y]of[[132,166],[140,160],[128,162]])rect(a,x,y,2,2,F[2]);}
+  else if(t==='cuartel'){rect(a,6,40,90,156,WOOD[1]);for(const y of[40,78,116,154])rect(a,6,y+34,90,4,WOOD[2]);
+    for(let r=0;r<4;r++)for(let k=0;k<4;k++){const x=18+k*21,y=58+r*38;ell(a,x,y,7,10,[GLASS[1],CLAY[2],LEAF[2],GLASS[2]][(r+k)%4]);rect(a,x-5,y-14,10,4,WOOD[3]);}
+    rect(a,106,150,64,8,WOOD[2]);for(const x of[110,162])rect(a,x,158,5,38,WOOD[1]);ell(a,130,142,12,8,STONE2[2]);ell(a,130,136,9,3,STONE2[0]);line(a,134,136,144,118+(f?3:0),WOOD[3],4);
+    blob(a,[[156,144,5],[160,140,4]],LEAF,null);line(a,108,30,108,60,STRAW[1]);blob(a,[[108,68,8]],LEAF,null);line(a,150,30,150,56,STRAW[1]);blob(a,[[150,64,8]],STRAW,null);}
+  outlineAll(a,MEK);});}
+function mePropArt(t){return mkA(112,112,a=>{
+  if(t==='granja'){for(let s=-8;s<9;s+=3)line(a,36,110,36+s,60,STRAW[2],2);rect(a,28,84,16,4,STRAW[0]);meSack(a,74,94);}
+  else if(t==='fogata'){rect(a,20,86,40,8,WOOD[2]);for(const x of[22,54])rect(a,x,94,5,16,WOOD[1]);ell(a,80,92,12,16,WOOD[3]);ell(a,80,92,4,4,MEK);line(a,80,78,94,40,WOOD[1],3);rect(a,90,34,8,8,WOOD[2]);}
+  else if(t==='aserradero'){for(const x of[24,88]){line(a,x-10,110,x+10,82,WOOD[1],3);line(a,x+10,110,x-10,82,WOOD[1],3);}rect(a,6,76,100,8,WOOD[3]);rect(a,6,76,100,2,RING[2]);}
+  else if(t==='cantera'){rect(a,18,72,62,38,STONE2[2]);rect(a,18,72,62,4,STONE2[3]);rect(a,48,76,2,34,STONE2[0]);line(a,86,108,98,80,WOOD[2],3);rect(a,92,72,14,10,WOOD[3]);line(a,82,74,90,62,IRON[3],2);}
+  else if(t==='monasterio'){rect(a,48,80,8,30,WOOD[2]);rect(a,34,106,36,4,WOOD[1]);poly(a,[[18,70],[86,58],[88,68],[20,82]],WOOD[3]);meBook(a,30,66);ell(a,82,54,4,4,MEK);line(a,84,52,92,36,hx('#f4f1e8'),1);}
+  else if(t==='feria'){rect(a,8,80,96,8,WOOD[2]);rect(a,12,88,88,22,WOOD[1]);ell(a,30,72,12,8,hx('#e8c05a'));ell(a,30,68,12,4,hx('#f4d878'));ell(a,64,72,11,7,CLAY[2]);blob(a,[[88,72,7],[94,66,6]],BERRY,null);}
+  else if(t==='puerto'){meBarrel(a,30,90,30,40);meBarrel(a,66,90,30,40);rect(a,80,74,26,36,WOOD[2]);line(a,80,74,106,110,WOOD[1],2);line(a,106,74,80,110,WOOD[1],2);}
+  else if(t==='casa'){rect(a,6,82,100,8,WOOD[2]);rect(a,8,70,96,14,STRAW[2]);rect(a,8,70,96,3,STRAW[3]);rect(a,40,64,64,12,hx('#8c3a2a'));rect(a,10,62,22,10,FLOUR[3]);for(const x of[8,98])rect(a,x,90,6,20,WOOD[1]);}
+  else if(t==='granero'){for(const y of[56,104])rect(a,6,y,100,5,WOOD[2]);for(const x of[6,100])rect(a,x,10,6,100,WOOD[1]);for(const x of[30,62,86])meSack(a,x,88);meBarrel(a,36,38,22,32);meBarrel(a,70,38,22,32);}
+  else if(t==='herreria'){rect(a,26,82,52,10,IRON[2]);rect(a,20,78,24,6,IRON[3]);rect(a,40,92,14,20,IRON[1]);line(a,70,72,90,52,WOOD[2],3);rect(a,84,46,14,10,IRON[2]);line(a,8,104,22,70,IRON[3],2);line(a,14,106,24,72,IRON[3],2);}
+  else if(t==='hospital'){rect(a,6,82,100,8,WOOD[2]);rect(a,8,70,96,14,FLOUR[2]);rect(a,8,70,96,3,FLOUR[3]);rect(a,44,64,60,10,hx('#8a1f1f'));rect(a,70,64,6,10,FLOUR[3]);rect(a,10,62,22,10,FLOUR[3]);for(const x of[8,98])rect(a,x,90,6,20,WOOD[1]);}
+  else if(t==='molino'){ell(a,56,100,46,10,STONE2[2]);rect(a,10,90,92,10,STONE2[1]);ell(a,56,90,46,8,STONE2[3]);ell(a,56,90,6,3,STONE2[0]);meSack(a,56,66,FLOUR);}
+  else if(t==='universidad'){rect(a,8,74,96,8,WOOD[2]);for(const x of[12,94])rect(a,x,82,6,28,WOOD[1]);rect(a,8,96,96,4,WOOD[1]);meBook(a,20,70);for(let k=0;k<4;k++)rect(a,64+k*8,52,7,22,BOOKC[k]);}
+  outlineAll(a,MEK);});}
+for(const t of['granja','fogata','aserradero','cantera','monasterio','hospital','feria','molino','puerto','universidad','casa','granero','herreria','cuartel']){HS['in_'+t]=[meCoreArt(t,0),meCoreArt(t,1)];if(t!=='cuartel')HS['inp_'+t]=mePropArt(t);}

@@ -63,7 +63,7 @@ En la hoja: "Escribas · 1 de 3", "Produce +40% → +80%", Sumar y Sacar uno. El
 | Biblioteca | potencia a las ideas | +30% → +45% → +60% | una estantería más |
 | Cuartel | soldados | 1 → 2 → 3 | un soldado más |
 
-Cada nivel cuesta 1,5 y 2,5 veces lo que costó el edificio, y el 3 pide además 8 de cobre (`ERA.levelExtra`).
+Cada nivel cuesta 1,5 y 2,5 veces lo que costó el edificio, y el 3 pide además 8 de cobre (`ERA.levelExtra`). Hasta que se hizo lo mismo en la Edad Media, la hoja de la atalaya mostraba el alcance mejorado pero los piratas se espantaban siempre a 4 casilleros; ahora las defensas que miden desde el edificio usan `defR`.
 
 **Balance.** Con el bot (la era sola, 10 corridas), lo que más falta son ideas y monedas, y algo de cobre:
 

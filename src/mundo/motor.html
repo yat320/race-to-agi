@@ -555,7 +555,7 @@ function misalign(v){v.bad=true;v.badT=0;v.carry=0;v.path=[];v.target=null;v.sta
 // en un edificio, y un edificio tomado sin robot (al cargar una partida) se libera.
 function hijackTick(step){const D=ERA.defense,cs=[];if(D)obj.forEach((o,i)=>{if(o&&o.t===D.id)cs.push(i);});
   for(const v of vil){if(!v.bad)continue;
-    if(cs.some(i=>Math.hypot(i%MW-v.x,((i/MW)|0)-v.y)<=D.r)){realign(v);zaps.push({x:v.x,y:v.y,t:0.5});float(v.x,v.y-0.6,'¡corregido!','#5fe3d0');continue;}
+    if(cs.some(i=>Math.hypot(i%MW-v.x,((i/MW)|0)-v.y)<=defR(i))){realign(v);zaps.push({x:v.x,y:v.y,t:0.5});float(v.x,v.y-0.6,'¡corregido!','#5fe3d0');continue;}
     if(v.at!=null){v.fixT=(v.fixT||0)+step;if(v.fixT>=BOT_FIX){realign(v);float(v.x,v.y-0.6,'¡reiniciado!','#5fe3d0');}}}
   obj.forEach((o,i)=>{if(hijackable(o)&&o.bug&&!vil.some(v=>v.at===i)){o.bug=false;BROKEN=null;}});}
 // Corrige a un robot desalineado y le devuelve el edificio que había tomado.
@@ -615,7 +615,7 @@ function spawnMeteor(){const bs=[],land=[];
   for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&BUILD[o.t]&&!o.bug)bs.push(i);}
   const c=bs.length?bs[Math.floor(Math.random()*bs.length)]:SPAWN[1]*MW+SPAWN[0];let i=c;
   if(!bs.length||Math.random()>=0.6){const cx=c%MW,cy=(c/MW)|0;for(let k=0;k<12;k++){const x=cx+Math.floor(Math.random()*13)-6,y=cy+Math.floor(Math.random()*13)-6;if(inb(x,y)&&ground[y*MW+x]!==WATER){i=y*MW+x;break;}}}
-  const x=i%MW,y=(i/MW)|0,T0=fallT(),sh=!!ERA.defense&&obj.some((o,j)=>o&&o.t===ERA.defense.id&&!o.bug&&Math.hypot(j%MW-x,((j/MW)|0)-y)<=ERA.defense.r);
+  const x=i%MW,y=(i/MW)|0,T0=fallT(),sh=!!ERA.defense&&obj.some((o,j)=>o&&o.t===ERA.defense.id&&!o.bug&&Math.hypot(j%MW-x,((j/MW)|0)-y)<=defR(j));
   meteors.push({x,y,t:T0,T:T0,sh});}
 function updateMeteors(dt){
   for(let i=0;i<obj.length;i++){const o=obj[i];if(!o||!o.bug||!BUILD[o.t])continue;o.fix=(o.fix||0)+dt;
@@ -892,7 +892,7 @@ function updatePirates(dt){const D=ERA.defense,towers=[];if(D)obj.forEach((o,i)=
   for(const p of pirates){if(p.wait>0){p.wait-=dt;continue;}
     stepEnt(p,dt,PIRATE_SPD);
     if(p.blocked){p.blocked=false;const[x,y]=tileOf(p);if(p.state==='go')p.path=pathAdj(x,y,p.target[0],p.target[1])||[];else pirateFlee(p);}
-    if(!p.scared&&towers.some(i=>Math.hypot(i%MW-p.x,((i/MW)|0)-p.y)<=D.r)){p.scared=true;float(p.x,p.y-1,'¡la atalaya!','#ffd35a');giveBack(p);pirateFlee(p);continue;}
+    if(!p.scared&&towers.some(i=>Math.hypot(i%MW-p.x,((i/MW)|0)-p.y)<=defR(i))){p.scared=true;float(p.x,p.y-1,'¡la atalaya!','#ffd35a');giveBack(p);pirateFlee(p);continue;}
     if(p.path.length)continue;
     if(p.state==='go'){const m=Math.min(Math.floor(st.res.monedas),PIRATE_COINS+Math.floor(st.res.monedas*PIRATE_CUT)),c=Math.min(Math.floor(st.res[ORE]),PIRATE_ORE);
       if(m+c>0){st.res.monedas-=m;st.res[ORE]-=c;p.loot={monedas:m,[ORE]:c};p.carry=1;p.kind=m?'monedas':ORE;float(p.x,p.y-0.6,'−'+lootText(p.loot),'#e8654d');
@@ -921,7 +921,7 @@ function spawnLocusts(){const fs=farms();if(!fs.length)return;const n=Object.key
 function scatter(w,txt){w.dead=true;zaps.push({x:w.x,y:w.y,t:0.5});if(txt)float(w.x,w.y-1,txt,'#ffd35a');}
 function updateLocusts(dt){const D=ERA.defense,towers=[];if(D)obj.forEach((o,i)=>{if(o&&o.t===D.id&&!o.bug)towers.push(i);});
   for(const w of swarms){
-    if(towers.some(i=>Math.hypot(i%MW-w.x,((i/MW)|0)-w.y)<=D.r)){scatter(w,'¡las palomas!');continue;}
+    if(towers.some(i=>Math.hypot(i%MW-w.x,((i/MW)|0)-w.y)<=defR(i))){scatter(w,'¡las palomas!');continue;}
     if(w.state==='eat'){const o=obj[w.ti];if(!o||o.t!=='granja'){w.state='fly';continue;}
       w.t+=dt;const e=Math.min(st.res.comida,LOCUST_FOOD*dt);st.res.comida-=e;w.food=(w.food||0)+e;
       if(w.food>=3){float(w.x,w.y-0.8,'−'+Math.round(w.food)+' comida','#e8654d');w.food=0;}
@@ -952,7 +952,7 @@ function spawnMoth(){const ts=mothTargets();if(!ts.length)return;const n=Object.
   toast(n>1?'¡Polillas! Vienen dos hacia tus máquinas: tocalas antes de que entren.':'¡Una polilla! Viene hacia tus máquinas: tocala antes de que entre.');}
 function updateMoths(dt){const D=ERA.defense,traps=[];if(D)obj.forEach((o,i)=>{if(o&&o.t===D.id)traps.push(i);});
   for(const m of moths){
-    if(loose(m)){const tr=traps.find(i=>Math.hypot(i%MW-m.x,((i/MW)|0)-m.y)<=D.r);if(tr!==undefined)m.trap=tr;}
+    if(loose(m)){const tr=traps.find(i=>Math.hypot(i%MW-m.x,((i/MW)|0)-m.y)<=defR(i));if(tr!==undefined)m.trap=tr;}
     if(loose(m)){const o=obj[m.ti];if(!o||o.bug||!BUILD[o.t]||!grid().powered.has(m.ti)){const ts=mothTargets();if(!ts.length){m.dead=true;continue;}
       let bd=1e9;for(const i of ts){const d=Math.hypot(i%MW-m.x,((i/MW)|0)-m.y);if(d<bd){bd=d;m.ti=i;}}}}
     const g=loose(m)?m.ti:m.trap,gx=g%MW,gy=(g/MW)|0,d=Math.hypot(gx-m.x,gy-m.y),v=MOTH_SPD*dt*(loose(m)?1:1.8);
@@ -975,7 +975,7 @@ function spawnStorm(){const ts=[];for(let i=0;i<obj.length;i++)if(electric(obj[i
   toast('¡Tormenta! Viene una nube con rayos: tocala para disiparla.');}
 function strike(w){const near=[];for(let i=0;i<obj.length;i++){const o=obj[i];if(electric(o)&&!o.bug&&Math.hypot(i%MW-w.x,((i/MW)|0)-w.y)<=STORM_R)near.push(i);}
   if(!near.length)return;const ti=near[Math.floor(Math.random()*near.length)],tx=ti%MW,ty=(ti/MW)|0,D=ERA.defense;
-  let rod=-1;if(D)for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&o.t===D.id&&Math.hypot(i%MW-tx,((i/MW)|0)-ty)<=D.r){rod=i;break;}}
+  let rod=-1;if(D)for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&o.t===D.id&&Math.hypot(i%MW-tx,((i/MW)|0)-ty)<=defR(i)){rod=i;break;}}
   if(rod>=0){bolts.push({x:w.x,y:w.y,tx:rod%MW,ty:(rod/MW)|0,t:0.35});float(rod%MW,(rod/MW)|0,'¡pararrayos!','#ffd35a');return;}
   const o=obj[ti];o.bug=true;o.fix=0;GRID=null;BROKEN=null;bolts.push({x:w.x,y:w.y,tx,ty,t:0.35});float(tx,ty,'¡rayo!','#ffd35a');
   toast('¡Un rayo quemó '+(BUILD[o.t].node&&!BUILD[o.t].power?'un poste':BUILD[o.t].name.toLowerCase())+'! Tocalo para arreglarlo.');}
@@ -1036,7 +1036,7 @@ function spyHome(s){s.state='home';const[x,y]=tileOf(s);s.path=bfs(x,y,(a,b)=>a=
 function catchSpy(s,txt){s.dead=true;zaps.push({x:s.x,y:s.y,t:0.5});if(s.loot&&!st.won&&!st.lost){st.rival=Math.max(0,st.rival-s.loot);float(s.x,s.y-1.4,'rival −'+s.loot+'%','#93d36c');}float(s.x,s.y-0.6,txt,'#ffd35a');}
 function updateSpies(dt){const D=ERA.defense,posts=[];if(D)obj.forEach((o,i)=>{if(o&&o.t===D.id)posts.push(i);});
   for(const s of spies){if(s.wait>0){s.wait-=dt;continue;}
-    if(posts.some(i=>Math.hypot(i%MW-s.x,((i/MW)|0)-s.y)<=D.r)){catchSpy(s,'¡atrapado!');continue;}
+    if(posts.some(i=>Math.hypot(i%MW-s.x,((i/MW)|0)-s.y)<=defR(i))){catchSpy(s,'¡atrapado!');continue;}
     if(s.state==='copy'){s.t+=dt;if(s.t>=SPY_COPY){const o=obj[s.target];if(!st.won&&!st.lost){s.loot=SPY_GAIN;st.rival=Math.min(100,st.rival+SPY_GAIN);}
         float(s.x,s.y-1,'rival +'+SPY_GAIN+'%','#e8654d');toast('Un espía copió los planos de '+(o&&ERA.spies[o.t]||'tu ciudad')+': el rival avanza '+SPY_GAIN+'%. Tocalo antes de que vuelva y los recuperás.');spyHome(s);}
       continue;}
@@ -1054,7 +1054,7 @@ function updateSpies(dt){const D=ERA.defense,posts=[];if(D)obj.forEach((o,i)=>{i
 // Brota más seguido con cada invento (+10%) y con las rutas comerciales (+30%).
 const PLAGUE_START=120,PLAGUE_SPREAD=25;
 const plagueEvery=()=>70/((1+0.1*Object.keys(st.techs).length)*(st.techs.rutas?1.3:1));
-function guarded(i){const D=ERA.defense;if(!D)return false;const x=i%MW,y=(i/MW)|0;return obj.some((o,j)=>o&&o.t===D.id&&!o.bug&&Math.hypot(j%MW-x,((j/MW)|0)-y)<=D.r);}
+function guarded(i){const D=ERA.defense;if(!D)return false;const x=i%MW,y=(i/MW)|0;return obj.some((o,j)=>o&&o.t===D.id&&!o.bug&&Math.hypot(j%MW-x,((j/MW)|0)-y)<=defR(j));}
 const sickHome=v=>{if(!ERA.plague)return false;const o=obj[v.home[1]*MW+v.home[0]];return!!(o&&o.t==='casa'&&o.bug);};
 const sickable=o=>!!(ERA.plague&&o&&ERA.plague.includes(o.t));
 function plagueTick(step){const ps=[];for(let i=0;i<obj.length;i++)if(sickable(obj[i]))ps.push(i);
@@ -2458,13 +2458,13 @@ function ufoRow(p){const T=towersXY(),pop=vil.filter(v=>!v.away),cov=T.length?po
   $(p+'Meta').textContent=n?(n===1?'1 ovni en el cielo':n+' ovnis en el cielo'):away?away+(away===1?' llevado':' llevados'):T.length?'cielo despejado':'sin '+ERA.defense.label.toLowerCase();}
 // Con grietas temporales, la barra cuenta qué parte de lo que produce está cerca de un ancla.
 function riftRow(p){const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(riftable(o))bs.push(i);if(o&&o.t===D.id&&!o.bug)sh.push(i);});
-  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,n=rifts.filter(riftOut).length,np=obj.filter(o=>o&&o.past&&BUILD[o.t]).length,
+  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=defR(j))).length,n=rifts.filter(riftOut).length,np=obj.filter(o=>o&&o.past&&BUILD[o.t]).length,
     on=sh.length>0||n>0||np>0||st.time>=RIFT_START;$(p==='g'?'gridRow':'smogRow').hidden=!on;if(!on)return;const f=bs.length?cov/bs.length*100:0;
   $(p+'Fill').style.width=f+'%';$(p+'Fill').classList.toggle('hi',n>0||np>0);$(p+'Num').textContent=Math.round(f)+'%';
   $(p+'Meta').textContent=n?(n===1?'1 grieta abierta':n+' grietas abiertas'):np?np+' en el pasado':sh.length?'tiempo en calma':'sin '+D.label.toLowerCase();}
 // Con agujeros negros, la barra cuenta qué parte de los edificios está cerca de un repulsor.
 function holeRow(p){const D=ERA.defense,bs=[],sh=[];obj.forEach((o,i)=>{if(o&&BUILD[o.t]){bs.push(i);if(o.t===D.id&&!o.bug)sh.push(i);}});
-  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=D.r)).length,n=holes.filter(holeOut).length,no=vil.filter(v=>v.orb).length,nb=bugCount(),
+  const cov=bs.filter(i=>sh.some(j=>Math.hypot(j%MW-i%MW,((j/MW)|0)-((i/MW)|0))<=defR(j))).length,n=holes.filter(holeOut).length,no=vil.filter(v=>v.orb).length,nb=bugCount(),
     on=sh.length>0||n>0||nb>0||st.time>=HOLE_START;$(p==='g'?'gridRow':'smogRow').hidden=!on;if(!on)return;const f=bs.length?cov/bs.length*100:0;
   $(p+'Fill').style.width=f+'%';$(p+'Fill').classList.toggle('hi',n>0||nb>0);$(p+'Num').textContent=Math.round(f)+'%';
   $(p+'Meta').textContent=n?(n===1?'1 agujero negro':n+' agujeros negros')+(no?' · '+no+' en órbita':''):nb?nb+(nb===1?' estirado':' estirados'):sh.length?'gravedad en calma':'sin '+D.label.toLowerCase();}
