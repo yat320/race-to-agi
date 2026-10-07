@@ -184,7 +184,7 @@ return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
     while(!D.st.won&&!D.st.lost&&D.st.time<maxMin*60){for(let k=0;k<10;k++)D.update(0.1);step();}
     closeAll();const n=E.builds.reduce((s,b)=>s+cnt(b.id),0);
     return{won:D.st.won,lost:!!D.st.lost,min:Math.round(D.st.time/6)/10,day:Math.floor(D.st.time/160)+1,vil:D.vil.filter(v=>!v.bot).length,bots:D.vil.filter(v=>v.bot).length,
-      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],ideaStart:S.ideaStart||null,of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
+      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],ideaStart:S.ideaStart||null,cap:D.st.cap?{s:D.st.cap.s,d:D.st.cap.d}:null,of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
       legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety};}};
 })();`;
 
@@ -209,7 +209,7 @@ try {
       await p.evaluate(() => { window.__rtagiActive = 'fin'; });
       r.n = n; r.run = run; all.push(r);
       console.log('corrida ' + run + ' · ' + NAMES[n].padEnd(12) + (r.won ? ' terminada en ' + String(r.min).padStart(5) + ' min' : r.lost ? ' PERDIDA a los ' + r.min + ' min' : ' sin terminar a los ' + r.min + ' min') +
-        ' · día ' + r.day + ' · ' + r.vil + ' aldeanos' + (r.bots ? ' + ' + r.bots + ' robots' : '') + ' · ' + r.buildings + ' edificios · ' + r.taps + ' amenazas tocadas' + (r.mach ? ' · ' + r.mach + ' máquinas (' + r.crew + ' obreros)' : '') + (r.lv ? ' · ' + r.lv + ' niveles' : '') + (r.of ? ' · ' + r.of + ' oficios' : '') + (r.guard ? ' (+' + r.guard + ' por los guardianes)' : '') +
+        ' · día ' + r.day + ' · ' + r.vil + ' aldeanos' + (r.bots ? ' + ' + r.bots + ' robots' : '') + ' · ' + r.buildings + ' edificios · ' + r.taps + ' amenazas tocadas' + (r.mach ? ' · ' + r.mach + ' máquinas (' + r.crew + ' obreros)' : '') + (r.lv ? ' · ' + r.lv + ' niveles' : '') + (r.of ? ' · ' + r.of + ' oficios' : '') + (r.cap ? ' · capítulos ' + r.cap.d.map(x => x + ' s').join(' ') + ' (★ ' + r.cap.s.reduce((a, b) => a + (b || 0), 0) + ')' : '') + (r.guard ? ' (+' + r.guard + ' por los guardianes)' : '') +
         (r.rivalAt ? ' · rival ' + r.rival + '% (llegaba a los ' + r.rivalAt + ' min)' : '') + (r.smog ? ' · humo hasta ' + r.smog + '%' : '') + ' (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
       // La era siguiente lee la partida ganada de esta; si no se ganó, la cadena se corta.
       if (!r.won && !SOLO) break;

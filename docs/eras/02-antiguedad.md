@@ -77,3 +77,25 @@ Cada nivel cuesta 1,5 y 2,5 veces lo que costó el edificio, y el 3 pide además
 - **Los oficios ayudan si van donde falta.** El bot pone uno donde suma al menos 0,12 por segundo de lo que le falta al próximo invento, con una persona de cada 4 como mucho: escribas en el templo y marineros en el puerto. Un labrador hace menos que el aldeano que se lleva.
 - **Los niveles, como los usa el bot, atrasan un poco.** Mejora la herrería, el acueducto y las casas sin mirar qué falta, y se gasta el cobre de los inventos. Sacando las casas, la herrería o el acueducto de a uno da lo mismo (9,7 a 9,9): pesa el total. Son una decisión, no un atajo.
 - **Encadenada,** la Antigüedad da 7,5 (antes 7,4), y la Edad Media y el Renacimiento que siguen, 4,8 y 4,5.
+
+## Capítulos: metas con reloj (octubre de 2026)
+
+Juani: "es un embole el juego". Marcó todo lo que aburría (esperar sin hacer nada, que las eras sean iguales, que nada apure, que sea largo y repetitivo) y eligió metas con reloj, lo que funcionó en las misiones. Se prueba primero acá.
+
+La era se juega de a un **capítulo**: 2 a 4 metas y un reloj que arranca cuando empieza el capítulo. La fila dorada del HUD muestra las estrellas que te darían ahora, la primera meta que falta (con cuántas van) y cuánto queda para perder una estrella; en rojo los últimos 20 s. Tocarla abre la hoja de capítulos: el que está en curso con sus metas (✓ u ○) y sus tiempos, los cumplidos con sus estrellas y los que vienen. Al cumplir todas las metas sale un cartel con las estrellas y el premio, y arranca el siguiente. El final muestra las estrellas de cada capítulo.
+
+| Capítulo | Metas | ★★★ | ★★ | Premio con ★★★ |
+|---|---|---|---|---|
+| La aldea | 2 granjas, 2 casas, metalurgia | 2:00 | 3:00 | 15 ideas |
+| El cobre | herrería, atalaya, escritura | 1:30 | 2:15 | 25 |
+| Templos y monedas | moneda, templo, mercado | 1:15 | 2:00 | 35 |
+| El agua | irrigación, acueducto, echar un pirata | 3:00 | 4:30 | 50 |
+| El mar | navegación, puerto, alguien en un oficio, mejorar un edificio | 1:15 | 2:00 | 70 |
+| Los sabios | matemática, biblioteca, astronomía | 3:45 | 5:30 | 100 |
+| La máquina | engranajes, mecanismo de Anticitera | 4:45 | 7:00 | — |
+
+- **Estrellas:** ★★★ hasta el tiempo de oro, ★★ hasta el de plata y ★ después. El premio es por estrella (con ★★ da dos tercios).
+- **Las metas son de "tener":** un edificio cuenta si está al día con la era, así que lo que adelantaste en un capítulo te sirve en el siguiente. Si llegás a un capítulo con todo hecho, se cumple al toque con ★★★. "Echar un pirata" cuenta desde que empieza el capítulo y vale tocarlo, el soldado o la atalaya.
+- **Calibración:** como en las misiones, oro ≈ 2 veces lo que tarda el bot y plata ≈ 3 veces. El bot (sin perseguir las metas, con la ciudad de la Prehistoria) tarda por capítulo 45 a 69 s, 13 a 55, 0 a 57, 46 a 241 (espera la irrigación), 0 a 44, 0 a 125 y 100 a 185, y saca las 21 estrellas.
+- **Partidas de antes:** lo que ya estaba hecho cuando llegaron los capítulos cuenta como cumplido, sin estrellas ni premio, también si está más adelante. El reloj del primero que falta arranca al cargar.
+- **Dónde se guarda:** la partida guarda el capítulo (`cap`: en cuál vas, cuándo empezó, estrellas y tiempos de cada uno) y las amenazas echadas (`threats`). La mejor marca de cada capítulo va aparte, en `rtagi-estrellas-v1`, así sobrevive a "Reiniciar era".

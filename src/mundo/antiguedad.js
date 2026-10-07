@@ -12,6 +12,16 @@ const ERA={
   oficios:{granja:{n:'Labrador',ns:'Labradores',v:0.5},fogata:{n:'Cuentacuentos',ns:'Cuentacuentos',v:0.5},aserradero:{n:'Leñador',ns:'Leñadores',v:0.5},
     cantera:{n:'Picapedrero',ns:'Picapedreros',v:0.5},templo:{n:'Escriba',ns:'Escribas',v:0.4},mercado:{n:'Mercader',ns:'Mercaderes',v:0.5},puerto:{n:'Marinero',ns:'Marineros',v:0.5}},
   niveles:['casa','deposito','herreria','atalaya','acueducto','biblioteca','cuartel'],levelExtra:[{},{cobre:8}],
+  // Capítulos (octubre de 2026): metas con reloj, como en las misiones (reglas en motor.html). `oro` y `plata` en segundos de
+  // juego desde que empieza el capítulo: el doble y el triple de lo que tarda el bot; `premio` en ideas con ★★★.
+  capitulos:[
+    {name:'La aldea',oro:120,plata:180,premio:15,metas:[{t:'build',id:'granja',n:2,txt:'Tené 2 granjas'},{t:'build',id:'casa',n:2,txt:'Tené 2 casas'},{t:'tech',id:'metalurgia',txt:'Investigá la metalurgia'}]},
+    {name:'El cobre',oro:90,plata:135,premio:25,metas:[{t:'build',id:'herreria',txt:'Construí una herrería'},{t:'build',id:'atalaya',txt:'Construí una atalaya'},{t:'tech',id:'escritura',txt:'Investigá la escritura'}]},
+    {name:'Templos y monedas',oro:75,plata:120,premio:35,metas:[{t:'tech',id:'moneda',txt:'Investigá la moneda'},{t:'build',id:'templo',txt:'Construí un templo'},{t:'build',id:'mercado',txt:'Construí un mercado'}]},
+    {name:'El agua',oro:180,plata:270,premio:50,metas:[{t:'tech',id:'irrigacion',txt:'Investigá la irrigación'},{t:'build',id:'acueducto',txt:'Construí un acueducto'},{t:'tap',n:1,txt:'Echá un pirata'}]},
+    {name:'El mar',oro:75,plata:120,premio:70,metas:[{t:'tech',id:'navegacion',txt:'Investigá la navegación'},{t:'build',id:'puerto',txt:'Construí un puerto'},{t:'of',n:1,txt:'Poné a alguien en un oficio'},{t:'lv',n:1,txt:'Mejorá un edificio'}]},
+    {name:'Los sabios',oro:225,plata:330,premio:100,metas:[{t:'tech',id:'matematica',txt:'Investigá la matemática'},{t:'build',id:'biblioteca',txt:'Construí una biblioteca'},{t:'tech',id:'astronomia',txt:'Investigá la astronomía'}]},
+    {name:'La máquina',oro:285,plata:420,premio:0,metas:[{t:'tech',id:'engranajes',txt:'Investigá los engranajes'},{t:'tech',id:'anticitera',txt:'Armá el mecanismo de Anticitera'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'soldado',building:'Cuartel',unit:'Soldado',done:'Cuartel listo: llegó un soldado',desc:'Trae un soldado que patrulla cerca y sale solo a echar a los piratas a 8 casilleros o menos.',info:'Cuartel: su soldado echa a los piratas que andan cerca.',tip:'un cuartel: el soldado sale solo a echar a los piratas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
