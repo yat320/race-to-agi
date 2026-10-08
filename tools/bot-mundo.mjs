@@ -102,6 +102,8 @@ const SRC={};for(const b of E.builds)if(b.craft&&b.prod)for(const k in b.prod)SR
 function need(c){const m={},walk=(k,v,d)=>{if(d>3)return;if(SRC[k])for(const u in SRC[k])walk(u,v,d+1);else m[k]=(m[k]||0)+v;};for(const k in c)if((c[k]||0)>R()[k])walk(k,c[k]-R()[k],0);return m;}
 function nextTech(){return E.techs.find(t=>!has(t.id)&&t.req.every(r=>has(r)));}
 function gather(){const P=D.P;if(P.task||P.act||P.path.length)return;
+  // Las obras (ERA.obras) se levantan a mano: primero la más cercana.
+  {const ob=D.obras?D.obras():[];if(ob.length){const[px,py]=[Math.round(P.x),Math.round(P.y)],i=ob.sort((a,b)=>Math.hypot(a%MW-px,(a/MW|0)-py)-Math.hypot(b%MW-px,(b/MW|0)-py))[0];D.onTap(i%MW,(i/MW)|0);return;}}
   let k=null;if(R().comida<6)k='comida';
   const hands=E.n<5;
   // El edificio que fabrica lo que pide el próximo invento va primero: si no, la fundición se come la piedra y el taller no se hace nunca.
