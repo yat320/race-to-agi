@@ -17,3 +17,20 @@ Internet deja atrás la luz y el humo (ya no hay usinas ni chimeneas; ese códig
 ## Arte
 
 Litio, servidor con racks que titilan, antena reticulada, cibercafé, tienda online, invernadero, buscador con lupa, soporte técnico con auriculares en el cartel, ciudades con nombre arriba, fibra cian con paquetes que viajan (`drawWires`) y el virus (`HS.bug`, `drawViruses` en la red y `drawBug` en la compu infectada).
+
+## Como la Prehistoria: obras, mundo vivo y una era más corta (octubre de 2026)
+
+Juani: "llevá lo mismo a Internet", después de las eras de la Antigüedad a la Computación (ver sus docs).
+
+- **Obras** (`obras:true`): lo que ubicás queda en obra y lo levantan vos y hasta 2 aldeanos. Las antenas se ponen de una (`noObra`: solo estiran la red); el servidor sí es obra.
+- **Mundo vivo** (`vida:true`, el mismo `vida.js`):
+  - **Cabras sueltas** que se cazan por comida.
+  - **Sequía de verano:** las granjas rinden la mitad salvo que tengas un laboratorio de semillas, el edificio que las potencia.
+  - **Mercaderes con dos tratos**, desde el comercio electrónico (el invento de la tienda online).
+  - No hay puerto, así que no llegan barcos.
+- **Más corta:** sin el correo electrónico, que solo daba +50% de ideas. Quedan 8 inventos y los buscadores piden solo el comercio electrónico.
+  - Antivirus: 35 monedas y 200 ideas (antes 45 y 270).
+  - Banda ancha: 45 de litio, 35 monedas y 240 ideas (antes 60, 45 y 320).
+  - Teléfono inteligente: 80 de piedra, 60 de litio, 60 monedas y 450 ideas (antes 110, 90, 100 y 650).
+
+Con el bot (3 corridas): encadenada, 3,1 min (antes 4,2); sola, 8,3 (igual que antes: sin abaratar el antivirus daba 8,5, porque levantar las obras lleva su tiempo).
