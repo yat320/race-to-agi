@@ -2,7 +2,7 @@
 const ERA={
   n:3,name:'Edad Media',de:'de la Edad Media',obra:'la imprenta',next:{file:'mundo4.html',to:'al Renacimiento'},
   ore:{id:'hierro',name:'Hierro',col:'#b8c4d6',empty:'Veta de hierro agotada',gather:'hierro',icon:[['........','........','..kkkkk.','.kvqqqQk','kqqqqQQk','kQQQQQk.','.kkkkk..','........'],{q:'#9aa6b8',Q:'#5d6270',v:'#e3e8f0'}]},
-  storage:{id:'granero'},ideaBuild:'universidad',ideaTechs:['monasterios','universidades','anteojos'],boostTech:'reloj',farmBuild:'molino',nightTech:'anteojos',
+  storage:{id:'granero'},ideaBuild:'universidad',ideaTechs:['monasterios','universidades'],boostTech:'reloj',farmBuild:'molino',nightTech:'rutas',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','monasterio','hospital','puerto','universidad'],
   // La peste enferma los edificios donde se junta gente y se contagia; el hospital los cuida a 4 casilleros (reglas en motor.html).
@@ -12,6 +12,9 @@ const ERA={
   oficios:{granja:{n:'Campesino',ns:'Campesinos',v:0.5},fogata:{n:'Juglar',ns:'Juglares',v:0.5},aserradero:{n:'Leñador',ns:'Leñadores',v:0.5},
     cantera:{n:'Cantero',ns:'Canteros',v:0.5},monasterio:{n:'Copista',ns:'Copistas',v:0.4},feria:{n:'Feriante',ns:'Feriantes',v:0.5},puerto:{n:'Marinero',ns:'Marineros',v:0.5}},
   niveles:['casa','granero','herreria','hospital','molino','universidad','cuartel'],levelExtra:[{},{hierro:8}],
+  // Como la Prehistoria (octubre de 2026): obras a mano y mundo vivo (cabras, sequía que el molino salva, mercaderes desde los
+  // gremios y barcos en el puerto; src/mundo/amenazas/vida.js).
+  obras:true,vida:true,
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'medico',building:'Casa del médico',unit:'Médico',done:'Casa del médico lista: llegó un médico',desc:'Trae un médico que sale solo a curar los edificios con peste a 8 casilleros o menos.',info:'Casa del médico: su médico cura la peste cerca.',tip:'una casa del médico: el médico sale solo a curar la peste.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
@@ -24,11 +27,10 @@ const ERA={
  {id:'monasterios',name:'Monasterios',cost:{piedra:15,ideas:35},req:[],desc:'Desbloquea el monasterio, donde los monjes copian libros, y el hospital, que frena la peste. Ideas +50%.'},
  {id:'gremios',name:'Gremios',cost:{hierro:20,ideas:50},req:['forja'],desc:'Desbloquea la feria, que cambia comida por monedas.'},
  {id:'molinos',name:'Molinos de viento',cost:{madera:40,piedra:20,ideas:65},req:['monasterios'],desc:'Desbloquea el molino, que potencia las granjas.'},
- {id:'rutas',name:'Rutas comerciales',cost:{madera:60,hierro:20,ideas:95},req:['gremios'],desc:'Desbloquea el puerto: comercio con otras ciudades. Los barcos traen peste: brota 30% más seguido.'},
+ {id:'rutas',name:'Rutas comerciales',cost:{madera:60,hierro:20,ideas:95},req:['gremios'],desc:'Desbloquea el puerto: comercio con otras ciudades. Los barcos traen peste: brota 30% más seguido. De noche ves más lejos.'},
  {id:'universidades',name:'Universidades',cost:{monedas:30,ideas:130},req:['monasterios','gremios'],desc:'Desbloquea la universidad. Ideas +50%.'},
- {id:'anteojos',name:'Anteojos',cost:{monedas:45,ideas:270},req:['rutas','universidades'],desc:'Los sabios leen hasta viejos: ideas +50%. De noche ves más lejos.'},
- {id:'reloj',name:'Reloj mecánico',cost:{hierro:60,monedas:45,ideas:320},req:['forja','universidades'],desc:'Engranajes que miden el tiempo: todos los edificios producen +50%.'},
- {id:'imprenta',name:'Imprenta',cost:{piedra:110,hierro:90,monedas:100,ideas:650},req:['anteojos','reloj'],desc:'Tipos móviles de metal: los libros se copian por miles. Cierra la Edad Media.'}],
+ {id:'reloj',name:'Reloj mecánico',cost:{hierro:45,monedas:35,ideas:220},req:['forja','universidades'],desc:'Engranajes que miden el tiempo: todos los edificios producen +50%.'},
+ {id:'imprenta',name:'Imprenta',cost:{piedra:80,hierro:60,monedas:60,ideas:450},req:['rutas','reloj'],desc:'Tipos móviles de metal: los libros se copian por miles. Cierra la Edad Media.'}],
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},

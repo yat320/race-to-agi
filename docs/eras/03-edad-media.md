@@ -73,3 +73,19 @@ Cada nivel cuesta 1,5 y 2,5 veces lo que costó el edificio, y el 3 pide además
 | Con todo | 10,5 (10,2 a 11,1) |
 
 Pasa lo mismo que en la Antigüedad. Los oficios ayudan donde falta: el bot pone copistas en el monasterio y marineros en el puerto. Los niveles, como los usa el bot (sin mirar qué falta), se gastan el hierro y las monedas de los inventos. Encadenada, la Edad Media da 4,7 min (antes 4,8), y el Renacimiento y la Industria que siguen, 4,2 y 5.
+
+## Como la Prehistoria: obras, mundo vivo y una era más corta (octubre de 2026)
+
+Juani: "llevá lo mismo a la Edad Media", después de probarlo en la Antigüedad (ver su doc).
+
+- **Obras** (`obras:true`): lo que ubicás queda en obra y lo levantan vos y hasta 2 aldeanos.
+- **Mundo vivo** (`vida:true`, el mismo `vida.js` que la Antigüedad):
+  - **Cabras sueltas** que se cazan por comida.
+  - **Sequía de verano:** las granjas rinden la mitad salvo que tengas un molino, el edificio que las potencia.
+  - **Mercaderes con dos tratos**, desde los gremios (el invento de la feria).
+  - **Barcos de comercio** que atracan en el puerto.
+- **Más corta:** sin los anteojos, que solo daban +50% de ideas. La noche ahora la dan las rutas comerciales, así que quedan 8 inventos.
+  - Reloj: 45 de hierro, 35 monedas y 220 ideas (antes 60, 45 y 320).
+  - Imprenta: 80 de piedra, 60 de hierro, 60 monedas y 450 ideas (antes 110, 90, 100 y 650).
+
+Con el bot (3 corridas): encadenada, 3,7 min (antes 4,7); sola, 9,6 (antes 11,1).

@@ -169,14 +169,4 @@ function anPropArt(t){return mkA(112,112,a=>{
   else if(t==='acueducto'){ell(a,56,96,44,12,STONE2[2]);ell(a,56,94,38,8,WA[2]);rect(a,50,50,12,44,STONE2[3]);ell(a,56,50,12,5,STONE2[2]);line(a,56,46,56,40,WA[3],2);}
   else if(t==='biblioteca'){rect(a,10,10,92,100,WOOD[1]);for(let r=0;r<4;r++)for(let k=0;k<4;k++){const x=14+k*22,y=14+r*24;rect(a,x,y,19,20,WOOD[0]);for(let s=0;s<3;s++)ell(a,x+5+s*5,y+14,3,3,hx('#ecdcb0'));}}
   outlineAll(a,ANK);});}
-// Mundo vivo (vida.js): la cabra (dos cuadros), el mercader con su turbante y su bolsa, y el barco de comercio de vela a rayas.
-function goatArt(f){return mkA(64,64,a=>{const W=P4('#8a8070','#bdb5a2','#e3ddcc','#f6f1e4'),K=hx('#3a2418');ell(a,32,38,15,9,W[2]);ell(a,28,34,9,4,W[3]);
-  for(const[x,d]of[[22,f?2:0],[27,f?0:2],[37,f?2:0],[42,f?0:2]])rect(a,x+d-1,44,3,12,W[1]);ell(a,48,28,7,6,W[2]);ell(a,52,30,4,3,W[3]);
-  line(a,45,24,40,16,K,2);line(a,49,23,47,15,K,2);rect(a,51,27,2,2,hx('#1b1a24'));line(a,50,34,51,40,W[1],2);line(a,17,33,13,30,W[1],2);outlineAll(a,OUTL);});}
-function merchantArt(f){const c=personArt({c:'#7a3a8a',C:'#55285f',j:'#d4ae62',y:'#2a1a12'},f),g=c.getContext('2d');
-  g.fillStyle='#f4f1e8';g.fillRect(19,4,26,8);g.fillStyle='#e8c05a';g.fillRect(29,4,6,3);g.fillStyle='#a66a3a';g.fillRect(44,30,12,16);g.fillStyle='#7a4a2a';g.fillRect(44,30,12,3);return c;}
-function tradeShipArt(){return mkA(64,64,a=>{poly(a,[[4,40],[60,40],[52,54],[12,54]],WOOD[2]);rect(a,4,40,56,2,WOOD[3]);rect(a,10,46,44,1,WOOD[1]);
-  rect(a,31,6,2,34,WOOD[1]);for(let y=8;y<36;y++)for(let x=14;x<52;x++)if(Math.abs(x-32)<4+(y-8)*0.55)a.set(x,y,((y>>2)&1)?hx('#f6f1e4'):hx('#c8413b'));
-  for(const x of[18,30,42])ell(a,x,48,3,2,hx('#a66a3a'));rect(a,32,2,8,4,hx('#e8c05a'));outlineAll(a,OUTL);});}
-HS.cabra=[goatArt(0),goatArt(1)];HS.mercader=[merchantArt(0),merchantArt(1)];HS.nave=tradeShipArt();
 for(const t of['granja','fogata','aserradero','cantera','templo','mercado','puerto','casa','deposito','herreria','atalaya','acueducto','biblioteca','cuartel']){HS['in_'+t]=[anCoreArt(t,0),anCoreArt(t,1)];if(t!=='cuartel')HS['inp_'+t]=anPropArt(t);}
