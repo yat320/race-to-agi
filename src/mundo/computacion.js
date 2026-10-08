@@ -2,12 +2,15 @@
 const ERA={
   n:7,name:'Computación',de:'de la Computación',obra:'el microprocesador',next:{file:'mundo8.html',to:'a Internet'},
   ore:{id:'silicio',name:'Silicio',col:'#d8ccf0',empty:'Veta de cuarzo agotada',gather:'silicio',icon:[['........','...k....','..kvk.k.','..kqkkvk','.kqqkqk.','.kqQkQk.','..kkkk..','........'],{q:'#c8b8e8',Q:'#8a7ab8',v:'#ffffff'}]},
-  storage:{id:'granero'},ideaBuild:'universidad',ideaTechs:['lenguajes','satelite','universidades'],boostTech:'circuito',farmBuild:'galpon',nightTech:'satelite',
+  storage:{id:'granero'},ideaBuild:'universidad',ideaTechs:['satelite','universidades'],boostTech:'circuito',farmBuild:'galpon',nightTech:'satelite',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','usina','represa','trampa'],
   grid:'power',bugs:true,
   // Los bichos llegan volando: polillas atraídas por las máquinas; la trampa de luz atrapa las que pasan a 4 casilleros (reglas en motor.html).
   moths:true,defense:{id:'trampa',r:4,label:'Trampas'},
+  // Como la Prehistoria (octubre de 2026): obras que levantan vos y tu gente (los postes van de una) y mundo vivo (cabras,
+  // sequía que el galpón de tractores salva y mercaderes desde el transistor; sin puerto no hay barcos; src/mundo/amenazas/vida.js).
+  obras:true,vida:true,
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'exterminador',building:'Control de plagas',unit:'Exterminador',done:'Control de plagas listo: llegó un exterminador',desc:'Trae un exterminador con una red que sale solo a atrapar polillas y aplastar bichos, a 8 casilleros o menos.',info:'Control de plagas: su exterminador atrapa polillas cerca.',tip:'un control de plagas: el exterminador sale solo a atrapar polillas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
@@ -19,12 +22,11 @@ const ERA={
  {id:'eniac',name:'Computadora electrónica',cost:{silicio:15,ideas:30},req:[],desc:'Desbloquea la computadora, la trampa de luz, el taller y la cantera mecanizada. Llegan polillas que traban las máquinas.'},
  {id:'tractor',name:'Tractores',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea el galpón de tractores, que potencia las granjas.'},
  {id:'transistor',name:'Transistor',cost:{silicio:20,ideas:50},req:['eniac'],desc:'Desbloquea la oficina, que da monedas. Llegan 40% menos polillas.'},
- {id:'lenguajes',name:'Lenguajes de programación',cost:{madera:40,piedra:20,ideas:65},req:['eniac'],desc:'Programar se vuelve más fácil: ideas +50%.'},
  {id:'satelite',name:'Satélites',cost:{madera:60,silicio:20,ideas:95},req:['transistor'],desc:'Mirás desde el cielo: ideas +50% y de noche ves más lejos.'},
- {id:'universidades',name:'Carreras de computación',cost:{monedas:30,ideas:130},req:['lenguajes','transistor'],desc:'Desbloquea la universidad. Ideas +50%.'},
+ {id:'universidades',name:'Carreras de computación',cost:{monedas:30,ideas:130},req:['transistor'],desc:'Desbloquea la universidad. Ideas +50%.'},
  {id:'depuracion',name:'Depuración',cost:{monedas:45,ideas:270},req:['satelite','universidades'],desc:'Programas probados: llegan 40% menos polillas y las máquinas trabadas se depuran solas en la mitad de tiempo.'},
- {id:'circuito',name:'Circuito integrado',cost:{silicio:60,monedas:45,ideas:320},req:['transistor','universidades'],desc:'Muchos transistores en un chip: todos los edificios producen +50%.'},
- {id:'micro',name:'Microprocesador',cost:{piedra:110,silicio:90,monedas:100,ideas:650},req:['depuracion','circuito'],desc:'Toda una computadora en un chip. Cierra la Computación.'}],
+ {id:'circuito',name:'Circuito integrado',cost:{silicio:45,monedas:35,ideas:240},req:['transistor','universidades'],desc:'Muchos transistores en un chip: todos los edificios producen +50%.'},
+ {id:'micro',name:'Microprocesador',cost:{piedra:80,silicio:60,monedas:60,ideas:450},req:['depuracion','circuito'],desc:'Toda una computadora en un chip. Cierra la Computación.'}],
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},

@@ -17,3 +17,19 @@ La Computación suma los **bichos**, una amenaza que hay que tocar como las de l
 ## Arte
 
 Cuarzo, casa moderna con antena, centro de cómputos con lucecitas que titilan (`blink`), oficina de vidrio, trampa de luz violeta (`ERA.deco`), galpón con tractor, universidad con antena parabólica y la polilla (`HS.bug`, `drawBug` en la máquina trabada y `drawMoths` volando, con halo rojo).
+
+## Como la Prehistoria: obras, mundo vivo y una era más corta (octubre de 2026)
+
+Juani: "llevá lo mismo a la Computación", después de la Antigüedad, la Edad Media, el Renacimiento, la Industria y la Electricidad (ver sus docs).
+
+- **Obras** (`obras:true`): lo que ubicás queda en obra y lo levantan vos y hasta 2 aldeanos. Los postes se ponen de una (`noObra`).
+- **Mundo vivo** (`vida:true`, el mismo `vida.js`):
+  - **Cabras sueltas** que se cazan por comida.
+  - **Sequía de verano:** las granjas rinden la mitad salvo que tengas un galpón de tractores, el edificio que las potencia.
+  - **Mercaderes con dos tratos**, desde el transistor (el invento de la oficina).
+  - No hay puerto, así que no llegan barcos.
+- **Más corta:** sin los lenguajes de programación, que solo daban +50% de ideas. Quedan 8 inventos y las carreras de computación piden solo el transistor.
+  - Circuito integrado: 45 de silicio, 35 monedas y 240 ideas (antes 60, 45 y 320).
+  - Microprocesador: 80 de piedra, 60 de silicio, 60 monedas y 450 ideas (antes 110, 90, 100 y 650).
+
+Con el bot (3 corridas): encadenada, 4,5 min (antes 4,8); sola, 10 (antes 10,9).
