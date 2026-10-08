@@ -87,3 +87,21 @@ Juani: "tal vez podemos hacer que todas las construcciones sean interactivas". E
 - **Partidas:** el nivel se guarda con el edificio (`lv`, el noveno dato). Las partidas de antes se leen igual.
 
 El bot elige las máquinas por cuánto hacen de lo que le falta, y como mínimo 0,15 por segundo. Antes, la primera la ponía en el café a los 25 s y la era tardaba 11,9 min. Los niveles los usa así: mejora las casas cuando ya tiene 4, el depósito cuando se llena, la herrería, el parque con humo, y el palacio y la estación. Con todo, la era sola le da 10 min (9,7 a 10,4) y encadenada 5,5; sin máquinas ni niveles, 10,6. La Electricidad que sigue, con esa ciudad, da 5,5.
+
+## Como la Prehistoria: obras, mundo vivo y una era más corta (octubre de 2026)
+
+Juani: "llevá lo mismo a la Industria", después de la Antigüedad, la Edad Media y el Renacimiento (ver sus docs).
+
+- **Obras** (`obras:true`): lo que ubicás queda en obra y lo levantan vos y hasta 2 aldeanos. Desde la Industria no se juntan recursos a mano, pero las obras sí se levantan a mano. Lo que trae `starterKit` ya viene terminado.
+- **Mundo vivo** (`vida:true`, el mismo `vida.js`):
+  - **Cabras sueltas** que se cazan por comida.
+  - **Sequía de verano:** las granjas rinden la mitad salvo que tengas una estación de tren, el edificio que las potencia. `vida.js` ahora pone "un" o "una" según el nombre (`vidaUn`).
+  - **Mercaderes con dos tratos**, desde el telar mecánico (el invento de la fábrica).
+  - **Barcos de comercio** que atracan en el puerto.
+- **Más corta:** sin el alumbrado a gas, que solo daba +50% de ideas. La noche ahora la da el barco de vapor, así que quedan 8 inventos y la máquina analítica pide barcos y tarjetas.
+  - Tarjetas perforadas: 30 de carbón, 35 monedas, 10 engranajes y 240 ideas (antes 40, 45, 12 y 320).
+  - Máquina analítica: 60 de piedra, 45 de carbón, 12 de acero, 15 engranajes, 60 monedas y 450 ideas (antes 80, 60, 15, 20, 100 y 650).
+
+Con el bot:
+- Sola (3 corridas): 9,5 min (antes 10).
+- Encadenada (4 corridas): 3,9, 4,5, 4,6 y 7,5 min (antes, en 3 corridas, entre 4,8 y 5,6). La de 7,5 se queda corta de acero: el bot gasta el acero en niveles y máquinas antes que en el ferrocarril.
