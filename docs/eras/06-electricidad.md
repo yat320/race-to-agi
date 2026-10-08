@@ -17,3 +17,19 @@ La Electricidad suma la **red eléctrica** (`grid()`, se recalcula cuando cambia
 ## Arte
 
 Cobre, casa italianizante, usina, poste con farol, pararrayos, represa, fábrica eléctrica, laboratorio con lamparita, frigorífico y escuela, más los cables (`drawWires`), un rayo tachado que titila sobre lo que no tiene luz (`noPower`) y las tormentas (`drawStorms`: la nube con lluvia, su sombra con el halo rojo y los rayos en zigzag; lo quemado se ve con `drawDamage`).
+
+## Como la Prehistoria: obras, mundo vivo y una era más corta (octubre de 2026)
+
+Juani: "llevá lo mismo a la Electricidad", después de la Antigüedad, la Edad Media, el Renacimiento y la Industria (ver sus docs).
+
+- **Obras** (`obras:true`): lo que ubicás queda en obra y lo levantan vos y hasta 2 aldeanos. Los **postes** se ponen de una (`noObra`, en el motor: lo que solo estira la red, sin dar luz ni producir). Con el bot, como obras llegaban a juntarse 6 a la vez, ocupaban a los aldeanos y una corrida encadenada pasó de 4,7 a 9,8 min.
+- **Mundo vivo** (`vida:true`, el mismo `vida.js`):
+  - **Cabras sueltas** que se cazan por comida.
+  - **Sequía de verano:** las granjas rinden la mitad salvo que tengas un frigorífico con luz, el edificio que las potencia.
+  - **Mercaderes con dos tratos**, desde el motor eléctrico (el invento de la fábrica).
+  - No hay puerto, así que no llegan barcos.
+- **Más corta:** sin el teléfono, que solo daba +50% de ideas. Quedan 8 inventos y la tabuladora pide hidroelectricidad y válvulas.
+  - Válvulas de vacío: 45 de cobre, 35 monedas y 240 ideas (antes 60, 45 y 320).
+  - Tabuladora: 80 de piedra, 60 de cobre, 60 monedas y 450 ideas (antes 110, 90, 100 y 650).
+
+Con el bot (3 corridas): encadenada, 4,2 min (antes 5); sola, 9 (antes 10,6). El reporte del bot ahora cuenta las obras (`obra` en el JSON: segundos con alguna obra esperando, cuántas a la vez y de qué edificios).

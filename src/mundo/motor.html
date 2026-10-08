@@ -1130,6 +1130,9 @@ function float(x,y,txt,col){floats.push({x:x*T+8,y:y*T,txt,col,t:1.3});}
 const isObra=o=>!!(o&&o.t==='obra');
 const obraNeed=b=>Math.max(4,Math.round(Object.values(b.base).reduce((a,v)=>a+v,0)/4));
 const OBRA_HELP=2; // aldeanos por obra
+// Los postes (lo que solo estira la red, sin dar luz ni producir) se ponen de una: son muchos y chicos, y como obras
+// ocupaban a los aldeanos (con el bot, la Electricidad encadenada llegó a tener 6 obras de postes a la vez).
+const noObra=b=>!!(b.node&&!b.power&&!b.prod);
 function workObra(i,n,who){const o=obj[i];if(!isObra(o))return;o.work+=n;if(who)float(i%MW,(i/MW)|0,'+'+n,'#e8c05a');if(o.work>=o.need)finishObra(i);}
 function finishObra(i){const o=obj[i],b=BUILD[o.b],x=i%MW,y=(i/MW)|0;obj[i]={t:o.b};recount();
   if(o.b==='casa'){addVillager(x,y);addVillager(x,y);}for(let k=0;k<(b.bots||0);k++)addRobot(x,y);
@@ -2658,7 +2661,7 @@ function tryPlace(x,y){
   if(!canPlace(placing,x,y)){toast(b.water&&inb(x,y)&&!nextToWater(x,y)?b.water:'Ahí no se puede construir.');return;}
   {const w=wouldEnclose(x,y);if(w){toast(w===P?'Ahí te quedarías encerrado: elegí otro lugar.':'Ahí alguien de tu gente quedaría encerrado: elegí otro lugar.');return;}}
   pay(c);
-  if(ERA.obras){obj[y*MW+x]={t:'obra',b:placing,need:obraNeed(b),work:0};recount();toast('Obra de '+b.name.toLowerCase()+': vos y tu gente la levantan. Tocala para trabajar.');
+  if(ERA.obras&&!noObra(b)){obj[y*MW+x]={t:'obra',b:placing,need:obraNeed(b),work:0};recount();toast('Obra de '+b.name.toLowerCase()+': vos y tu gente la levantan. Tocala para trabajar.');
     const[px,py]=tileOf(P);P.act=null;P.retried=false;P.task={x,y};const pp=pathAdj(px,py,x,y);if(pp)P.path=pp;stopPlace();save();return;}
   obj[y*MW+x]={t:placing};counts[placing]++;GRID=null;if(placing==='cuartel')syncGuards();
   if(placing==='casa'){addVillager(x,y);addVillager(x,y);}

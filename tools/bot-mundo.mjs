@@ -180,6 +180,7 @@ function step(){tick++;if(tick===2)ideaStart();
   if(tick%(5*PACE)===0)machines();
   if(tick%(5*PACE)===2*PACE)levels();
   if(tick%(5*PACE)===4*PACE)oficios();
+  {const ob=D.obras?D.obras():[];if(ob.length){S.obra=S.obra||{sec:0,max:0,ids:{}};S.obra.sec+=PACE;S.obra.max=Math.max(S.obra.max,ob.length);for(const i of ob){const t=D.obj()[i].b;S.obra.ids[t]=(S.obra.ids[t]||0)+PACE;}}}
   gather();S.smogMax=Math.max(S.smogMax,D.st.smog);
   if(tick%(60-60%PACE)===0&&E.rival)S.safety.push([Math.round(D.st.time/60),Math.round(D.st.safety),Math.round(D.st.rival)]);}
 return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
@@ -187,7 +188,7 @@ return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
     closeAll();const n=E.builds.reduce((s,b)=>s+cnt(b.id),0);
     return{won:D.st.won,lost:!!D.st.lost,min:Math.round(D.st.time/6)/10,day:Math.floor(D.st.time/160)+1,vil:D.vil.filter(v=>!v.bot).length,bots:D.vil.filter(v=>v.bot).length,
       buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],ideaStart:S.ideaStart||null,cap:D.st.cap?{s:D.st.cap.s,d:D.st.cap.d}:null,of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
-      legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety};}};
+      legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety,obra:S.obra||null,res:Object.fromEntries(Object.entries(R()).map(([k,v])=>[k,Math.round(v)]))};}};
 })();`;
 
 const NAMES = Object.fromEntries(ALL.map(e => [e.n, shortName(e.ERA)]));
