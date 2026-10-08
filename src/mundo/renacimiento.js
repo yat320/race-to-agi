@@ -2,11 +2,14 @@
 const ERA={
   n:4,name:'Renacimiento',de:'del Renacimiento',obra:'la pascalina',next:{file:'mundo5.html',to:'a la Industria'},
   ore:{id:'plata',name:'Plata',col:'#e3e8f0',empty:'Veta de plata agotada',gather:'plata',icon:[['........','........','..kkkkkk','.kvvvvQk','kqqqqqQk','kQQQQQkk','kkkkkkk.','........'],{q:'#c9d1dc',Q:'#8a93a3',v:'#ffffff'}]},
-  storage:{id:'granero'},ideaBuild:'academia',ideaTechs:['perspectiva','academias','telescopio'],boostTech:'mecanica',farmBuild:'jardin',nightTech:'telescopio',
+  storage:{id:'granero'},ideaBuild:'academia',ideaTechs:['perspectiva','academias'],boostTech:'mecanica',farmBuild:'jardin',nightTech:'carabelas',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','taller','puerto','academia'],
   // Mangas de langostas que llegan volando a comerse las granjas; el palomar las espanta a 4 casilleros (reglas en motor.html).
   locusts:true,defense:{id:'palomar',r:4,label:'Palomares',of:['granja']},
+  // Como la Prehistoria (octubre de 2026): obras a mano y mundo vivo (cabras, sequía que el jardín botánico salva, mercaderes
+  // desde la banca y barcos en el puerto; src/mundo/amenazas/vida.js).
+  obras:true,vida:true,
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'campo',building:'Puesto del campo',unit:'Guardián del campo',done:'Puesto del campo listo: llegó un guardián',desc:'Trae un guardián con una antorcha que sale solo a espantar las langostas a 8 casilleros o menos.',info:'Puesto del campo: su guardián espanta las langostas.',tip:'un puesto del campo: el guardián sale solo a espantar las langostas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
@@ -19,11 +22,10 @@ const ERA={
  {id:'mineria',name:'Minería de plata',cost:{plata:15,ideas:30},req:[],desc:'Desbloquea la herrería y la cantera.'},
  {id:'banca',name:'Banca',cost:{plata:20,ideas:50},req:['mineria'],desc:'Desbloquea el banco, que cambia plata por monedas.'},
  {id:'botanica',name:'Botánica',cost:{madera:40,piedra:20,ideas:65},req:['perspectiva'],desc:'Desbloquea el jardín botánico, que potencia las granjas, y el palomar, que espanta las langostas.'},
- {id:'carabelas',name:'Carabelas',cost:{madera:60,plata:20,ideas:95},req:['banca'],desc:'Desbloquea el puerto: barcos que cruzan el océano.'},
+ {id:'carabelas',name:'Carabelas',cost:{madera:60,plata:20,ideas:95},req:['banca'],desc:'Desbloquea el puerto: barcos que cruzan el océano. De noche ves más lejos.'},
  {id:'academias',name:'Academias',cost:{monedas:30,ideas:130},req:['perspectiva','banca'],desc:'Desbloquea la academia. Ideas +50%.'},
- {id:'telescopio',name:'Telescopio',cost:{monedas:45,ideas:270},req:['carabelas','academias'],desc:'Mirar el cielo de cerca: ideas +50%. De noche ves más lejos.'},
- {id:'mecanica',name:'Mecánica de precisión',cost:{plata:60,monedas:45,ideas:320},req:['mineria','academias'],desc:'Engranajes finos: todos los edificios producen +50%.'},
- {id:'pascalina',name:'Pascalina',cost:{piedra:110,plata:90,monedas:100,ideas:650},req:['telescopio','mecanica'],desc:'La primera calculadora: engranajes que suman solos. Cierra el Renacimiento.'}],
+ {id:'mecanica',name:'Mecánica de precisión',cost:{plata:45,monedas:35,ideas:240},req:['mineria','academias'],desc:'Engranajes finos: todos los edificios producen +50%.'},
+ {id:'pascalina',name:'Pascalina',cost:{piedra:80,plata:60,monedas:60,ideas:450},req:['carabelas','mecanica'],desc:'La primera calculadora: engranajes que suman solos. Cierra el Renacimiento.'}],
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
