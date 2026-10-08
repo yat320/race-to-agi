@@ -8,7 +8,7 @@ import { serve, launch } from './harness.mjs';
 import { loadEras } from './eras.mjs';
 
 const ERAS = {
-  2: { techs: ['metalurgia', 'escritura', 'moneda', 'irrigacion', 'navegacion', 'matematica', 'astronomia', 'engranajes', 'anticitera'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'deposito', 'herreria', 'cantera', 'templo', 'mercado', 'acueducto', 'puerto', 'biblioteca', 'atalaya'] },
+  2: { techs: ['metalurgia', 'escritura', 'moneda', 'irrigacion', 'navegacion', 'matematica', 'engranajes', 'anticitera'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'deposito', 'herreria', 'cantera', 'templo', 'mercado', 'acueducto', 'puerto', 'biblioteca', 'atalaya'] },
   3: { techs: ['forja', 'monasterios', 'gremios', 'molinos', 'rutas', 'universidades', 'anteojos', 'reloj', 'imprenta'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'monasterio', 'feria', 'molino', 'puerto', 'universidad', 'hospital'] },
   4: { techs: ['perspectiva', 'mineria', 'banca', 'botanica', 'carabelas', 'academias', 'telescopio', 'mecanica', 'pascalina'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'herreria', 'cantera', 'taller', 'banco', 'jardin', 'puerto', 'academia', 'palomar'] },
   5: { techs: ['vapor', 'quimica', 'telar', 'ferrocarril', 'barcos', 'exposiciones', 'gas', 'tarjetas', 'analitica'], builds: ['casa', 'granja', 'fogata', 'aserradero', 'granero', 'parque', 'herreria', 'cantera', 'mina', 'laboratorio', 'fabrica', 'estacion', 'puerto', 'palacio', 'sindicato'] },

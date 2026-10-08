@@ -2,10 +2,14 @@
 const ERA={
   n:2,name:'Antigüedad',de:'de la Antigüedad',obra:'el mecanismo de Anticitera',next:{file:'mundo3.html',to:'a la Edad Media'},
   ore:{id:'cobre',name:'Cobre',col:'#f0a066',empty:'Veta de cobre agotada',gather:'cobre',icon:[['........','..kkkk..','.kqqQqk.','kqvqqQqk','kqqqQqQk','kQqqqQQk','.kkkkkk.','........']]},
-  storage:{id:'deposito',name:'Depósito'},ideaBuild:'biblioteca',ideaTechs:['escritura','matematica','astronomia'],boostTech:'engranajes',farmBuild:'acueducto',nightTech:'astronomia',
+  storage:{id:'deposito',name:'Depósito'},ideaBuild:'biblioteca',ideaTechs:['escritura','matematica'],boostTech:'engranajes',farmBuild:'acueducto',nightTech:'navegacion',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','templo','puerto','atalaya'],
   // Piratas desde que hay monedas; las atalayas los echan.
+  // Obras (octubre de 2026): lo que ubicás se levanta a mano, con tu gente (reglas en motor.html).
+  obras:true,
+  // Mundo vivo: cabras, sequía de verano, mercaderes y barcos de comercio (src/mundo/amenazas/vida.js).
+  vida:true,
   pirates:'moneda',defense:{id:'atalaya',r:4,label:'Atalayas'},
   // Adentro (octubre de 2026): en lo que produce, oficios (3 puestos; cada uno suma `v` a lo que produce ese edificio); lo demás
   // se mejora hasta el nivel 3 (el efecto de cada nivel está en motor.html; el nivel 3 pide además cobre).
@@ -15,13 +19,13 @@ const ERA={
   // Capítulos (octubre de 2026): metas con reloj, como en las misiones (reglas en motor.html). `oro` y `plata` en segundos de
   // juego desde que empieza el capítulo: el doble y el triple de lo que tarda el bot; `premio` en ideas con ★★★.
   capitulos:[
-    {name:'La aldea',oro:120,plata:180,premio:15,metas:[{t:'build',id:'granja',n:2,txt:'Tené 2 granjas'},{t:'build',id:'casa',n:2,txt:'Tené 2 casas'},{t:'tech',id:'metalurgia',txt:'Investigá la metalurgia'}]},
-    {name:'El cobre',oro:90,plata:135,premio:25,metas:[{t:'build',id:'herreria',txt:'Construí una herrería'},{t:'build',id:'atalaya',txt:'Construí una atalaya'},{t:'tech',id:'escritura',txt:'Investigá la escritura'}]},
+    {name:'La aldea',oro:165,plata:255,premio:15,metas:[{t:'build',id:'granja',n:2,txt:'Tené 2 granjas'},{t:'build',id:'casa',n:2,txt:'Tené 2 casas'},{t:'tech',id:'metalurgia',txt:'Investigá la metalurgia'}]},
+    {name:'El cobre',oro:120,plata:180,premio:25,metas:[{t:'build',id:'herreria',txt:'Construí una herrería'},{t:'build',id:'atalaya',txt:'Construí una atalaya'},{t:'tech',id:'escritura',txt:'Investigá la escritura'}]},
     {name:'Templos y monedas',oro:75,plata:120,premio:35,metas:[{t:'tech',id:'moneda',txt:'Investigá la moneda'},{t:'build',id:'templo',txt:'Construí un templo'},{t:'build',id:'mercado',txt:'Construí un mercado'}]},
     {name:'El agua',oro:180,plata:270,premio:50,metas:[{t:'tech',id:'irrigacion',txt:'Investigá la irrigación'},{t:'build',id:'acueducto',txt:'Construí un acueducto'},{t:'tap',n:1,txt:'Echá un pirata'}]},
     {name:'El mar',oro:75,plata:120,premio:70,metas:[{t:'tech',id:'navegacion',txt:'Investigá la navegación'},{t:'build',id:'puerto',txt:'Construí un puerto'},{t:'of',n:1,txt:'Poné a alguien en un oficio'},{t:'lv',n:1,txt:'Mejorá un edificio'}]},
-    {name:'Los sabios',oro:225,plata:330,premio:100,metas:[{t:'tech',id:'matematica',txt:'Investigá la matemática'},{t:'build',id:'biblioteca',txt:'Construí una biblioteca'},{t:'tech',id:'astronomia',txt:'Investigá la astronomía'}]},
-    {name:'La máquina',oro:285,plata:420,premio:0,metas:[{t:'tech',id:'engranajes',txt:'Investigá los engranajes'},{t:'tech',id:'anticitera',txt:'Armá el mecanismo de Anticitera'}]}],
+    {name:'Los sabios',oro:150,plata:225,premio:100,metas:[{t:'tech',id:'matematica',txt:'Investigá la matemática'},{t:'build',id:'biblioteca',txt:'Construí una biblioteca'}]},
+    {name:'La máquina',oro:180,plata:270,premio:0,metas:[{t:'tech',id:'engranajes',txt:'Investigá los engranajes'},{t:'tech',id:'anticitera',txt:'Armá el mecanismo de Anticitera'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'soldado',building:'Cuartel',unit:'Soldado',done:'Cuartel listo: llegó un soldado',desc:'Trae un soldado que patrulla cerca y sale solo a echar a los piratas a 8 casilleros o menos.',info:'Cuartel: su soldado echa a los piratas que andan cerca.',tip:'un cuartel: el soldado sale solo a echar a los piratas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
@@ -35,11 +39,10 @@ const ERA={
  {id:'escritura',name:'Escritura',cost:{piedra:15,ideas:30},req:[],desc:'Desbloquea el templo. Ideas +50%.'},
  {id:'moneda',name:'Moneda',cost:{cobre:20,ideas:45},req:['metalurgia'],desc:'Desbloquea el mercado, que cambia comida por monedas. Con las monedas llegan los piratas.'},
  {id:'irrigacion',name:'Irrigación',cost:{piedra:40,ideas:60},req:['escritura'],desc:'Desbloquea el acueducto, que potencia las granjas.'},
- {id:'navegacion',name:'Navegación',cost:{madera:60,cobre:20,ideas:90},req:['moneda'],desc:'Desbloquea el puerto: comercio con otros pueblos. Atrae 30% más piratas.'},
- {id:'matematica',name:'Matemática',cost:{monedas:25,ideas:120},req:['escritura','moneda'],desc:'Desbloquea la biblioteca. Ideas +50%.'},
- {id:'astronomia',name:'Astronomía',cost:{monedas:40,ideas:250},req:['navegacion','matematica'],desc:'Ideas +50%. De noche ves más lejos.'},
- {id:'engranajes',name:'Engranajes',cost:{cobre:50,monedas:40,ideas:300},req:['metalurgia','matematica'],desc:'Todos los edificios producen +50%.'},
- {id:'anticitera',name:'Mecanismo de Anticitera',cost:{piedra:100,cobre:80,monedas:80,ideas:600},req:['astronomia','engranajes'],desc:'Una computadora de engranajes que predice el movimiento de los astros. Cierra la Antigüedad.'}],
+ {id:'navegacion',name:'Navegación',cost:{madera:60,cobre:20,ideas:90},req:['moneda'],desc:'Desbloquea el puerto: comercio con otros pueblos. Atrae 30% más piratas. De noche ves más lejos.'},
+ {id:'matematica',name:'Matemática',cost:{monedas:25,ideas:100},req:['escritura','moneda'],desc:'Desbloquea la biblioteca. Ideas +50%.'},
+ {id:'engranajes',name:'Engranajes',cost:{cobre:35,monedas:30,ideas:200},req:['metalurgia','matematica'],desc:'Todos los edificios producen +50%.'},
+ {id:'anticitera',name:'Mecanismo de Anticitera',cost:{piedra:80,cobre:50,monedas:50,ideas:400},req:['navegacion','engranajes'],desc:'Una computadora de engranajes que predice el movimiento de los astros. Cierra la Antigüedad.'}],
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
@@ -166,4 +169,14 @@ function anPropArt(t){return mkA(112,112,a=>{
   else if(t==='acueducto'){ell(a,56,96,44,12,STONE2[2]);ell(a,56,94,38,8,WA[2]);rect(a,50,50,12,44,STONE2[3]);ell(a,56,50,12,5,STONE2[2]);line(a,56,46,56,40,WA[3],2);}
   else if(t==='biblioteca'){rect(a,10,10,92,100,WOOD[1]);for(let r=0;r<4;r++)for(let k=0;k<4;k++){const x=14+k*22,y=14+r*24;rect(a,x,y,19,20,WOOD[0]);for(let s=0;s<3;s++)ell(a,x+5+s*5,y+14,3,3,hx('#ecdcb0'));}}
   outlineAll(a,ANK);});}
+// Mundo vivo (vida.js): la cabra (dos cuadros), el mercader con su turbante y su bolsa, y el barco de comercio de vela a rayas.
+function goatArt(f){return mkA(64,64,a=>{const W=P4('#8a8070','#bdb5a2','#e3ddcc','#f6f1e4'),K=hx('#3a2418');ell(a,32,38,15,9,W[2]);ell(a,28,34,9,4,W[3]);
+  for(const[x,d]of[[22,f?2:0],[27,f?0:2],[37,f?2:0],[42,f?0:2]])rect(a,x+d-1,44,3,12,W[1]);ell(a,48,28,7,6,W[2]);ell(a,52,30,4,3,W[3]);
+  line(a,45,24,40,16,K,2);line(a,49,23,47,15,K,2);rect(a,51,27,2,2,hx('#1b1a24'));line(a,50,34,51,40,W[1],2);line(a,17,33,13,30,W[1],2);outlineAll(a,OUTL);});}
+function merchantArt(f){const c=personArt({c:'#7a3a8a',C:'#55285f',j:'#d4ae62',y:'#2a1a12'},f),g=c.getContext('2d');
+  g.fillStyle='#f4f1e8';g.fillRect(19,4,26,8);g.fillStyle='#e8c05a';g.fillRect(29,4,6,3);g.fillStyle='#a66a3a';g.fillRect(44,30,12,16);g.fillStyle='#7a4a2a';g.fillRect(44,30,12,3);return c;}
+function tradeShipArt(){return mkA(64,64,a=>{poly(a,[[4,40],[60,40],[52,54],[12,54]],WOOD[2]);rect(a,4,40,56,2,WOOD[3]);rect(a,10,46,44,1,WOOD[1]);
+  rect(a,31,6,2,34,WOOD[1]);for(let y=8;y<36;y++)for(let x=14;x<52;x++)if(Math.abs(x-32)<4+(y-8)*0.55)a.set(x,y,((y>>2)&1)?hx('#f6f1e4'):hx('#c8413b'));
+  for(const x of[18,30,42])ell(a,x,48,3,2,hx('#a66a3a'));rect(a,32,2,8,4,hx('#e8c05a'));outlineAll(a,OUTL);});}
+HS.cabra=[goatArt(0),goatArt(1)];HS.mercader=[merchantArt(0),merchantArt(1)];HS.nave=tradeShipArt();
 for(const t of['granja','fogata','aserradero','cantera','templo','mercado','puerto','casa','deposito','herreria','atalaya','acueducto','biblioteca','cuartel']){HS['in_'+t]=[anCoreArt(t,0),anCoreArt(t,1)];if(t!=='cuartel')HS['inp_'+t]=anPropArt(t);}

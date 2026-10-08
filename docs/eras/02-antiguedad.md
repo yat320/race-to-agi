@@ -86,16 +86,31 @@ La era se juega de a un **capítulo**: 2 a 4 metas y un reloj que arranca cuando
 
 | Capítulo | Metas | ★★★ | ★★ | Premio con ★★★ |
 |---|---|---|---|---|
-| La aldea | 2 granjas, 2 casas, metalurgia | 2:00 | 3:00 | 15 ideas |
-| El cobre | herrería, atalaya, escritura | 1:30 | 2:15 | 25 |
+| La aldea | 2 granjas, 2 casas, metalurgia | 2:45 | 4:15 | 15 ideas |
+| El cobre | herrería, atalaya, escritura | 2:00 | 3:00 | 25 |
 | Templos y monedas | moneda, templo, mercado | 1:15 | 2:00 | 35 |
 | El agua | irrigación, acueducto, echar un pirata | 3:00 | 4:30 | 50 |
 | El mar | navegación, puerto, alguien en un oficio, mejorar un edificio | 1:15 | 2:00 | 70 |
-| Los sabios | matemática, biblioteca, astronomía | 3:45 | 5:30 | 100 |
-| La máquina | engranajes, mecanismo de Anticitera | 4:45 | 7:00 | — |
+| Los sabios | matemática, biblioteca | 2:30 | 3:45 | 100 |
+| La máquina | engranajes, mecanismo de Anticitera | 3:00 | 4:30 | — |
 
 - **Estrellas:** ★★★ hasta el tiempo de oro, ★★ hasta el de plata y ★ después. El premio es por estrella (con ★★ da dos tercios).
 - **Las metas son de "tener":** un edificio cuenta si está al día con la era, así que lo que adelantaste en un capítulo te sirve en el siguiente. Si llegás a un capítulo con todo hecho, se cumple al toque con ★★★. "Echar un pirata" cuenta desde que empieza el capítulo y vale tocarlo, el soldado o la atalaya.
 - **Calibración:** como en las misiones, oro ≈ 2 veces lo que tarda el bot y plata ≈ 3 veces. El bot (sin perseguir las metas, con la ciudad de la Prehistoria) tarda por capítulo 45 a 69 s, 13 a 55, 0 a 57, 46 a 241 (espera la irrigación), 0 a 44, 0 a 125 y 100 a 185, y saca las 21 estrellas.
 - **Partidas de antes:** lo que ya estaba hecho cuando llegaron los capítulos cuenta como cumplido, sin estrellas ni premio, también si está más adelante. El reloj del primero que falta arranca al cargar.
 - **Dónde se guarda:** la partida guarda el capítulo (`cap`: en cuál vas, cuándo empezó, estrellas y tiempos de cada uno) y las amenazas echadas (`threats`). La mejor marca de cada capítulo va aparte, en `rtagi-estrellas-v1`, así sobrevive a "Reiniciar era".
+
+## Como la Prehistoria: obras, mundo vivo y una era más corta (octubre de 2026)
+
+Juani: "Prehistoria se siente bien, las que siguen meh". Le gusta de la Prehistoria hacer cosas con las manos, que cada invento cambie algo, que el mundo esté vivo y que sea más corta y simple, y eligió llevarlo a las demás eras empezando por esta.
+
+- **Obras** (`ERA.obras`, en el motor). Ubicar un edificio deja una obra con andamio y barra de avance (`{t:'obra', b, need, work}`). Vos vas solo a trabajarla, cada golpe suma 1 y gasta energía, y hasta 2 aldeanos libres van a ayudar antes que a juntar. Lleva un cuarto de lo que suma su costo base: la casa, 8 golpes. Mientras es obra no cuenta para nada, salvo para el precio del siguiente (`OBRAN`); al terminarla aparece el edificio con lo que trae (los 2 aldeanos de la casa, el soldado del cuartel). Se guarda: lo hecho en el tercer dato, lo que falta en el cuarto y el edificio en el undécimo. Si la ciudad pasa a otra era con una obra a medias, llega terminada.
+- **Mundo vivo** (`vida:true`, `src/mundo/amenazas/vida.js`, con los ganchos de las amenazas aunque no lo sea):
+  - **Cabras sueltas** (4) por el pasto. Tocás una y vas a buscarla; si la alcanzás, +8 de comida. Vuelve otra a los 20 s.
+  - **Sequía de verano:** desde los 2:30, cada 3:30 hay 50 s en que las granjas rinden la mitad y el mapa se pone amarillo, salvo que tengas un acueducto (el que potencia las granjas), que las riega.
+  - **Mercaderes**, desde la moneda. Cada ~75 s llega uno caminando, espera 35 s y, si lo tocás, te ofrece dos tratos (por ejemplo, 20 comida por 12 monedas o 10 cobre por 30 comida). Elegís uno o lo dejás ir. El juego se pausa mientras decidís.
+  - **Barcos de comercio**, desde que tenés un puerto. Cada ~55 s atraca uno al lado. Si lo tocás antes de 22 s, deja 15 monedas y 8 ideas.
+  - Tocar cabras, mercaderes o barcos no cuenta como amenaza echada. Nada de esto se guarda.
+- **Más corta:** sin la astronomía (solo daba +50% de ideas; la noche ahora la da la navegación), 8 inventos, y menos ideas y materiales en los últimos: matemática 100 ideas; engranajes 200 ideas, 35 de cobre y 30 monedas; Anticitera 400 ideas, 80 de piedra, 50 de cobre y 50 monedas.
+
+Con el bot (5 corridas): encadenada, 6,9 a 7,7 min (7,2 de promedio, casi lo mismo que antes de las obras); sola, 8,3. Por capítulo tarda 64 a 113 s, 0 a 102, 0 a 37, 74 a 121, 0 a 34, 52 a 85 y 84 a 97, y los relojes se recalibraron con eso (tabla de arriba). Una persona, con la regla de las misiones, 15 a 20 min.
