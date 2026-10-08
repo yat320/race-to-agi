@@ -1,15 +1,27 @@
 // Mundo vivo (octubre de 2026, Juani: la Prehistoria "se siente bien, las que siguen meh"; eligió llevarles lo de la
 // Prehistoria: hacer cosas con las manos, un mundo vivo e inventos que cambian el juego). No es una amenaza: usa los mismos
-// ganchos. Se prende con `vida:true` en la era (por ahora, la Antigüedad) y trae:
+// ganchos. Se prende con `vida:true` en la era (la Antigüedad y la Edad Media) y trae:
 // - Cabras que andan sueltas por el pasto. Tocás una y vas a buscarla: si la alcanzás, +8 de comida; vuelve otra al rato.
 // - Sequía de verano: cada VIDA_DRY_EVERY segundos, VIDA_DRY_LEN segundos en que las granjas rinden la mitad, salvo que tengas
-//   el edificio que las potencia (ERA.farmBuild, el acueducto): ese las riega.
+//   el edificio que las potencia (ERA.farmBuild: el acueducto, el molino): ese las salva.
 // - Mercaderes, desde el invento que trae las monedas (el que desbloquea el primer edificio que da monedas): llegan caminando,
 //   esperan un rato y te ofrecen dos tratos; elegís uno o los dejás ir.
 // - Barcos de comercio, desde que tenés un puerto: atracan al lado y, si los tocás antes de que zarpen, dejan monedas e ideas.
 // Nada de esto se guarda: al cargar, el mundo arranca de nuevo.
 const VIDA_GOATS=4,VIDA_GOAT_FOOD=8,VIDA_DRY_START=150,VIDA_DRY_EVERY=210,VIDA_DRY_LEN=50,VIDA_MERCH_EVERY=75,VIDA_MERCH_STAY=35,VIDA_SHIP_EVERY=55,VIDA_SHIP_STAY=22;
 let vidaGoats=[],vidaGoatT=0,vidaChase=null,vidaChaseT=0,vidaMerch=null,vidaMerchT=0,vidaShip=null,vidaShipT=0,vidaDry=0;
+// Dibujos (si la era no trae los suyos): se arman la primera vez que hacen falta.
+// Mundo vivo (vida.js): la cabra (dos cuadros), el mercader con su turbante y su bolsa, y el barco de comercio de vela a rayas.
+function vidaGoatArt(f){return mkA(64,64,a=>{const W=P4('#8a8070','#bdb5a2','#e3ddcc','#f6f1e4'),K=hx('#3a2418');ell(a,32,38,15,9,W[2]);ell(a,28,34,9,4,W[3]);
+  for(const[x,d]of[[22,f?2:0],[27,f?0:2],[37,f?2:0],[42,f?0:2]])rect(a,x+d-1,44,3,12,W[1]);ell(a,48,28,7,6,W[2]);ell(a,52,30,4,3,W[3]);
+  line(a,45,24,40,16,K,2);line(a,49,23,47,15,K,2);rect(a,51,27,2,2,hx('#1b1a24'));line(a,50,34,51,40,W[1],2);line(a,17,33,13,30,W[1],2);outlineAll(a,OUTL);});}
+function vidaMerchantArt(f){const c=personArt({c:'#7a3a8a',C:'#55285f',j:'#d4ae62',y:'#2a1a12'},f),g=c.getContext('2d');
+  g.fillStyle='#f4f1e8';g.fillRect(19,4,26,8);g.fillStyle='#e8c05a';g.fillRect(29,4,6,3);g.fillStyle='#a66a3a';g.fillRect(44,30,12,16);g.fillStyle='#7a4a2a';g.fillRect(44,30,12,3);return c;}
+function vidaShipArt(){return mkA(64,64,a=>{poly(a,[[4,40],[60,40],[52,54],[12,54]],WOOD[2]);rect(a,4,40,56,2,WOOD[3]);rect(a,10,46,44,1,WOOD[1]);
+  rect(a,31,6,2,34,WOOD[1]);for(let y=8;y<36;y++)for(let x=14;x<52;x++)if(Math.abs(x-32)<4+(y-8)*0.55)a.set(x,y,((y>>2)&1)?hx('#f6f1e4'):hx('#c8413b'));
+  for(const x of[18,30,42])ell(a,x,48,3,2,hx('#a66a3a'));rect(a,32,2,8,4,hx('#e8c05a'));outlineAll(a,OUTL);});}
+function vidaArt(){if(!HS.cabra)HS.cabra=[vidaGoatArt(0),vidaGoatArt(1)];if(!HS.mercader)HS.mercader=[vidaMerchantArt(0),vidaMerchantArt(1)];if(!HS.nave)HS.nave=vidaShipArt();}
+const vidaFarmN=()=>BUILD[ERA.farmBuild]?BUILD[ERA.farmBuild].name.toLowerCase():'riego';
 const vidaCoinTech=()=>{const b=BUILDS.find(b=>b.prod&&b.prod.monedas&&b.req);return b&&b.req;};
 const vidaPort=()=>{const i=obj.findIndex(o=>o&&o.t==='puerto');return i;};
 const vidaCenter=()=>{let i=obj.findIndex(o=>o&&o.t===ERA.storage.id);if(i<0)i=obj.findIndex(o=>o&&o.t==='casa');return i<0?tileOf(P):[i%MW,(i/MW)|0];};
@@ -34,13 +46,13 @@ function vidaSpawnShip(){const pi=vidaPort();if(pi<0)return;const px=pi%MW,py=(p
   const w=DIRS8.map(([dx,dy])=>[px+dx,py+dy]).find(([x,y])=>inb(x,y)&&oc[y*MW+x]);if(!w)return;vidaShip={x:w[0],y:w[1],t:VIDA_SHIP_STAY};
   if(!quiet)toast('Atracó un barco de comercio: tocalo antes de que zarpe.');}
 amenaza({on:'vida',
-  reset(){vidaGoats=[];vidaGoatT=0;vidaChase=null;vidaMerch=null;vidaMerchT=0;vidaShip=null;vidaShipT=0;vidaDry=0;},
+  reset(){vidaArt();vidaGoats=[];vidaGoatT=0;vidaChase=null;vidaMerch=null;vidaMerchT=0;vidaShip=null;vidaShipT=0;vidaDry=0;},
   // Las granjas, con la sequía y sin acueducto, rinden la mitad (el motor multiplica por esto).
   farm(){return vidaDry>0&&!act(ERA.farmBuild)?0.5:1;},
   tick(step){
     vidaGoatT-=step;if(vidaGoats.length<VIDA_GOATS&&vidaGoatT<=0){vidaGoatT=20;vidaSpawnGoat();}
     {const ph=st.time-VIDA_DRY_START;const was=vidaDry>0;vidaDry=ph>0&&ph%VIDA_DRY_EVERY<VIDA_DRY_LEN?VIDA_DRY_LEN-ph%VIDA_DRY_EVERY:0;
-      if(vidaDry>0&&!was)toast(act(ERA.farmBuild)?'Llegó la sequía, pero tus acueductos riegan las granjas.':'¡Sequía! Las granjas rinden la mitad hasta que llueva. Un acueducto las riega.');}
+      if(vidaDry>0&&!was)toast(act(ERA.farmBuild)?'Llegó la sequía, pero tu '+vidaFarmN()+' ayuda a las granjas.':'¡Sequía! Las granjas rinden la mitad hasta que llueva. Un '+vidaFarmN()+' las salva.');}
     const ct=vidaCoinTech();if(ct&&st.techs[ct]&&!vidaMerch){vidaMerchT+=step;if(vidaMerchT>=VIDA_MERCH_EVERY){vidaMerchT=0;vidaSpawnMerch();}}
     if(!vidaShip&&vidaPort()>=0){vidaShipT+=step;if(vidaShipT>=VIDA_SHIP_EVERY){vidaShipT=0;vidaSpawnShip();}}
     if(vidaShip){vidaShip.t-=step;if(vidaShip.t<=0){float(vidaShip.x,vidaShip.y-0.6,'zarpó','#c9d2de');vidaShip=null;}}},
@@ -68,7 +80,7 @@ amenaza({on:'vida',
     const g=vidaGoats.find(g=>Math.hypot(g.x-tx,g.y-ty)<=1.2);if(!g)return false;
     if(Math.hypot(P.x-g.x,P.y-g.y)<=1.6){vidaCatch(g);return'vida';}
     vidaChase=g;vidaChaseT=12;P.task=null;P.act=null;const[px,py]=tileOf(P),[gx,gy]=tileOf(g),p=pathAdj(px,py,gx,gy);if(p)P.path=p;float(g.x,g.y-0.6,'¡meee!','#f4f1e8');return'vida';},
-  hint(){if(vidaDry>0&&!act(ERA.farmBuild))return['¡Sequía!','las granjas rinden la mitad. Un acueducto las riega.'];
+  hint(){if(vidaDry>0&&!act(ERA.farmBuild))return['¡Sequía!','las granjas rinden la mitad. Un '+vidaFarmN()+' las salva.'];
     if(vidaShip)return['¡Barco!','tocalo antes de que zarpe: trae monedas e ideas.'];
     if(vidaMerch&&vidaMerch.state==='wait')return['Mercader:','tocalo para ver sus tratos.'];return null;},
   arrows(){const a=[];if(vidaShip)a.push({x:vidaShip.x,y:vidaShip.y});if(vidaMerch&&vidaMerch.state==='wait')a.push({x:vidaMerch.x,y:vidaMerch.y});return a;},
