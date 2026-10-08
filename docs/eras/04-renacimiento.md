@@ -17,3 +17,19 @@ El Renacimiento tiene **langostas** (`ERA.locusts`): desde los 2 minutos de jueg
 ## Arte
 
 Plata, casa de revoque ocre, taller de artistas, banco, jardín botánico, palomar con palomas que dan vueltas (`ERA.deco`), puerto con carabela y academia con cúpula, y las langostas (`drawLocusts`: una nube oscura de bichos con sombra y halo rojo al volar, y el marco rojo sobre la granja que comen).
+
+## Como la Prehistoria: obras, mundo vivo y una era más corta (octubre de 2026)
+
+Juani: "llevá lo mismo al Renacimiento", después de la Antigüedad y la Edad Media (ver sus docs).
+
+- **Obras** (`obras:true`): lo que ubicás queda en obra y lo levantan vos y hasta 2 aldeanos.
+- **Mundo vivo** (`vida:true`, el mismo `vida.js`):
+  - **Cabras sueltas** que se cazan por comida.
+  - **Sequía de verano:** las granjas rinden la mitad salvo que tengas un jardín botánico, el edificio que las potencia. Se suma a las langostas, que también van contra las granjas.
+  - **Mercaderes con dos tratos**, desde la banca (el invento del banco).
+  - **Barcos de comercio** que atracan en el puerto.
+- **Más corta:** sin el telescopio, que solo daba +50% de ideas. La noche ahora la dan las carabelas, así que quedan 8 inventos y la pascalina pide carabelas y mecánica.
+  - Mecánica de precisión: 45 de plata, 35 monedas y 240 ideas (antes 60, 45 y 320).
+  - Pascalina: 80 de piedra, 60 de plata, 60 monedas y 450 ideas (antes 110, 90, 100 y 650).
+
+Con el bot (3 corridas): encadenada, 3,7 min (antes 4,3); sola, 9,5 (antes 9,8).
