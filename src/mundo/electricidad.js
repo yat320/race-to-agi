@@ -2,12 +2,15 @@
 const ERA={
   n:6,name:'Electricidad',de:'de la Electricidad',obra:'la tabuladora eléctrica',next:{file:'mundo7.html',to:'a la Computación'},
   ore:{id:'cobre',name:'Cobre',col:'#f0a066',empty:'Veta de cobre agotada',gather:'cobre',icon:[['........','..kkkk..','.kqqQqk.','kqvqqQqk','kqqqQqQk','kQqqqQQk','.kkkkkk.','........']]},
-  storage:{id:'granero'},ideaBuild:'escuela',ideaTechs:['lamparita','escuelas','telefono'],boostTech:'valvulas',farmBuild:'frigorifico',nightTech:'lamparita',
+  storage:{id:'granero'},ideaBuild:'escuela',ideaTechs:['lamparita','escuelas'],boostTech:'valvulas',farmBuild:'frigorifico',nightTech:'lamparita',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','usina','represa'],
   grid:'power',gridTech:'dinamo',
   // Tormentas que tiran rayos sobre lo eléctrico y cortan la red; el pararrayos se lleva los rayos a 4 casilleros (reglas en motor.html).
   storms:true,defense:{id:'pararrayos',r:4,label:'Pararrayos'},
+  // Como la Prehistoria (octubre de 2026): obras que levantan vos y tu gente y mundo vivo (cabras, sequía que el frigorífico
+  // salva y mercaderes desde el motor eléctrico; no hay puerto, así que no llegan barcos; src/mundo/amenazas/vida.js).
+  obras:true,vida:true,
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'electricista',building:'Cuadrilla eléctrica',unit:'Electricista',done:'Cuadrilla eléctrica lista: llegó un electricista',desc:'Trae un electricista que sale solo a disipar tormentas y a arreglar lo quemado, a 8 casilleros o menos.',info:'Cuadrilla eléctrica: su electricista arregla lo quemado cerca.',tip:'una cuadrilla eléctrica: el electricista sale solo a arreglar lo quemado.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
@@ -22,9 +25,8 @@ const ERA={
  {id:'frio',name:'Refrigeración',cost:{madera:40,piedra:20,ideas:65},req:['dinamo'],desc:'Desbloquea el frigorífico, que potencia las granjas.'},
  {id:'hidro',name:'Hidroelectricidad',cost:{madera:60,cobre:20,ideas:95},req:['motor'],desc:'Desbloquea la represa: luz sin humo, pegada al agua.'},
  {id:'escuelas',name:'Escuela pública',cost:{monedas:30,ideas:130},req:['lamparita','motor'],desc:'Desbloquea la escuela. Ideas +50%.'},
- {id:'telefono',name:'Teléfono',cost:{monedas:45,ideas:270},req:['hidro','escuelas'],desc:'Los inventores hablan a distancia: ideas +50%.'},
- {id:'valvulas',name:'Válvulas de vacío',cost:{cobre:60,monedas:45,ideas:320},req:['motor','escuelas'],desc:'Electrónica: todos los edificios producen +50%.'},
- {id:'tabuladora',name:'Tabuladora eléctrica',cost:{piedra:110,cobre:90,monedas:100,ideas:650},req:['telefono','valvulas'],desc:'Tarjetas perforadas y electricidad: cuenta un censo entero en meses. Cierra la Electricidad.'}],
+ {id:'valvulas',name:'Válvulas de vacío',cost:{cobre:45,monedas:35,ideas:240},req:['motor','escuelas'],desc:'Electrónica: todos los edificios producen +50%.'},
+ {id:'tabuladora',name:'Tabuladora eléctrica',cost:{piedra:80,cobre:60,monedas:60,ideas:450},req:['hidro','valvulas'],desc:'Tarjetas perforadas y electricidad: cuenta un censo entero en meses. Cierra la Electricidad.'}],
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
