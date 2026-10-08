@@ -9,6 +9,10 @@ const ERA={
   // Los desalineados toman uno de estos edificios (con su nombre para los avisos); el centro de supervisión corrige a los que pasan
   // a 4 casilleros (reglas en motor.html).
   hijack:{datacenter:'un centro de datos',startup:'una empresa de software',labia:'un laboratorio de IA'},defense:{id:'supervision',r:4,label:'Supervisión',of:['datacenter','startup','labia']},
+  // Como la Prehistoria (octubre de 2026): obras que levantan vos y tu gente (los robots no ayudan) y mundo vivo (cabras,
+  // sequía que la huerta vertical salva y mercaderes desde el software en la nube; sin puerto no hay barcos;
+  // src/mundo/amenazas/vida.js).
+  obras:true,vida:true,
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'ingeniero',building:'Oficina de ingenieros',unit:'Ingeniero',done:'Oficina de ingenieros lista: llegó un ingeniero',desc:'Trae un ingeniero que sale solo a corregir robots desalineados, a 8 casilleros o menos.',info:'Oficina de ingenieros: su ingeniero corrige robots cerca.',tip:'una oficina de ingenieros: el ingeniero sale solo a corregir robots.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
@@ -23,9 +27,9 @@ const ERA={
  {id:'software',name:'Software en la nube',cost:{madera:40,piedra:20,ideas:65},req:['redes'],desc:'Desbloquea la empresa de software, que da monedas.'},
  {id:'alineacion',name:'Alineación',cost:{madera:60,tierras:20,ideas:95},req:['robotica'],desc:'Desbloquea el instituto de alineación. Los robots se desalinean la mitad de seguido.'},
  {id:'lenguaje',name:'Modelos de lenguaje',cost:{monedas:30,ideas:130},req:['software','robotica'],desc:'Desbloquea el laboratorio de IA. Ideas +50%.'},
- {id:'interpretabilidad',name:'Interpretabilidad',cost:{monedas:45,ideas:270},req:['alineacion','lenguaje'],desc:'Entendés qué piensan: se desalinean la mitad de seguido y tardan el doble en convencer a otros.'},
- {id:'chips',name:'Chips de IA',cost:{tierras:60,monedas:45,ideas:320},req:['robotica','lenguaje'],desc:'Todo produce +50% y los robots trabajan más rápido. De noche ves más lejos.'},
- {id:'asistente',name:'Asistente universal',cost:{piedra:110,tierras:90,monedas:100,ideas:650},req:['interpretabilidad','chips'],desc:'Una IA que ayuda en cualquier tarea. Cierra la era de la IA.'}],
+ {id:'interpretabilidad',name:'Interpretabilidad',cost:{monedas:35,ideas:200},req:['alineacion','lenguaje'],desc:'Entendés qué piensan: se desalinean la mitad de seguido y tardan el doble en convencer a otros.'},
+ {id:'chips',name:'Chips de IA',cost:{tierras:45,monedas:35,ideas:240},req:['robotica','lenguaje'],desc:'Todo produce +50% y los robots trabajan más rápido. De noche ves más lejos.'},
+ {id:'asistente',name:'Asistente universal',cost:{piedra:80,tierras:60,monedas:60,ideas:450},req:['interpretabilidad','chips'],desc:'Una IA que ayuda en cualquier tarea. Cierra la era de la IA.'}],
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
