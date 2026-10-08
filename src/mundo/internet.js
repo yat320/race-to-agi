@@ -2,7 +2,7 @@
 const ERA={
   n:8,name:'Internet',de:'de Internet',obra:'el teléfono inteligente',next:{file:'mundo9.html',to:'a la IA'},
   ore:{id:'litio',name:'Litio',col:'#b8f0a0',empty:'Veta de litio agotada',gather:'litio',icon:[['...kk...','..kkkk..','..kvqk..','..kqqk..','..kqqk..','..kQQk..','..kkkk..','........'],{q:'#9ae07a',Q:'#5aa347',v:'#e8ffe0'}]},
-  storage:{id:'granero'},ideaBuild:'buscador',ideaTechs:['www','email','buscadores'],boostTech:'banda',farmBuild:'semillas',nightTech:'banda',
+  storage:{id:'granero'},ideaBuild:'buscador',ideaTechs:['www','buscadores'],boostTech:'banda',farmBuild:'semillas',nightTech:'banda',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','servidor','cibercafe','tienda','buscador','semillas','soporte'],
   landmarks:[[0,-20,'ciudad'],[20,0,'ciudad'],[0,18,'ciudad'],[-20,0,'ciudad']],
@@ -10,6 +10,10 @@ const ERA={
   // Los virus van a una compu al azar (con su nombre para los avisos); el soporte técnico cuida las que están a 4 casilleros
   // (reglas en motor.html).
   infect:{servidor:'el servidor',cibercafe:'un cibercafé',tienda:'una tienda online',buscador:'un buscador'},defense:{id:'soporte',r:4,label:'Soporte',of:['servidor','cibercafe','tienda','buscador']},
+  // Como la Prehistoria (octubre de 2026): obras que levantan vos y tu gente (las antenas van de una) y mundo vivo (cabras,
+  // sequía que el laboratorio de semillas salva y mercaderes desde el comercio electrónico; sin puerto no hay barcos;
+  // src/mundo/amenazas/vida.js).
+  obras:true,vida:true,
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'tecnico',building:'Mesa de ayuda',unit:'Técnico',done:'Mesa de ayuda lista: llegó un técnico',desc:'Trae un técnico que sale solo a borrar virus y a limpiar las compus, a 8 casilleros o menos.',info:'Mesa de ayuda: su técnico borra virus cerca.',tip:'una mesa de ayuda: el técnico sale solo a borrar virus.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
@@ -21,12 +25,11 @@ const ERA={
  {id:'www',name:'World Wide Web',cost:{litio:15,ideas:30},req:[],desc:'Desbloquea el cibercafé, el soporte técnico, el taller y la cantera mecanizada. Ideas +50%.'},
  {id:'biotec',name:'Biotecnología',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea el laboratorio de semillas, que potencia las granjas.'},
  {id:'comercio',name:'Comercio electrónico',cost:{litio:20,ideas:50},req:['www'],desc:'Desbloquea la tienda online, que da monedas.'},
- {id:'email',name:'Correo electrónico',cost:{madera:40,piedra:20,ideas:65},req:['www'],desc:'Las ideas viajan al instante: ideas +50%.'},
  {id:'firewall',name:'Cortafuegos',cost:{madera:60,litio:20,ideas:95},req:['comercio'],desc:'Los virus viajan 40% más lento por la red.'},
- {id:'buscadores',name:'Buscadores',cost:{monedas:30,ideas:130},req:['email','comercio'],desc:'Desbloquea el buscador. Ideas +50%.'},
- {id:'antivirus',name:'Antivirus',cost:{monedas:45,ideas:270},req:['firewall','buscadores'],desc:'Cada antena frena uno de cada 4 virus que pasan por ella.'},
- {id:'banda',name:'Banda ancha',cost:{litio:60,monedas:45,ideas:320},req:['comercio','buscadores'],desc:'Todo produce +50%, también lo que dan las ciudades. De noche ves más lejos.'},
- {id:'smartphone',name:'Teléfono inteligente',cost:{piedra:110,litio:90,monedas:100,ideas:650},req:['antivirus','banda'],desc:'Internet en el bolsillo de todos. Cierra la era de Internet.'}],
+ {id:'buscadores',name:'Buscadores',cost:{monedas:30,ideas:130},req:['comercio'],desc:'Desbloquea el buscador. Ideas +50%.'},
+ {id:'antivirus',name:'Antivirus',cost:{monedas:35,ideas:200},req:['firewall','buscadores'],desc:'Cada antena frena uno de cada 4 virus que pasan por ella.'},
+ {id:'banda',name:'Banda ancha',cost:{litio:45,monedas:35,ideas:240},req:['comercio','buscadores'],desc:'Todo produce +50%, también lo que dan las ciudades. De noche ves más lejos.'},
+ {id:'smartphone',name:'Teléfono inteligente',cost:{piedra:80,litio:60,monedas:60,ideas:450},req:['antivirus','banda'],desc:'Internet en el bolsillo de todos. Cierra la era de Internet.'}],
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},
