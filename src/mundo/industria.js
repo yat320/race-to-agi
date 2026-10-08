@@ -2,7 +2,7 @@
 const ERA={
   n:5,name:'Industria',de:'de la Industria',obra:'la máquina analítica',next:{file:'mundo6.html',to:'a la Electricidad'},
   ore:{id:'carbon',name:'Carbón',col:'#a3a8b4',empty:'Veta de carbón agotada',gather:'carbón',icon:[['........','...kk...','..kvqk..','.kqqQkk.','kvqQkqqk','kqQQkqQk','.kkkkkk.','........'],{q:'#3e3848',Q:'#24202c',v:'#8a8f9c'}]},
-  storage:{id:'granero'},ideaBuild:'palacio',ideaTechs:['quimica','exposiciones','gas'],boostTech:'tarjetas',farmBuild:'estacion',nightTech:'gas',
+  storage:{id:'granero'},ideaBuild:'palacio',ideaTechs:['quimica','exposiciones'],boostTech:'tarjetas',farmBuild:'estacion',nightTech:'barcos',
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','laboratorio','fabrica','estacion','puerto','palacio','sindicato'],
   // Los ludditas salen de las casas a romper las máquinas de fábricas y minas; el sindicato los calma a 4 casilleros (reglas en motor.html).
@@ -15,6 +15,9 @@ const ERA={
   // Lo que no produce se mejora hasta el nivel 3 (cada uno con su efecto, en motor.html); el nivel 3 pide además acero y monedas.
   niveles:['casa','granero','parque','herreria','sindicato','estacion','palacio','cuartel'],levelExtra:[{},{acero:6,monedas:20}],
   luddites:['fabrica','mina'],defense:{id:'sindicato',r:4,label:'Sindicatos',of:['fabrica','mina']},
+  // Como la Prehistoria (octubre de 2026): obras que levantan vos y tu gente y mundo vivo (cabras, sequía que la estación
+  // salva, mercaderes desde el telar y barcos en el puerto; src/mundo/amenazas/vida.js).
+  obras:true,vida:true,
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'policia',building:'Comisaría',unit:'Policía',done:'Comisaría lista: llegó un policía',desc:'Trae un policía que sale solo a calmar a los ludditas y a arreglar las máquinas rotas, a 8 casilleros o menos.',info:'Comisaría: su policía calma a los ludditas cerca.',tip:'una comisaría: el policía sale solo a calmar a los ludditas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
@@ -27,11 +30,10 @@ const ERA={
  {id:'quimica',name:'Química',cost:{piedra:15,ideas:35},req:[],desc:'Desbloquea el laboratorio, que genera muchas ideas. Ideas +50%.'},
  {id:'telar',name:'Telar mecánico',cost:{carbon:20,ideas:50},req:['vapor'],desc:'Desbloquea la fábrica, que quema carbón, da muchas monedas y echa humo; el taller mecánico, que hace engranajes, y el sindicato.'},
  {id:'ferrocarril',name:'Ferrocarril',cost:{madera:40,piedra:20,acero:10,ideas:65},req:['vapor'],desc:'Desbloquea la estación de tren, que potencia las granjas.'},
- {id:'barcos',name:'Barco de vapor',cost:{madera:60,carbon:20,acero:15,ideas:95},req:['telar'],desc:'Desbloquea el puerto: barcos que traen monedas e ideas.'},
+ {id:'barcos',name:'Barco de vapor',cost:{madera:60,carbon:20,acero:15,ideas:95},req:['telar'],desc:'Desbloquea el puerto: barcos que traen monedas e ideas. De noche ves más lejos.'},
  {id:'exposiciones',name:'Exposiciones',cost:{monedas:30,ideas:130},req:['quimica','telar'],desc:'Desbloquea el palacio de cristal. Ideas +50%.'},
- {id:'gas',name:'Alumbrado a gas',cost:{monedas:45,ideas:270},req:['barcos','exposiciones'],desc:'Se lee de noche: ideas +50% y ves más lejos en la oscuridad.'},
- {id:'tarjetas',name:'Tarjetas perforadas',cost:{carbon:40,monedas:45,engranajes:12,ideas:320},req:['vapor','exposiciones'],desc:'Máquinas que siguen instrucciones: todos los edificios producen +50%.'},
- {id:'analitica',name:'Máquina analítica',cost:{piedra:80,carbon:60,acero:15,engranajes:20,monedas:100,ideas:650},req:['gas','tarjetas'],desc:'Babbage y Ada Lovelace: la primera computadora programable. Cierra la Industria.'}],
+ {id:'tarjetas',name:'Tarjetas perforadas',cost:{carbon:30,monedas:35,engranajes:10,ideas:240},req:['vapor','exposiciones'],desc:'Máquinas que siguen instrucciones: todos los edificios producen +50%.'},
+ {id:'analitica',name:'Máquina analítica',cost:{piedra:60,carbon:45,acero:12,engranajes:15,monedas:60,ideas:450},req:['barcos','tarjetas'],desc:'Babbage y Ada Lovelace: la primera computadora programable. Cierra la Industria.'}],
   // Granja, fogata, aserradero, granero y cantera: el nombre y los textos dependen de la época y están en el motor (BASIC).
   builds:[
  {id:'casa',name:'Casa',req:null,base:{madera:20,piedra:10},grow:1.35,done:'Casa construida: llegaron 2 aldeanos',desc:'Suma 2 aldeanos que juntan recursos solos. Cada aldeano come 2 de comida por minuto.'},

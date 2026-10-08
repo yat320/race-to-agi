@@ -22,6 +22,8 @@ function vidaShipArt(){return mkA(64,64,a=>{poly(a,[[4,40],[60,40],[52,54],[12,5
   for(const x of[18,30,42])ell(a,x,48,3,2,hx('#a66a3a'));rect(a,32,2,8,4,hx('#e8c05a'));outlineAll(a,OUTL);});}
 function vidaArt(){if(!HS.cabra)HS.cabra=[vidaGoatArt(0),vidaGoatArt(1)];if(!HS.mercader)HS.mercader=[vidaMerchantArt(0),vidaMerchantArt(1)];if(!HS.nave)HS.nave=vidaShipArt();}
 const vidaFarmN=()=>BUILD[ERA.farmBuild]?BUILD[ERA.farmBuild].name.toLowerCase():'riego';
+// "Un molino", "una estación de tren": el artículo según la primera palabra del nombre.
+const vidaUn=()=>/(a|ción|sión)$/.test(vidaFarmN().split(' ')[0])?'Una ':'Un ';
 const vidaCoinTech=()=>{const b=BUILDS.find(b=>b.prod&&b.prod.monedas&&b.req);return b&&b.req;};
 const vidaPort=()=>{const i=obj.findIndex(o=>o&&o.t==='puerto');return i;};
 const vidaCenter=()=>{let i=obj.findIndex(o=>o&&o.t===ERA.storage.id);if(i<0)i=obj.findIndex(o=>o&&o.t==='casa');return i<0?tileOf(P):[i%MW,(i/MW)|0];};
@@ -52,7 +54,7 @@ amenaza({on:'vida',
   tick(step){
     vidaGoatT-=step;if(vidaGoats.length<VIDA_GOATS&&vidaGoatT<=0){vidaGoatT=20;vidaSpawnGoat();}
     {const ph=st.time-VIDA_DRY_START;const was=vidaDry>0;vidaDry=ph>0&&ph%VIDA_DRY_EVERY<VIDA_DRY_LEN?VIDA_DRY_LEN-ph%VIDA_DRY_EVERY:0;
-      if(vidaDry>0&&!was)toast(act(ERA.farmBuild)?'Llegó la sequía, pero tu '+vidaFarmN()+' ayuda a las granjas.':'¡Sequía! Las granjas rinden la mitad hasta que llueva. Un '+vidaFarmN()+' las salva.');}
+      if(vidaDry>0&&!was)toast(act(ERA.farmBuild)?'Llegó la sequía, pero tu '+vidaFarmN()+' ayuda a las granjas.':'¡Sequía! Las granjas rinden la mitad hasta que llueva. '+vidaUn()+vidaFarmN()+' las salva.');}
     const ct=vidaCoinTech();if(ct&&st.techs[ct]&&!vidaMerch){vidaMerchT+=step;if(vidaMerchT>=VIDA_MERCH_EVERY){vidaMerchT=0;vidaSpawnMerch();}}
     if(!vidaShip&&vidaPort()>=0){vidaShipT+=step;if(vidaShipT>=VIDA_SHIP_EVERY){vidaShipT=0;vidaSpawnShip();}}
     if(vidaShip){vidaShip.t-=step;if(vidaShip.t<=0){float(vidaShip.x,vidaShip.y-0.6,'zarpó','#c9d2de');vidaShip=null;}}},
@@ -80,7 +82,7 @@ amenaza({on:'vida',
     const g=vidaGoats.find(g=>Math.hypot(g.x-tx,g.y-ty)<=1.2);if(!g)return false;
     if(Math.hypot(P.x-g.x,P.y-g.y)<=1.6){vidaCatch(g);return'vida';}
     vidaChase=g;vidaChaseT=12;P.task=null;P.act=null;const[px,py]=tileOf(P),[gx,gy]=tileOf(g),p=pathAdj(px,py,gx,gy);if(p)P.path=p;float(g.x,g.y-0.6,'¡meee!','#f4f1e8');return'vida';},
-  hint(){if(vidaDry>0&&!act(ERA.farmBuild))return['¡Sequía!','las granjas rinden la mitad. Un '+vidaFarmN()+' las salva.'];
+  hint(){if(vidaDry>0&&!act(ERA.farmBuild))return['¡Sequía!','las granjas rinden la mitad. '+vidaUn()+vidaFarmN()+' las salva.'];
     if(vidaShip)return['¡Barco!','tocalo antes de que zarpe: trae monedas e ideas.'];
     if(vidaMerch&&vidaMerch.state==='wait')return['Mercader:','tocalo para ver sus tratos.'];return null;},
   arrows(){const a=[];if(vidaShip)a.push({x:vidaShip.x,y:vidaShip.y});if(vidaMerch&&vidaMerch.state==='wait')a.push({x:vidaMerch.x,y:vidaMerch.y});return a;},
