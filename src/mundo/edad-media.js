@@ -15,6 +15,9 @@ const ERA={
   // Como la Prehistoria (octubre de 2026): obras a mano y mundo vivo (cabras, sequía que el molino salva, mercaderes desde los
   // gremios y barcos en el puerto; src/mundo/amenazas/vida.js).
   obras:true,vida:true,
+  // Explorar (octubre de 2026, Juani: "llevá lo mismo a la Edad Media", después de la Antigüedad): niebla y hallazgos lejos del
+  // pueblo; sin piratas, el campamento es de bandidos (src/mundo/amenazas/explora.js).
+  explora:{nombres:{ruinas:'unas ruinas romanas',oraculo:'una ermita en la colina'}},
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'medico',building:'Casa del médico',unit:'Médico',done:'Casa del médico lista: llegó un médico',desc:'Trae un médico que sale solo a curar los edificios con peste a 8 casilleros o menos.',info:'Casa del médico: su médico cura la peste cerca.',tip:'una casa del médico: el médico sale solo a curar la peste.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
