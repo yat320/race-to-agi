@@ -114,3 +114,29 @@ Juani: "Prehistoria se siente bien, las que siguen meh". Le gusta de la Prehisto
 - **Más corta:** sin la astronomía (solo daba +50% de ideas; la noche ahora la da la navegación), 8 inventos, y menos ideas y materiales en los últimos: matemática 100 ideas; engranajes 200 ideas, 35 de cobre y 30 monedas; Anticitera 400 ideas, 80 de piedra, 50 de cobre y 50 monedas.
 
 Con el bot (5 corridas): encadenada, 6,9 a 7,7 min (7,2 de promedio, casi lo mismo que antes de las obras); sola, 8,3. Por capítulo tarda 64 a 113 s, 0 a 102, 0 a 37, 74 a 121, 0 a 34, 52 a 85 y 84 a 97, y los relojes se recalibraron con eso (tabla de arriba). Una persona, con la regla de las misiones, 15 a 20 min.
+
+## Explorar: niebla y hallazgos (octubre de 2026)
+
+Juani: "antiguedad sigue siendo aburrida". Marcó todo: que se espera, que nada amenaza, que no hay qué descubrir y que es siempre lo mismo. Eligió probar primero explorar el mapa. Va en `src/mundo/amenazas/explora.js`, prendido con `explora:true`.
+
+- **Niebla:** el mapa arranca tapado salvo 7 casilleros alrededor del pueblo. Se destapa:
+  - por donde caminás vos (4,5 casilleros);
+  - por donde anda tu gente (2,5);
+  - alrededor de lo construido (3);
+  - alrededor de la atalaya, que mira lejos (7).
+
+  Los aldeanos solo juntan lo que se ve y no se puede construir en la niebla (el motor mira `FOG` con `fogged`). Tocar la niebla es ir a explorar hasta ahí.
+- **Hallazgos:** seis, escondidos a 12–24 casilleros del pueblo y cada uno para otro lado. Se ven al destaparlos (con un "?" que flota) y se toman tocándolos de cerca.
+  - Dos **ruinas**: 25 ideas y 15 de piedra.
+  - Una **aldea perdida**: 2 aldeanos más.
+  - Un **campamento pirata**: hay que echarlo con 3 golpes; deja 40 monedas y 15 de cobre.
+  - Un **oráculo**: destapa 11 casilleros alrededor y da 15 ideas.
+  - Un **yacimiento**: deja hasta 5 vetas de cobre nuevas.
+- **Se guarda** con la partida, en `explora`: lo descubierto en tramos (`s`) y los hallazgos (`f`: x, y, tipo, tomado, golpes). Una partida de antes, sin `explora`, arranca con la niebla destapada alrededor de todo lo que ya tenía.
+- **El bot** va al hallazgo más cercano que le falta (`botTaps`).
+
+Con el bot (3 corridas):
+- Sola: 7,2 min (antes 8,3).
+- Encadenada: 6 min (antes 7,4).
+
+Los hallazgos dan más de lo que cuesta caminar hasta ellos.
