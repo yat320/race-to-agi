@@ -297,6 +297,8 @@ const GRASS=0,WATER=1,SAND=2,DGRASS=3,HILL=4;
 const SPAWN=[30,34];
 const ground=new Uint8Array(MW*MH);
 let obj=new Array(MW*MH).fill(null);
+// Niebla (ERA.explora, src/mundo/amenazas/explora.js): FOG marca lo descubierto; mientras no hay niebla es null y todo se ve.
+let FOG=null;const fogged=(x,y)=>!!FOG&&!FOG[y*MW+x];
 function makeNoise(seed,cell){const r=mulberry32(seed);const gw=Math.ceil(MW/cell)+2,gh=Math.ceil(MH/cell)+2;const g=[];for(let i=0;i<gw*gh;i++)g.push(r());const sm=t=>t*t*(3-2*t);
   return(x,y)=>{const fx=x/cell,fy=y/cell,ix=Math.floor(fx),iy=Math.floor(fy),u=sm(fx-ix),v=sm(fy-iy);const a=g[iy*gw+ix],b=g[iy*gw+ix+1],c=g[(iy+1)*gw+ix],d=g[(iy+1)*gw+ix+1];return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;};}
 // Cada era tiene su mapa (las semillas salen del número de era), pero una ciudad que viene de la era anterior sigue en el mapa
@@ -409,6 +411,8 @@ function newGame(){
     const nb=obj.filter(o=>o&&BUILD[o.t]).length,nr=vil.filter(v=>v.bot).length,nh=vil.length-nr;
     st.legacy.perks[0]='Tu ciudad sigue entera: '+nb+' edificios'+(nr?', '+nh+' aldeanos y '+nr+' robots':' y '+nh+' aldeanos')+'. Lo que viene de otra era rinde la mitad por cada era de atraso hasta que lo modernizás';}
   else{const hx=SPAWN[0]-2,hy=SPAWN[1]-2;for(let i=0;i<st.legacy.aldeanos;i++)addVillager(hx,hy);if(!HANDS)starterKit();}
+  // Lo que una mecánica en archivo propio arma al empezar una partida, con el mapa y la gente ya puestos (la niebla, los hallazgos).
+  amEach('fresh');
 }
 // Sin juntar a mano, una era que arranca sin ciudad trae lo básico ya hecho: otra casa con 2 aldeanos, una granja, un aserradero
 // y una cantera, cada uno en la tierra libre más cercana a su lugar.
@@ -447,7 +451,7 @@ function importCity(c){genObjects();/* el suelo junto al inicio, como en un mapa
 function mapChanged(){OCEAN=null;chunks.clear();pending.clear();}
 function serialize(){
   const o=[];for(let i=0;i<obj.length;i++){const b=obj[i];if(b){const e=[i,b.t,b.hp||0,Math.round((b.regen||0)*10)/10,b.bug?1:0];if(isOld(b)||b.past||b.t==='monumento'&&b.era)e.push(isOld(b)||b.t==='monumento'?b.era:0);if(b.past)e.push(b.past);if(b.m&&b.m.some(Boolean)){while(e.length<7)e.push(0);e.push(b.m.map(m=>m?m.k+m.lv:''));}if(b.lv>1){while(e.length<8)e.push(0);e.push(b.lv);}if(b.of>0){while(e.length<9)e.push(0);e.push(b.of);}if(b.t==='obra'){e[2]=Math.round(b.work*10)/10;e[3]=b.need;while(e.length<10)e.push(0);e.push(b.b);}o.push(e);}}
-  return{v:1,...(IX>1?{ix:IX}:{}),...(CAPS?{cap:st.cap,threats:st.threats||0}:{}),res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[...(v.orb?landTile(v):[Math.round(v.x),Math.round(v.y)]),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0,...(v.job!=null||v.post!=null?[v.job!=null?v.job:-1,v.slot||0]:[]),...(v.post!=null?[v.post]:[])]),obj:o,...(MAPN!==ERA.n?{map:MAPN}:{})};
+  return{v:1,...amSave(),...(IX>1?{ix:IX}:{}),...(CAPS?{cap:st.cap,threats:st.threats||0}:{}),res:st.res,energy:st.energy,techs:st.techs,time:st.time,gathers:st.gathers,won:st.won,seen:st.seen,prio:st.prio,smog:Math.round(st.smog*10)/10,rival:Math.round(st.rival*100)/100,safety:Math.round(st.safety*100)/100,lost:st.lost,legacy:st.legacy,p:[Math.round(P.x),Math.round(P.y)],vil:vil.map(v=>[...(v.orb?landTile(v):[Math.round(v.x),Math.round(v.y)]),v.home[0],v.home[1],v.skin,v.bot?1:0,v.bad?1:0,...(v.job!=null||v.post!=null?[v.job!=null?v.job:-1,v.slot||0]:[]),...(v.post!=null?[v.post]:[])]),obj:o,...(MAPN!==ERA.n?{map:MAPN}:{})};
 }
 function load(d){
   if(!d||d.v!==1||!Array.isArray(d.obj))return false;
@@ -463,7 +467,7 @@ function load(d){
     if(v[9]!=null){const o=obj[v[9]];if(hasOf(o)&&!m.bad&&vil.filter(w=>w.post===v[9]).length<(o.of||0)){m.post=v[9];m.state='post';m.inside=true;m.x=v[9]%MW;m.y=(v[9]/MW)|0;}}
     if(v[7]!=null&&v[7]>=0){const o=obj[v[7]];if(o&&o.m&&!m.bad&&!vil.some(w=>w.job===v[7])){m.job=v[7];m.slot=0;m.state='job';m.inside=true;m.x=v[7]%MW;m.y=(v[7]/MW)|0;}}
     vil.push(m);});
-  floats=[];guards=[];rifts=[];holes=[];amEach('reset');recount();
+  floats=[];guards=[];rifts=[];holes=[];amEach('reset');recount();amEach('load',d);
   // Una partida de antes de los capítulos: lo que ya estaba hecho cuenta como cumplido, sin estrellas, y el reloj arranca ahora.
   if(CAPS&&!(st.cap&&Array.isArray(st.cap.s)))capInit(true);return true;
 }
@@ -843,6 +847,8 @@ function amenaza(m){AMENAZAS.push(m);return m;}
 /*@amenazas*/
 const AM=AMENAZAS.filter(m=>ERA[m.on]);
 function amEach(k,...a){for(const m of AM)if(m[k])m[k](...a);}
+// Lo que una mecánica en archivo propio guarda con la partida (`save()` devuelve sus campos y `load(d)` los lee al cargar).
+const amSave=()=>AM.reduce((o,m)=>m.save?Object.assign(o,m.save()):o,{});
 // Guardianes: cada cuartel terminado trae uno (syncGuards; no se guardan, al cargar salen de sus cuarteles). Patrulla cerca de
 // su cuartel y va solo a la amenaza más cercana que esté a GUARD_R casilleros del cuartel: camina hasta ella (los drones vuelan)
 // y la resuelve como un toque tuyo (tapThreat, con las mismas ideas), sin los avisos (quiet).
@@ -1183,7 +1189,7 @@ function pickTarget(v){
   const[sx,sy]=tileOf(v);
   const taken=new Set(vil.filter(o=>o!==v&&o.target).map(o=>o.target.join(',')));if(P.act)taken.add(P.act.x+','+P.act.y);
   let tgt=null;
-  const find=ty=>bfs(sx,sy,(x,y)=>{for(const[dx,dy]of DIRS8){const nx=x+dx,ny=y+dy;if(!inb(nx,ny))continue;const o=obj[ny*MW+nx];if(o&&o.t===ty&&o.hp>0&&!taken.has(nx+','+ny)){tgt=[nx,ny];return true;}}return false;});
+  const find=ty=>bfs(sx,sy,(x,y)=>{for(const[dx,dy]of DIRS8){const nx=x+dx,ny=y+dy;if(!inb(nx,ny))continue;const o=obj[ny*MW+nx];if(o&&o.t===ty&&o.hp>0&&!taken.has(nx+','+ny)&&!fogged(nx,ny)){tgt=[nx,ny];return true;}}return false;});
   if(ERA.obras&&!v.bot){const n={};for(const o of vil)if(o!==v&&o.target)n[o.target.join(',')]=(n[o.target.join(',')]||0)+1;
     const p=bfs(sx,sy,(x,y)=>{for(const[dx,dy]of DIRS8){const nx=x+dx,ny=y+dy;if(inb(nx,ny)&&isObra(obj[ny*MW+nx])&&(n[nx+','+ny]||0)<OBRA_HELP){tgt=[nx,ny];return true;}}return false;});
     if(p){v.target=tgt;v.path=p;v.state='go';return true;}}
@@ -2261,7 +2267,7 @@ function corners(x,y,col){const X=x*T,Y=y*T;ctx.fillStyle=col;[[0,0],[13,0],[0,1
 function nextToWater(x,y){return DIRS.some(([dx,dy])=>inb(x+dx,y+dy)&&ground[(y+dy)*MW+x+dx]===WATER);}
 function canPlace(id,x,y){
   if(!inb(x,y))return false;const i=y*MW+x,g=ground[i],b=BUILD[id];
-  if(g===WATER||obj[i])return false;if(b.noSand&&g===SAND)return false;if(b.water&&!nextToWater(x,y))return false;
+  if(g===WATER||obj[i]||fogged(x,y))return false;if(b.noSand&&g===SAND)return false;if(b.water&&!nextToWater(x,y))return false;
   const[px,py]=tileOf(P);if(px===x&&py===y)return false;
   for(const v of vil){const[vx,vy]=tileOf(v);if(vx===x&&vy===y)return false;}
   return true;
@@ -2658,7 +2664,7 @@ function tryPlace(x,y){
   const b=BUILD[placing],c=buildCost(b);
   if(!afford(c)){toast('Te faltan recursos.');stopPlace();return;}
   // `water` en un edificio es el aviso de que tiene que ir pegado al agua.
-  if(!canPlace(placing,x,y)){toast(b.water&&inb(x,y)&&!nextToWater(x,y)?b.water:'Ahí no se puede construir.');return;}
+  if(!canPlace(placing,x,y)){toast(inb(x,y)&&fogged(x,y)?'Primero explorá ahí: caminá hasta que se vea.':b.water&&inb(x,y)&&!nextToWater(x,y)?b.water:'Ahí no se puede construir.');return;}
   {const w=wouldEnclose(x,y);if(w){toast(w===P?'Ahí te quedarías encerrado: elegí otro lugar.':'Ahí alguien de tu gente quedaría encerrado: elegí otro lugar.');return;}}
   pay(c);
   if(ERA.obras&&!noObra(b)){obj[y*MW+x]={t:'obra',b:placing,need:obraNeed(b),work:0};recount();toast('Obra de '+b.name.toLowerCase()+': vos y tu gente la levantan. Tocala para trabajar.');
@@ -2768,6 +2774,8 @@ function onTap(tx,ty){
   // tapa (Juani no podía modernizar el hangar de drones).
   {const ob=inb(tx,ty)&&obj[ty*MW+tx];const g=!(ob&&!RES[ob.t])&&guards.find(g=>Math.hypot(g.x-tx,g.y-g.lift-ty)<0.9);if(g){toast(ERA.guard.unit+': '+guardStatus(g)+'.');return;}}
   if(!inb(tx,ty))return;
+  // En la niebla no se sabe qué hay: tocarla es ir a explorar hasta ahí (o hasta al lado, si no se puede pisar).
+  if(fogged(tx,ty)){marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);P.act=null;P.task=null;const p=passable(tx,ty)?bfs(px,py,(x,y)=>x===tx&&y===ty):pathAdj(px,py,tx,ty);if(p)P.path=p;else toast('No llegás hasta ahí.');return;}
   let o=obj[ty*MW+tx];
   if(!o&&inb(tx,ty+1)){const b=obj[(ty+1)*MW+tx];if(b&&b.t==='tree'&&b.hp>0){ty++;o=b;}}
   marker={x:tx,y:ty,t:0.6};const[px,py]=tileOf(P);

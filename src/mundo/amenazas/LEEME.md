@@ -30,6 +30,9 @@ Como todos los archivos van al mismo script que el motor, las otras amenazas y e
 | `row(p)` | la fila de la defensa en el HUD | llenar `$(p+'Fill')`, `$(p+'Num')` y `$(p+'Meta')` y mostrar u ocultar la fila (ver `twinRow` en `dobles.js`) |
 | `prueba()` | la huella | soltar una tanda a propósito (los dobles sueltan tres) |
 | `botTaps()` | el bot | lista de `[tx,ty]` para tocar; si no está, usa `targets`. Sirve cuando una amenaza pide más de un toque. |
+| `fresh()` | partida nueva, con el mapa y la gente ya puestos | armar lo que la mecánica pone al empezar (la niebla y los hallazgos de `explora.js`) |
+| `save()` | al guardar | devolver los campos que se suman a la partida (`{explora:{…}}`); casi ninguna amenaza guarda nada |
+| `load(d)` | al cargar, después de `reset()` | leer lo suyo de la partida `d`; si no está (una partida de antes), armarlo como corresponda |
 | `debug` | con `?debug` | funciones que se suman a `window.__rtagiDebug` (`twins`, `spawnTwin`, `twinEvery`) |
 | `guardia` | el arte del guardián | `{kind, pal:{c,C,j}, draw(a,K)}`: el guardián que dice `ERA.guard.kind`, con el cuerpo de una persona (`pal`: chaqueta, sombra, pantalón) y lo que lo distingue (`draw`, sobre el lienzo `a` de 64×64; `K` es el color del contorno) |
 

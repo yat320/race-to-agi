@@ -10,6 +10,9 @@ const ERA={
   obras:true,
   // Mundo vivo: cabras, sequía de verano, mercaderes y barcos de comercio (src/mundo/amenazas/vida.js).
   vida:true,
+  // Explorar (octubre de 2026, Juani: "antiguedad sigue siendo aburrida"; eligió explorar): el mapa arranca con niebla y hay
+  // hallazgos escondidos lejos del pueblo (src/mundo/amenazas/explora.js).
+  explora:true,
   pirates:'moneda',defense:{id:'atalaya',r:4,label:'Atalayas'},
   // Adentro (octubre de 2026): en lo que produce, oficios (3 puestos; cada uno suma `v` a lo que produce ese edificio); lo demás
   // se mejora hasta el nivel 3 (el efecto de cada nivel está en motor.html; el nivel 3 pide además cobre).
