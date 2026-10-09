@@ -12,7 +12,10 @@
 // con la niebla destapada alrededor de lo que ya tenía.
 const EXP_R_START=7,EXP_R_P=4.5,EXP_R_V=2.5,EXP_R_B=3,EXP_R_T=7,EXP_R_ORACLE=11,EXP_HITS=3;
 const EXP_KINDS=['ruinas','aldea','ruinas','cofre','oraculo','veta'];
-const EXP_NAME={ruinas:'unas ruinas',aldea:'una aldea perdida',cofre:'un campamento pirata',oraculo:'un oráculo',veta:'un yacimiento'};
+// Sin piratas en la era (la Edad Media), el campamento es de bandidos; y la era puede renombrar los hallazgos (`explora:{nombres}`).
+const EXP_BAND=ERA.pirates?'piratas':'bandidos';
+const EXP_NAME=Object.assign({ruinas:'unas ruinas',aldea:'una aldea perdida',cofre:'un campamento '+(ERA.pirates?'pirata':'de bandidos'),oraculo:'un oráculo',veta:'un yacimiento'},ERA.explora&&ERA.explora.nombres||{});
+const expCap=t=>t.charAt(0).toUpperCase()+t.slice(1);
 let expSeen=null,expFinds=[],expGo=null,expGoT=0;
 // Dibujos: ruinas de columnas caídas, dos chozas con su gente, la carpa pirata con el cofre, el templete del oráculo con su
 // fuego y la grieta con vetas que brillan. Se arman la primera vez que hacen falta.
@@ -37,33 +40,36 @@ const expSprite=k=>({ruinas:HS.expRuinas,aldea:HS.expAldea,cofre:HS.expCofre,ora
 function expReveal(cx,cy,r){const R=Math.ceil(r);for(let y=Math.max(0,Math.floor(cy)-R);y<=Math.min(MH-1,Math.ceil(cy)+R);y++)for(let x=Math.max(0,Math.floor(cx)-R);x<=Math.min(MW-1,Math.ceil(cx)+R);x++)
   if(!expSeen[y*MW+x]&&Math.hypot(x-cx,y-cy)<=r)expSeen[y*MW+x]=1;}
 // Los hallazgos van lejos del pueblo, cada uno para otro lado, en tierra libre que se pueda pisar.
+// Con la ciudad de la era anterior, que ya se ve, van afuera de lo visto si se puede (y un poco más lejos).
 function expPlace(){expFinds=[];const used=[];const kinds=EXP_KINDS.slice();
   for(let k=0;k<kinds.length;k++){let best=null;
-    for(let n=0;n<200&&!best;n++){const an=(k+Math.random()*0.8)/kinds.length*Math.PI*2,d=12+Math.random()*12,x=Math.round(SPAWN[0]+Math.cos(an)*d),y=Math.round(SPAWN[1]+Math.sin(an)*d);
-      if(x<3||y<3||x>MW-4||y>MH-4||obj[y*MW+x]||!passable(x,y)||ground[y*MW+x]===SAND)continue;if(used.some(([ux,uy])=>Math.hypot(ux-x,uy-y)<7))continue;best=[x,y];}
+    for(let n=0;n<400&&!best;n++){const an=(k+Math.random()*0.8)/kinds.length*Math.PI*2,d=12+Math.random()*(n<200?16:12),x=Math.round(SPAWN[0]+Math.cos(an)*d),y=Math.round(SPAWN[1]+Math.sin(an)*d);
+      if(x<3||y<3||x>MW-4||y>MH-4||obj[y*MW+x]||!passable(x,y)||ground[y*MW+x]===SAND)continue;if(used.some(([ux,uy])=>Math.hypot(ux-x,uy-y)<7))continue;if(n<200&&expSeen[y*MW+x])continue;best=[x,y];}
     if(!best)continue;used.push(best);expFinds.push({x:best[0],y:best[1],k:kinds[k],done:false,hits:0,told:false});}}
-function expStart(old){expSeen=new Uint8Array(MW*MH);FOG=expSeen;expPlace();
-  if(!old){expReveal(SPAWN[0],SPAWN[1],EXP_R_START);return;}
-  // Una partida de antes: se ve todo lo que ya tenía (edificios, gente y vos) y un poco alrededor; los hallazgos que caen ahí ya se ven.
+function expStart(old){expSeen=new Uint8Array(MW*MH);FOG=expSeen;
+  if(!old){expReveal(SPAWN[0],SPAWN[1],EXP_R_START);expPlace();return;}
+  // Una partida de antes, o la ciudad que vino de la era anterior: se ve todo lo que ya tenía (edificios, gente y vos) y un poco
+  // alrededor; los hallazgos van afuera de eso si se puede, y los que igual caen ahí ya se ven.
   expReveal(P.x,P.y,EXP_R_START);for(const v of vil)expReveal(v.x,v.y,EXP_R_P);obj.forEach((o,i)=>{if(o&&!RES[o.t])expReveal(i%MW,(i/MW)|0,EXP_R_START);});
-  for(const f of expFinds)if(expSeen[f.y*MW+f.x])f.told=true;}
+  expPlace();for(const f of expFinds)if(expSeen[f.y*MW+f.x])f.told=true;}
 // Lo descubierto se guarda en tramos: cuántos tapados, cuántos destapados, y así (el mapa es casi todo de una pieza).
 function expPack(){const r=[];let c=0,n=0;for(let i=0;i<expSeen.length;i++){if(expSeen[i]!==c){r.push(n);c=expSeen[i];n=0;}n++;}r.push(n);return r;}
 function expUnpack(r){const s=new Uint8Array(MW*MH);let i=0,c=0;for(const n of r){if(c)s.fill(1,i,Math.min(s.length,i+n));i+=n;c^=1;}return s;}
 function expClaim(f){if(f.k==='cofre'&&f.hits<EXP_HITS-1){f.hits++;zaps.push({x:f.x,y:f.y,t:0.4});float(f.x,f.y-0.6,'¡fuera!','#e8654d');
-    toast('¡Uno menos! '+(EXP_HITS-f.hits===1?'Falta 1 golpe':'Faltan '+(EXP_HITS-f.hits)+' golpes')+' para echar a los piratas.');return;}
+    toast('¡Uno menos! '+(EXP_HITS-f.hits===1?'Falta 1 golpe':'Faltan '+(EXP_HITS-f.hits)+' golpes')+' para echar a los '+EXP_BAND+'.');return;}
   f.done=true;expGo=null;sparks.push({x:f.x,y:f.y,t:1.6,d:0,big:true});
   if(f.k==='ruinas'){st.res.ideas+=25*IX;add('piedra',15);float(f.x,f.y-0.6,ideaTxt(25),RCOL.ideas);float(f.x,f.y-1.2,'+15 piedra',RCOL.piedra);toast('Ruinas de una ciudad vieja: +'+fmt(25*IX)+' ideas y 15 de piedra.');}
   else if(f.k==='aldea'){addVillager(f.x,f.y);addVillager(f.x,f.y);float(f.x,f.y-0.6,'+2 aldeanos','#93d36c');toast('Una aldea perdida: 2 aldeanos se suman a tu pueblo.');}
-  else if(f.k==='cofre'){add('monedas',40);add(ORE,15);float(f.x,f.y-0.6,'+40 monedas',RCOL.monedas);float(f.x,f.y-1.2,'+15 '+RN[ORE].toLowerCase(),RCOL[ORE]);toast('¡Echaste a los piratas! Su tesoro: 40 monedas y 15 de '+RN[ORE].toLowerCase()+'.');}
-  else if(f.k==='oraculo'){st.res.ideas+=15*IX;expReveal(f.x,f.y,EXP_R_ORACLE);float(f.x,f.y-0.6,ideaTxt(15),RCOL.ideas);toast('El oráculo de la colina: desde arriba se ve lejos. +'+fmt(15*IX)+' ideas.');}
+  else if(f.k==='cofre'){add('monedas',40);add(ORE,15);float(f.x,f.y-0.6,'+40 monedas',RCOL.monedas);float(f.x,f.y-1.2,'+15 '+RN[ORE].toLowerCase(),RCOL[ORE]);toast('¡Echaste a los '+EXP_BAND+'! Su tesoro: 40 monedas y 15 de '+RN[ORE].toLowerCase()+'.');}
+  else if(f.k==='oraculo'){st.res.ideas+=15*IX;expReveal(f.x,f.y,EXP_R_ORACLE);float(f.x,f.y-0.6,ideaTxt(15),RCOL.ideas);toast(expCap(EXP_NAME.oraculo.replace(/^un /,'el ').replace(/^una /,'la '))+': desde arriba se ve lejos. +'+fmt(15*IX)+' ideas.');}
   else if(f.k==='veta'){let n=0;for(const[dx,dy]of DIRS8){const x=f.x+dx,y=f.y+dy;if(n<5&&inb(x,y)&&!obj[y*MW+x]&&passable(x,y)&&!(Math.round(P.x)===x&&Math.round(P.y)===y)){obj[y*MW+x]={t:'ore',hp:RES.ore.hp,regen:0};n++;}}
     recount();toast('Un yacimiento: '+n+' vetas de '+RN[ORE].toLowerCase()+' nuevas.');}
   if(f.k==='ruinas'||f.k==='oraculo')flashChip('ideas');else if(f.k==='cofre')flashChip('monedas');save();}
 const expAt=(tx,ty)=>expFinds.find(f=>!f.done&&expSeen[f.y*MW+f.x]&&Math.abs(f.x-tx)<=0.6&&Math.abs(f.y-ty)<=0.6);
 amenaza({on:'explora',
   reset(){expArt();expGo=null;expGoT=0;},
-  fresh(){expStart(false);},
+  // Con la ciudad de la era anterior (sus edificios traen `era`), arranca destapada alrededor de lo que ya tenés.
+  fresh(){expStart(obj.some(o=>o&&o.era&&BUILD[o.t]));},
   load(d){const e=d&&d.explora;
     if(e&&Array.isArray(e.s)&&Array.isArray(e.f)){expSeen=expUnpack(e.s);FOG=expSeen;expFinds=e.f.filter(f=>Array.isArray(f)&&EXP_NAME[f[2]]).map(([x,y,k,done,hits])=>({x,y,k,done:!!done,hits:hits|0,told:true}));}
     else expStart(true);},
@@ -89,7 +95,7 @@ amenaza({on:'explora',
     const[px,py]=tileOf(P);P.task=null;P.act=null;const p=pathAdj(px,py,f.x,f.y);if(!p){toast('No llegás hasta ahí.');return'vida';}
     P.path=p;expGo=f;expGoT=40;marker={x:f.x,y:f.y,t:0.6};return'vida';},
   hint(){if(!expSeen)return null;const f=expFinds.find(f=>!f.done&&f.told);
-    if(f&&f.k==='cofre'&&f.hits)return['¡Piratas!','tocá su campamento '+(EXP_HITS-f.hits)+' veces más para quedarte con el tesoro.'];
+    if(f&&f.k==='cofre'&&f.hits)return['¡'+expCap(EXP_BAND)+'!','tocá su campamento '+(EXP_HITS-f.hits)+' veces más para quedarte con el tesoro.'];
     if(f)return['¡Hallazgo!','tocá '+EXP_NAME[f.k]+' para ver qué hay.'];
     if(st.time>60&&st.time<360&&!expFinds.some(f=>f.done))return['Explorá:','tocá lo oscuro para ir: hay cosas escondidas.'];return null;},
   // El bot explora: va al hallazgo más cercano que todavía no tomó, aunque esté en la niebla.

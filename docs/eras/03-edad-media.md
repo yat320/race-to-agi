@@ -89,3 +89,22 @@ Juani: "llevá lo mismo a la Edad Media", después de probarlo en la Antigüedad
   - Imprenta: 80 de piedra, 60 de hierro, 60 monedas y 450 ideas (antes 110, 90, 100 y 650).
 
 Con el bot (3 corridas): encadenada, 3,7 min (antes 4,7); sola, 9,6 (antes 11,1).
+
+## Explorar: niebla y hallazgos (octubre de 2026)
+
+Juani: "llevá lo mismo a la Edad Media", después de probar explorar en la Antigüedad (ver su doc). Es el mismo `explora.js`, prendido con `explora:{nombres:{…}}`.
+
+**Nombres de esta era.** Las ruinas son romanas y el oráculo es una ermita en la colina. Como no hay piratas, el campamento es de bandidos (`EXP_BAND`). Lo demás es igual que en la Antigüedad:
+- dos ruinas;
+- una aldea perdida;
+- el campamento, que pide 3 golpes y deja monedas y hierro;
+- la ermita, que destapa mucho alrededor;
+- un yacimiento de hierro.
+
+**La ciudad que viene de la Antigüedad.** Ya se ve: arranca destapada alrededor de todos sus edificios, la gente y vos. Los hallazgos van afuera de lo visto si se puede.
+
+Con el bot (3 corridas):
+- Sola: 7,1 min (antes 9,6).
+- Encadenada: 3,3 min (antes 3,7).
+
+La huella cambió en la Antigüedad y la Edad Media, porque `explora.js` reparte los hallazgos de otra manera. En las demás eras solo cambian cantidades del guardado: el Renacimiento importa la ciudad de la Edad Media, y la Electricidad y la Computación ya variaban así antes. Las partidas viejas cargan sin errores.
