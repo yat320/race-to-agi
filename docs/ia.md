@@ -47,6 +47,16 @@ Se prende con `interiores:{edificio:{name}}`. En la etapa 1 es el centro de dato
 
 **Guardado.** Va con la partida (`interior`, por casillero del edificio). Los que investigan vuelven a sentarse al cargar.
 
+**Un arreglo de octubre de 2026.** Juani: "entro al centro de datos y no me deja caminar ni enfriar algunas veces".
+
+El personaje de adentro se movía con `stepEnt`, que mira si se puede pisar el mapa de afuera en las mismas coordenadas. Ahí, en la esquina del mapa, hay agua y cosas: se frenaba de golpe y a veces no llegaba al lado de un rack.
+
+Ahora camina con su propio paso (`intStep`), que mira el mapa de adentro. Probado tocando la pantalla:
+- camina a las cuatro esquinas y al medio;
+- enfría los cinco racks recalentados.
+
+Con la versión anterior, la misma prueba se frenaba en lugares al azar y dejaba dos racks calientes.
+
 ## Lo que sigue (si gusta)
 
 - Más edificios por dentro: el laboratorio de IA, la fábrica de robots y el instituto de alineación.
