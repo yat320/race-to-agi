@@ -5,9 +5,9 @@
 // (`juego`) y el centro de datos que se recorre por dentro (src/mundo/amenazas/interior.js). Las etapas que siguen se suman
 // como src/ia/etapa2.js, etapa3.js…
 ERA.juego={id:'ia',etapa:1,nombre:'La carrera de la IA'};
-// Sin etapa anterior: arranca solo (una clave que no existe) y no pasa a la AGI del mundo abierto.
+// Sin etapa anterior: arranca solo (una clave que no existe); al terminar pasa a la etapa 2 (ia2.html), no a la AGI del mundo abierto.
 ERA.legacy=Object.assign({},ERA.legacy,{key:'rtagi-ia0-v1',perks:[]});
-ERA.next=null;
+ERA.next={file:'ia2.html',to:'a la carrera por la AGI'};
 // Los edificios que se recorren por dentro: el centro de datos (racks de GPUs, escritorios, la pizarra y cajas viejas).
 ERA.interiores={datacenter:{name:'Centro de datos'}};
 ERA.text=Object.assign({},ERA.text,{
@@ -15,5 +15,5 @@ ERA.text=Object.assign({},ERA.text,{
   intro:'Un prototipo de un juego aparte, solo de la IA. Ahora podés entrar a tus centros de datos y recorrerlos: instalá y mejorá racks de GPUs, sentá a tu gente a investigar, elegí en la pizarra qué hacen y enfriá los racks que se recalientan. Y revisá las cajas del rincón.',
   news:'Novedad: los centros de datos se recorren por dentro. Tocá uno para entrar.',
   noLegacy:'Arrancás con lo básico para juntar. Los robots, los desalineados y la supervisión son los de la era IA del mundo abierto.',
-  winNote:'Fin del prototipo. Contale a Claude qué te gustó de recorrer los edificios para armar las etapas que siguen.'});
+  winNote:'Tu ciudad, tus ideas y lo de adentro de tus centros de datos pasan a la etapa 2: la carrera por la AGI.'});
 /* ---------- arte de la era ---------- */

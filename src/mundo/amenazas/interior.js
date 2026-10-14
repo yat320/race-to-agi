@@ -17,8 +17,10 @@ const INT_W=11,INT_H=10,INT_SLOTS=4,INT_DESKS=2,INT_DESK=0.4,INT_BOX=3,INT_HOT_E
 const INT_RACK=[0,0.3,0.6,1];
 // Lo de adentro: paredes (W), puerta (D), racks (0-4), escritorios (a, b) con su silla abajo, pizarra (P), cajas (C).
 const INT_MAP=['WWWWWWWWWWW','WP........W','W.0.1.2.3.W','W.........W','W.........W','W.a.b....4W','W.........W','W........CW','W.........W','WWWWWDWWWWW'];
-let intIn=null,intP=null,intState={},intGo=null,intGoT=0,intAct=null,intBug=null,intHotT=0,intBugT=0,intSeen=false;
+let intChose=false,intIn=null,intP=null,intState={},intGo=null,intGoT=0,intAct=null,intBug=null,intHotT=0,intBugT=0,intSeen=false;
 const intDef=t=>ERA.interiores&&ERA.interiores[t];
+// "un centro de datos", "al centro de datos", "el centro de datos"; uno femenino lo dice la era (`un`, `al`, `el`).
+const intUn=d=>d.un||'un '+d.name.toLowerCase(),intAl=d=>d.al||'al '+d.name.toLowerCase(),intEl=d=>d.el||'el '+d.name.toLowerCase();
 const intCell=(x,y)=>x<0||y<0||x>=INT_W||y>=INT_H?'W':INT_MAP[y][x];
 const intWalk=(x,y)=>{const c=intCell(x,y);return c==='.'||c==='D';};
 function intFind(ch){for(let y=0;y<INT_H;y++)for(let x=0;x<INT_W;x++)if(INT_MAP[y][x]===ch)return[x,y];return null;}
@@ -36,7 +38,9 @@ function intSit(i,quietly){const s=intGet(i),bx=i%MW,by=(i/MW)|0;
   v.held='interior';v.desk=i;v.inside=true;v.state='idle';v.path=[];v.target=null;v.x=bx;v.y=by;return true;}
 function intStand(i){const v=intSeated(i).pop();if(!v)return;v.held=null;v.desk=null;v.inside=false;v.state='idle';v.t=0.3;
   const sp=DIRS8.map(([dx,dy])=>[(i%MW)+dx,((i/MW)|0)+dy]).find(([x,y])=>passable(x,y));if(sp){v.x=sp[0];v.y=sp[1];}}
-function intEnter(i){intIn=i;intP={x:INT_DOOR[0],y:INT_DOOR[1]-1,path:[],face:1,moving:false};intAct=null;intSeen=true;navPush();
+// keepNav: entra sobre la entrada del historial del cartel que se acaba de cerrar (cerrar con un paso atrás y entrar con uno
+// adelante se cruzaban, y al salir se volvía una página de más: se salía del juego).
+function intEnter(i,keepNav){intIn=i;intP={x:INT_DOOR[0],y:INT_DOOR[1]-1,path:[],face:1,moving:false};intAct=null;intSeen=true;if(!keepNav)navPush();
   const d=intDef(obj[i].t);toast(d.name+': tocá algo para ir; pegado, lo usás. La puerta te saca.');}
 function intExit(fromBack){if(intIn==null)return;intIn=null;intAct=null;intBug=null;if(!fromBack)navPop();save();}
 // Caminar adentro: BFS en el mapa chico hasta el casillero o hasta al lado de lo que tocaste.
@@ -56,13 +60,13 @@ function intUse(tx,ty){const i=intIn,s=intGet(i),c=intCell(tx,ty),def=intDef(obj
   if(intBug&&Math.round(intBug.x)===tx&&Math.round(intBug.y)===ty){intBug=null;st.res.ideas+=3*IX;floatIn(tx,ty,ideaTxt(3),RCOL.ideas);toast('¡Bicho aplastado!');return;}
   if(/[0-4]/.test(c)){const k=+c;if(k===4&&!s.five){toast('Un rincón vacío. Algo habrá en las cajas…');return;}
     if(s.hot[k]){s.hot[k]=0;st.res.ideas+=2*IX;floatIn(tx,ty,'¡enfriado!','#5fe3d0');toast('Rack enfriado: vuelve a sumar.');save();return;}
-    const lv=s.r[k];if(lv>=3){toast('Rack al máximo: suma '+Math.round(INT_RACK[3]*100)+'% de un '+def.name.toLowerCase()+'.');return;}
+    const lv=s.r[k];if(lv>=3){toast('Rack al máximo: suma '+Math.round(INT_RACK[3]*100)+'% de '+intUn(def)+'.');return;}
     const cost=intRackCost(lv),title=lv?'Rack de GPUs: nivel '+lv+' → '+(lv+1):'Rack de GPUs';
-    showModal('<div class="kicker">'+def.name+'</div><h2>'+title+'</h2><p>+'+Math.round(INT_RACK[lv]*100)+'% → +'+Math.round(INT_RACK[lv+1]*100)+'% de lo que da un '+def.name.toLowerCase()+'.</p><p class="muted">Cuesta '+intTxt(cost)+'. Se puede recalentar: entrá a enfriarlo.</p>'+
+    showModal('<div class="kicker">'+def.name+'</div><h2>'+title+'</h2><p>+'+Math.round(INT_RACK[lv]*100)+'% → +'+Math.round(INT_RACK[lv+1]*100)+'% de lo que da '+intUn(def)+'.</p><p class="muted">Cuesta '+intTxt(cost)+'. Se puede recalentar: entrá a enfriarlo.</p>'+
       '<div class="row"><button class="btn" id="intOk"'+(afford(cost)?'':' disabled')+'>'+(lv?'Mejorar':'Instalar')+'</button><button class="btn ghost" id="intNo">Cerrar</button></div>');
     $('intOk').onclick=()=>{if(!afford(cost))return;pay(cost);s.r[k]=lv+1;floatIn(tx,ty,lv?'¡nivel '+(lv+1)+'!':'¡instalado!','#93d36c');hideModal();save();};$('intNo').onclick=()=>hideModal();return;}
   if(c==='a'||c==='b'){const k=c==='a'?0:1,on=k<s.d;
-    showModal('<div class="kicker">'+def.name+'</div><h2>Escritorio</h2><p>'+(on?'Acá investiga alguien de tu gente: suma +'+Math.round(INT_DESK*100)+'% de un '+def.name.toLowerCase()+' y no junta afuera.':'Sentá a alguien a investigar: +'+Math.round(INT_DESK*100)+'% de un '+def.name.toLowerCase()+'. Deja de juntar afuera.')+'</p>'+
+    showModal('<div class="kicker">'+def.name+'</div><h2>Escritorio</h2><p>'+(on?'Acá investiga alguien de tu gente: suma +'+Math.round(INT_DESK*100)+'% de '+intUn(def)+' y no junta afuera.':'Sentá a alguien a investigar: +'+Math.round(INT_DESK*100)+'% de '+intUn(def)+'. Deja de juntar afuera.')+'</p>'+
       '<div class="row"><button class="btn" id="intOk">'+(on?'Que vuelva afuera':'Sentar a alguien')+'</button><button class="btn ghost" id="intNo">Cerrar</button></div>');
     $('intOk').onclick=()=>{if(on){intStand(i);s.d--;}else if(intSit(i)){s.d++;floatIn(tx,ty+1,'¡a investigar!','#93d36c');}hideModal();save();};$('intNo').onclick=()=>hideModal();return;}
   if(c==='P'){showModal('<div class="kicker">'+def.name+'</div><h2>La pizarra</h2><p>¿En qué trabaja lo de adentro?</p><div class="row" style="flex-direction:column;align-items:stretch">'+
@@ -91,8 +95,24 @@ function intSceneTap(px,py){const{s,ox,oy}=intView(),tx=Math.floor((px-ox)/s/T),
     if(intWalk(gx,gy)&&!bugHit&&INT_MAP[gy][gx]!=='D'){const p=intPath(sx,sy,(x,y)=>x===gx&&y===gy);if(p)intP.path=p;intAct=null;return;}
     if(intNear(sx,sy,gx,gy)){intP.path=[];if(gx!==sx)intP.face=gx>sx?1:-1;intUse(gx,gy);return;}
     const p=intPath(sx,sy,(x,y)=>intNear(x,y,gx,gy)&&!(x===gx&&y===gy));if(p){intP.path=p;intAct=[gx,gy];}}
+// Un toque afuera sobre un edificio recorrible: ir hasta la puerta y entrar (o elegir, si vino de la etapa anterior).
+function intTap(tx,ty){if(quiet||!inb(tx,ty))return false;const i=ty*MW+tx,o=obj[i];if(!o||!intDef(o.t)||o.bug)return false;
+    // Uno que vino de la etapa anterior rinde la mitad hasta modernizarlo: se elige entre entrar y modernizarlo.
+    if(isOld(o)&&!intChose){const d=intDef(o.t),b=BUILD[o.t],c=modernCost(b);
+      showModal('<div class="kicker">'+d.name+'</div><h2>Vino de la etapa anterior</h2><p>Rinde la mitad hasta que la modernizás. Lo de adentro sigue igual.</p><p class="muted">Modernizarla cuesta '+intTxt(c)+'.</p>'+
+        '<div class="row" style="flex-direction:column;align-items:stretch"><button class="btn" id="intIn">Entrar</button><button class="btn ghost" id="intMod"'+(canModern(o)?'':' disabled')+'>Modernizar</button><button class="btn ghost" id="intNo">Cerrar</button></div>');
+      $('intIn').onclick=()=>{intChose=true;try{intTap(tx,ty);}finally{intChose=false;}};$('intMod').onclick=()=>{hideModal();modernize(i);};$('intNo').onclick=()=>hideModal();return'vida';}
+    // Si venía del cartel de elegir, se cierra sin tocar el historial y se entra sobre esa misma entrada.
+    const fromCard=intChose&&!$('modal').hidden;if(fromCard)hideModal(true);
+    const[px,py]=tileOf(P);if(Math.max(Math.abs(px-tx),Math.abs(py-ty))<=1){P.path=[];intEnter(i,fromCard);return'vida';}
+    if(fromCard)navPop();
+    P.task=null;P.act=null;const p=pathAdj(px,py,tx,ty);if(!p){toast('No llegás hasta ahí.');return'vida';}P.path=p;intGo=i;intGoT=30;marker={x:tx,y:ty,t:0.6};return'vida';}
 amenaza({on:'interiores',
   reset(){intIn=null;intGo=null;intAct=null;intBug=null;intFloats=[];intState={};for(const v of vil)if(v.held==='interior'){v.held=null;v.inside=false;v.desk=null;}},
+  // Una etapa que arranca con la ciudad de la anterior (ERA.legacy.key) se trae lo de adentro de los edificios que siguen siendo
+  // recorribles (los centros de datos pasan a supercomputadoras en el mismo casillero): racks, foco, cajas y gente sentada.
+  fresh(){let d=null;try{d=JSON.parse(localStorage.getItem(ERA.legacy.key));}catch(e){}const e=d&&d.won&&d.interior;if(!e||!e.s)return;
+    this.load({interior:{s:e.s,seen:e.seen}});for(const i in intState)for(let k=0;k<5;k++)intState[i].hot[k]=0;},
   save(){const o={};for(const i in intState){const s=intState[i];if(obj[i]&&intDef(obj[i].t))o[i]=[s.r.join(''),s.hot.join(''),s.d,s.f==='monedas'?1:0,s.box,s.five];}return{interior:{s:o,seen:intSeen?1:0}};},
   load(d){const e=d&&d.interior;intSeen=!!(e&&e.seen);if(!e||!e.s)return;
     for(const i in e.s){const a=e.s[i];if(!obj[i]||!intDef(obj[i].t)||!Array.isArray(a))continue;const s=intGet(+i);
@@ -105,8 +125,8 @@ amenaza({on:'interiores',
   tick(step){
     // Cada tanto se recalienta un rack que anda (en cualquier centro de datos), y entra un bicho al que estás recorriendo.
     const racks=[];for(const i in intState){const s=intState[i];if(!obj[i]||!intDef(obj[i].t))continue;s.r.forEach((lv,k)=>{if(lv&&!s.hot[k])racks.push([s,k,+i]);});}
-    intHotT+=step;if(racks.length&&intHotT>=INT_HOT_EVERY){intHotT=Math.random()*20;const[s,k]=racks[Math.floor(Math.random()*racks.length)];s.hot[k]=1;
-      if(!quiet)toast('¡Se recalentó un rack de GPUs! Entrá al '+(intDef(obj[racks[0][2]].t).name.toLowerCase())+' a enfriarlo.');}
+    intHotT+=step;if(racks.length&&intHotT>=INT_HOT_EVERY){intHotT=Math.random()*20;const[s,k,bi]=racks[Math.floor(Math.random()*racks.length)];s.hot[k]=1;
+      if(!quiet)toast('¡Se recalentó un rack de GPUs! Entrá '+intAl(intDef(obj[bi].t))+' a enfriarlo.');}
     if(intIn!=null&&!intBug){intBugT+=step;if(intBugT>=INT_BUG_EVERY){intBugT=0;intBug={x:1+Math.floor(Math.random()*(INT_W-2)),y:3,t:12};}}
     if(intBug){intBug.t-=step;if(intBug.t<=0){intBug=null;if(intIn!=null)toast('El bicho se metió en un rack y se fue.');}}
     // Con el foco en producto, lo de adentro da monedas en vez de ideas.
@@ -145,14 +165,12 @@ amenaza({on:'interiores',
     drawEnt(intP,HS.hero,true);
     for(const f of intFloats){c.globalAlpha=Math.min(1,f.t*1.5);c.font='600 7px "Pixelify Sans", monospace';c.textAlign='center';c.lineWidth=2;c.strokeStyle='#1b1a24';c.strokeText(f.txt,f.x,f.y);c.fillStyle=f.col;c.fillText(f.txt,f.x,f.y);}
     c.globalAlpha=1;c.font='600 8px "Pixelify Sans", monospace';c.textAlign='center';c.fillStyle='#ffd35a';c.fillText('salir',INT_DOOR[0]*T+8,INT_H*T+9);
-    c.fillStyle='#f0e7d4';c.fillText(def.name+' · suma +'+Math.round(intBonus(S)*100)+'% '+(S.f==='ideas'?'en ideas':'en monedas'),INT_W*T/2,INT_H*T+22);},
+    c.fillStyle='#f0e7d4';c.fillText(def.name+' · +'+Math.round(intBonus(S)*100)+'% '+(S.f==='ideas'?'ideas':'monedas'),INT_W*T/2,INT_H*T+22);},
   sceneTap(px,py){intSceneTap(px,py);},
-  tap(tx,ty){if(quiet||!inb(tx,ty))return false;const i=ty*MW+tx,o=obj[i];if(!o||!intDef(o.t)||o.bug||isOld(o))return false;
-    const[px,py]=tileOf(P);if(Math.max(Math.abs(px-tx),Math.abs(py-ty))<=1){P.path=[];intEnter(i);return'vida';}
-    P.task=null;P.act=null;const p=pathAdj(px,py,tx,ty);if(!p){toast('No llegás hasta ahí.');return'vida';}P.path=p;intGo=i;intGoT=30;marker={x:tx,y:ty,t:0.6};return'vida';},
+  tap(tx,ty){return intTap(tx,ty);},
   hint(){const hot=Object.keys(intState).some(i=>obj[i]&&intDef(obj[i].t)&&intState[i].hot.some(Boolean));
-    if(hot&&intIn==null)return['¡Rack recalentado!','entrá al '+Object.values(ERA.interiores)[0].name.toLowerCase()+' y tocalo para enfriarlo.'];
+    if(hot&&intIn==null)return['¡Rack recalentado!','entrá '+intAl(Object.values(ERA.interiores)[0])+' y tocalo para enfriarlo.'];
     if(intIn!=null&&intBug)return['¡Un bicho!','tocalo antes de que se meta en un rack.'];
-    if(!intSeen){const id=Object.keys(ERA.interiores).find(k=>counts[k]);if(id)return['Entrá:','tocá el '+ERA.interiores[id].name.toLowerCase()+' para recorrerlo por dentro.'];}
+    if(!intSeen){const id=Object.keys(ERA.interiores).find(k=>counts[k]);if(id)return['Entrá:','tocá '+intEl(ERA.interiores[id])+' para recorrerlo por dentro.'];}
     return null;},
-  debug:{tapPx:(x,y)=>intSceneTap(x,y),view:()=>intView(),interior:()=>({in:intIn,p:intP,state:intState,bug:intBug}),enter:i=>intEnter(i),exit:()=>intExit(),use:(x,y)=>intUse(x,y)}});
+  debug:{chose:()=>intChose,tapPx:(x,y)=>intSceneTap(x,y),view:()=>intView(),interior:()=>({in:intIn,p:intP,state:intState,bug:intBug}),enter:i=>intEnter(i),exit:()=>intExit(),use:(x,y)=>intUse(x,y)}});

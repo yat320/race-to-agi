@@ -424,7 +424,8 @@ function starterKit(){for(const[dx,dy,t]of[[-4,-1,'casa'],[-3,2,'granja'],[3,2,'
   recount();}
 // La ciudad de la era anterior, si se terminó en este motor (desde la Antigüedad) y tiene edificios: su mapa, lo que había en
 // él y su gente. Una partida guardada antes de que existiera `map` está en el mapa propio de su era.
-function prevCity(){const L=ERA.legacy;if(L.st)return null;const pn=+((L.key.match(/mundo(\d+)-/)||[])[1]);if(!pn)return null;
+// En un juego aparte (la carrera de la IA), la etapa anterior dice sobre qué era se armó (`ERA.legacy.prevN`).
+function prevCity(){const L=ERA.legacy;if(L.st)return null;const pn=L.prevN||+((L.key.match(/mundo(\d+)-/)||[])[1]);if(!pn)return null;
   try{const d=JSON.parse(localStorage.getItem(L.key));if(!d||!d.won||!Array.isArray(d.obj)||!d.obj.some(e=>!RES[e[1]]&&ROLE[e[1]]!=='drop'))return null;
     return{n:pn,map:d.map||pn,obj:d.obj,vil:d.vil||[],p:d.p};}catch(e){return null;}}
 // Qué papel cumple cada edificio de cualquier era, para pasarlo a la era que sigue cuando ahí no existe: el de ideas pasa al

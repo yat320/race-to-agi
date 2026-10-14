@@ -79,6 +79,8 @@ amenaza({on:'vida',
       float(s.x,s.y-0.6,'+15 monedas',RCOL.monedas);float(s.x,s.y-1.2,ideaTxt(8),RCOL.ideas);zaps.push({x:s.x,y:s.y,t:0.5});return'vida';}
     if(quiet)return false;
     if(vidaMerch&&Math.hypot(vidaMerch.x-tx,vidaMerch.y-ty)<=1.2){if(vidaMerch.state==='wait')vidaTrade();else toast(vidaMerch.state==='come'?'El mercader viene en camino.':'El mercader ya se va.');return'vida';}
+    // Un toque sobre un edificio es para el edificio, aunque haya una cabra pastando al lado (no te ibas a cazarla en vez de entrar).
+    {const o=inb(tx,ty)&&obj[ty*MW+tx];if(o&&!RES[o.t])return false;}
     const g=vidaGoats.find(g=>Math.hypot(g.x-tx,g.y-ty)<=1.2);if(!g)return false;
     if(Math.hypot(P.x-g.x,P.y-g.y)<=1.6){vidaCatch(g);return'vida';}
     vidaChase=g;vidaChaseT=12;P.task=null;P.act=null;const[px,py]=tileOf(P),[gx,gy]=tileOf(g),p=pathAdj(px,py,gx,gy);if(p)P.path=p;float(g.x,g.y-0.6,'¡meee!','#f4f1e8');return'vida';},
