@@ -57,8 +57,29 @@ Ahora camina con su propio paso (`intStep`), que mira el mapa de adentro. Probad
 
 Con la versión anterior, la misma prueba se frenaba en lugares al azar y dejaba dos racks calientes.
 
+## Etapa 2: la carrera por la AGI (octubre de 2026)
+
+Juani: "falta la parte que le sigue a la nueva etapa de ia". `src/ia/etapa2.js` se arma sobre la era AGI del mundo abierto (`// base: agi.js`): el laboratorio rival y sus espías, la seguridad, las embajadas y los puestos de guardia. Sale `dist/ia2.html`.
+
+**El pase.**
+- La etapa 1 termina con "Pasar a la carrera por la AGI" (`ERA.next`).
+- El inicio abre la etapa en la que vas: la 2 si terminaste la 1 o ya la empezaste.
+
+**La ciudad.** La etapa 2 trae la ciudad de la etapa 1 en el mismo mapa. Para eso, `ERA.legacy` tiene `key` (la partida de la etapa 1) y `prevN:9` (sobre qué era se armó); `prevCity` usa `prevN` cuando está.
+- Los centros de datos pasan a supercomputadoras en el mismo casillero, con lo de adentro: racks, foco, cajas y la gente sentada (`fresh` en `interior.js`).
+- Los racks llegan fríos.
+
+**Las supercomputadoras se recorren por dentro.** `interiores:{supercomp:{name, un, al, el}}`; las formas femeninas sirven para los textos.
+- Una que vino de la etapa 1 rinde la mitad hasta modernizarla.
+- Al tocarla, un cartel deja elegir entre entrar o modernizarla.
+
+**Dos arreglos de esta tanda:**
+- Una cabra que pastaba al lado de un edificio se quedaba con el toque, y salías a cazarla en vez de entrar. Ahora un toque sobre un edificio es para el edificio (`vida.js`, en todas las eras con mundo vivo).
+- Entrar desde el cartel cerraba el cartel con un paso atrás en el historial y entraba con uno adelante. Se cruzaban, y al salir se volvía una página de más: se salía del juego. Ahora entra sobre la misma entrada del historial (`intEnter(i, keepNav)`).
+
 ## Lo que sigue (si gusta)
 
+- Etapas antes y entre medio (hoy son la IA y la AGI del mundo abierto, con interiores).
 - Más edificios por dentro: el laboratorio de IA, la fábrica de robots y el instituto de alineación.
 - Las etapas de la IA, cada una con su obra y su problema:
   1. redes neuronales;

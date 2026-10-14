@@ -230,8 +230,10 @@ $('eras').addEventListener('click',ev=>{const b=ev.target.closest('[data-go]');i
 $('mundo').addEventListener('click',ev=>{const b=ev.target.closest('[data-mundo]');const e=b&&MUNDO[+b.dataset.mundo];if(e)loadPage(e.file,'Cargando '+e.name.toLowerCase()+'…');});
 $('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(p.file,'Cargando '+p.name.toLowerCase()+'…');});
 // La carrera de la IA: un juego aparte; el botón dice si ya hay una partida.
-try{if(localStorage.getItem('rtagi-ia1-v1'))$('iaGo').textContent='Continuar';}catch(x){}
-$('iaGo').addEventListener('click',()=>loadPage('ia1.html','Cargando la carrera de la IA…'));
+// Abre la etapa en la que vas: la 2 si ya terminaste la 1 (o la empezaste).
+let iaFile='ia1.html';try{const g=k=>JSON.parse(localStorage.getItem(k)||'null');const e1=g('rtagi-ia1-v1'),e2=g('rtagi-ia2-v1');
+  if(e2||(e1&&e1.won)){iaFile='ia2.html';$('iaGo').textContent=e2?'Continuar la etapa 2':'Pasar a la etapa 2';}else if(e1)$('iaGo').textContent='Continuar';}catch(x){}
+$('iaGo').addEventListener('click',()=>loadPage(iaFile,'Cargando la carrera de la IA…'));
 $('copy').addEventListener('click',()=>{
   const v=$('code').value;
   const ok=()=>alertMsg('copyMsg','Copiado');
