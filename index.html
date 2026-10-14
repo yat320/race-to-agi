@@ -83,6 +83,13 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
     <ol class="eras" id="mundo"></ol>
   </section>
 
+  <!-- Un juego aparte con el mismo motor: la carrera de la IA (src/ia/, sale como ia1.html…), en prototipo. -->
+  <section class="legacy" aria-labelledby="iaTitle">
+    <h2 id="iaTitle">Nuevo: la carrera de la IA</h2>
+    <p>Un juego aparte, solo de la IA, en prototipo: entrás a los centros de datos y los recorrés por dentro. Tiene sus propias partidas y no toca el mundo abierto.</p>
+    <div class="row"><button class="btn" id="iaGo">Probar</button></div>
+  </section>
+
   <section class="legacy" aria-labelledby="legTitle">
     <h2 id="legTitle">Tu progreso</h2>
     <p>Todo se guarda en este navegador: eras, estrellas, mejoras y prototipos, y sigue ahí cuando el juego se actualiza. Copiá el código para tener una copia o para seguir en otro dispositivo.</p>
@@ -222,6 +229,9 @@ $('others').addEventListener('toggle',()=>{try{if($('others').open)sessionStorag
 $('eras').addEventListener('click',ev=>{const b=ev.target.closest('[data-go]');if(b)goEra(+b.dataset.go);});
 $('mundo').addEventListener('click',ev=>{const b=ev.target.closest('[data-mundo]');const e=b&&MUNDO[+b.dataset.mundo];if(e)loadPage(e.file,'Cargando '+e.name.toLowerCase()+'…');});
 $('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(p.file,'Cargando '+p.name.toLowerCase()+'…');});
+// La carrera de la IA: un juego aparte; el botón dice si ya hay una partida.
+try{if(localStorage.getItem('rtagi-ia1-v1'))$('iaGo').textContent='Continuar';}catch(x){}
+$('iaGo').addEventListener('click',()=>loadPage('ia1.html','Cargando la carrera de la IA…'));
 $('copy').addEventListener('click',()=>{
   const v=$('code').value;
   const ok=()=>alertMsg('copyMsg','Copiado');

@@ -181,8 +181,10 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
 /*@datos*/
 // La era que sigue, si la era no la dice: la pone el build cuando hay una era con el número siguiente.
 if(!ERA.next)ERA.next=/*@siguiente*/null;
-const ERA_ID='mundo'+ERA.n+'-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
-const T=16,MW=64,MH=64,DAY=160,KEY='rtagi-mundo'+ERA.n+'-v1';
+// Un juego aparte (ERA.juego, por ejemplo la carrera de la IA en src/ia/) usa este mismo motor con sus propias partidas.
+const JUEGO=ERA.juego||null,MODO=JUEGO?JUEGO.nombre:'Mundo abierto';
+const ERA_ID=(JUEGO?JUEGO.id+JUEGO.etapa:'mundo'+ERA.n)+'-'+Math.random().toString(36).slice(2);window.__rtagiActive=ERA_ID;const alive=()=>window.__rtagiActive===ERA_ID;
+const T=16,MW=64,MH=64,DAY=160,KEY=JUEGO?'rtagi-'+JUEGO.id+JUEGO.etapa+'-v1':'rtagi-mundo'+ERA.n+'-v1';
 // Modo prueba (se prende en el inicio): el menú deja terminar la era al toque, para pasar a la siguiente sin jugarla entera.
 const TEST=(()=>{try{return localStorage.getItem('rtagi-prueba')==='1';}catch(e){return false;}})();
 const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
@@ -493,7 +495,7 @@ const gatherMult=()=>(1+0.3*((counts.herreria||0)+lvx('herreria')))*smogPen();
 // Cada edificio de ideas de la era suma 30%; cada invento de ideaTechs, 50%.
 function ideaMult(){let m=(1+0.05*vil.filter(v=>!v.away).length)*(st.legacy.ideaMult||1)*(1+0.3*(act(ERA.ideaBuild)+lvx(ERA.ideaBuild)));for(const t of ERA.ideaTechs)if(st.techs[t])m*=1.5;return m;}
 function prodOf(b){ // producción por segundo de un tipo de edificio (todas sus copias)
-  const n=act(b.id)+(INL.length?inSum(b.id,'sp'):0),out={};if(!n||!b.prod)return out;
+  const n=act(b.id)+(INL.length?inSum(b.id,'sp'):0)+AM.reduce((s,m)=>m.extra?s+m.extra(b.id):s,0),out={};if(!n||!b.prod)return out;
   const eng=st.techs[ERA.boostTech]?1.5:1;
   for(const k in b.prod){let v=b.prod[k]*n*eng;if(b.id==='granja')v*=(1+0.5*(act(ERA.farmBuild)+lvx(ERA.farmBuild)))*(st.legacy.agri||1)*smogPen()*AM.reduce((f,m)=>m.farm?f*m.farm():f,1);if(k==='ideas')v*=ideaMult()*IX*(IDF[b.id]??1);out[k]=v;}
   return out;
@@ -848,6 +850,9 @@ function amenaza(m){AMENAZAS.push(m);return m;}
 const AM=AMENAZAS.filter(m=>ERA[m.on]);
 function amEach(k,...a){for(const m of AM)if(m[k])m[k](...a);}
 // Lo que una mecánica en archivo propio guarda con la partida (`save()` devuelve sus campos y `load(d)` los lee al cargar).
+// Una escena (adentro de un edificio que se recorre, src/mundo/amenazas/interior.js) toma la pantalla y los toques mientras está
+// abierta: el mundo sigue andando afuera, pero vos no te movés ahí. El gancho `scene()` dice si está abierta.
+const SCENE=()=>AM.find(m=>m.scene&&m.scene());
 const amSave=()=>AM.reduce((o,m)=>m.save?Object.assign(o,m.save()):o,{});
 // Guardianes: cada cuartel terminado trae uno (syncGuards; no se guardan, al cargar salen de sus cuarteles). Patrulla cerca de
 // su cuartel y va solo a la amenaza más cercana que esté a GUARD_R casilleros del cuartel: camina hasta ella (los drones vuelan)
@@ -1308,7 +1313,7 @@ function update(dt){
   for(const z of zaps)z.t-=dt;zaps=zaps.filter(z=>z.t>0);
   BROKEN=null;
   for(let i=0;i<obj.length;i++){const o=obj[i];if(o&&RES[o.t]&&o.hp<=0){o.regen-=dt;if(o.regen<=0){if(occupied(i%MW,(i/MW)|0)||(goos.length&&gooAt(i)))o.regen=0.5;else o.hp=RES[o.t].hp;}}}
-  updatePlayer(dt);
+  if(!SCENE())updatePlayer(dt);
   for(const v of vil)updateVillager(v,dt);
   for(const f of floats){f.t-=dt;f.y-=dt*10;}
   floats=floats.filter(f=>f.t>0);
@@ -2293,6 +2298,7 @@ function unstick(){for(const e of freeWho()){const[ex,ey]=tileOf(e);if(reachCoun
     else{e.state='idle';e.target=null;e.t=0.5;float(to[0],to[1]-1,'¡afuera!','#5fe3d0');}}}
 const LIGHT={casa:[8,10,1.8,0.6],parque:[10,7,1.6,0.7],ciudad:[8,8,5,0.9],rival:[8,6,4,0.9]};
 function render(){
+  {const sc=SCENE();if(sc){sc.sceneDraw();return;}}
   const s=SC;ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;ctx.fillStyle='#2c6a98';ctx.fillRect(0,0,W,H);
   const vw=W/s,vh=H/s,cyc=(hudH+(H-barH-hudH)/2)/s;
   let cx=P.x*T+8-vw/2,cy=P.y*T+8-cyc;
@@ -2377,7 +2383,7 @@ const chipEl={};
   const res=$('res');if(RK.length>6)res.classList.add('many');
   for(const k of RK){const d=document.createElement('div');d.className='chip';d.innerHTML='<img class="px" alt="" src="'+ICON[k]+'"><b>0</b><small>'+RN[k]+'</small>';res.appendChild(d);chipEl[k]=d;}
   const bar=$('agiBar');for(let i=1;i<10;i++){const t=document.createElement('i');t.className='tick';t.style.left=(i*10)+'%';bar.appendChild(t);}
-  document.title='Race to AGI · Mundo abierto · '+ERA.name;fitEra();$('buildHint').textContent=BUILDS.filter(b=>!b.hidden).length+' edificios';
+  document.title='Race to AGI · '+MODO+' · '+ERA.name;fitEra();$('buildHint').textContent=BUILDS.filter(b=>!b.hidden).length+' edificios';
   // Las dos barras de abajo de la energía: humo o seguridad, y la red, los robots o el rival.
   const H=$('hud');if(BUILDS.some(b=>b.smoke)||ERA.grid||ERA.robots||ERA.rival||ERA.defense)H.classList.add('rows');
   $('sLbl').textContent=ERA.rival?'Seguridad':(ERA.cities||ERA.robots)&&ERA.defense?ERA.defense.label:'Humo';$('gLbl').textContent=ERA.rival?'Rival':ERA.grid==='power'?'Luz':ERA.cities?'Red':ERA.robots?'Robots':ERA.defense?ERA.defense.label:'Red';
@@ -2387,7 +2393,7 @@ const chipEl={};
 function flashChip(k){const c=chipEl[k];if(!c)return;c.classList.add('flash');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('flash'),350);}
 const agiPct=()=>Math.min(100,10*(ERA.n-1)+TECHS.filter(t=>st.techs[t.id]).length/TECHS.length*10);
 // Después de la AGI la barra queda llena y el texto cuenta los inventos de la era.
-const pctText=()=>ERA.n>10?'más allá: '+TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length:fmt(agiPct())+'% a la AGI';
+const pctText=()=>JUEGO?'etapa '+JUEGO.etapa:ERA.n>10?'más allá: '+TECHS.filter(t=>st.techs[t.id]).length+' de '+TECHS.length:fmt(agiPct())+'% a la AGI';
 function goalText(){
   if(HANDS&&st.energy<25)return['Comé algo:','tu energía está baja.'];
   const hungry=vil.filter(v=>v.hungry).length;
@@ -2657,7 +2663,9 @@ addEventListener('popstate',()=>{
   if(!alive())return;if(ignorePop>0){ignorePop--;return;}navDepth=Math.max(0,navDepth-1);
   if(!$('modal').hidden){if(modalKind==='event'||modalKind==='intro'){navPush();return;}hideModal(true);return;}
   if(sheetMode){closeSheet(true);return;}
-  if(placing){stopPlace(true);}
+  if(placing){stopPlace(true);return;}
+  // Adentro de un edificio, el botón atrás te saca a la puerta.
+  {const sc=SCENE();if(sc&&sc.sceneBack)sc.sceneBack();}
 });
 
 function tryPlace(x,y){
@@ -2691,17 +2699,17 @@ function showIntro(){
   // Sin la ciudad anterior, lo que trae `starterKit` se dice acá, así no parece una partida que quedó guardada.
   const kitN=['casa','granja','aserradero','cantera'].filter(t=>BUILD[t]).map(t=>BUILD[t].name.toLowerCase()),
     kit=HANDS||prevCity()?'':'<p class="muted">Como desde la Industria no se junta a mano, cada vez que empezás sin la ciudad de la era anterior ya tenés armado lo básico: '+kitN[0]+' con 2 aldeanos más, '+kitN.slice(1).join(', ').replace(/, ([^,]*)$/,' y $1')+'.</p>';
-  showModalI('<div class="kicker">Mundo abierto · '+E.when+'</div><h1>'+E.title+'</h1><p>'+E.intro+'</p>'+erasHTML(ERA.n-1)+leg+kit+'<p class="muted">'+E.news+'</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
+  showModalI('<div class="kicker">'+MODO+' · '+E.when+'</div><h1>'+E.title+'</h1><p>'+E.intro+'</p>'+(JUEGO?'':erasHTML(ERA.n-1))+leg+kit+'<p class="muted">'+E.news+'</p><div class="row"><button class="btn" data-m="start">Empezar</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');
 }
 const nextBtn=cls=>ERA.next?'<button class="'+cls+'" data-m="next">Pasar '+ERA.next.to+'</button>':'';
 function showMenu(){showModal('<div class="kicker">Día '+(Math.floor(st.time/DAY)+1)+' · '+pctText()+'</div><h2>Menú</h2><p class="muted">'+ERA.text.menu+'</p><div class="row"><button class="btn" data-m="close">Volver al juego</button>'+(st.won?nextBtn('btn ghost'):'')+(TEST&&!st.won?'<button class="btn ghost" data-m="win">Terminar la era ya (prueba)</button>':'')+'<button class="btn ghost" data-m="hub">Todas las eras</button><button class="btn ghost" data-m="reset">Reiniciar era</button><button class="btn ghost" data-m="gente">Gente transparente frente a los edificios: '+(ghostOn?'sí':'no')+'</button></div>');}
-function showWin(){const E=ERA.text;showModal('<div class="kicker">Mundo abierto · '+ERA.name+'</div><h1>'+E.win+'</h1><p>'+E.winText()+'</p>'+(CAPS&&st.cap?'<p class="capwin">'+CAPS.map((c,i)=>st.cap.s[i]?starTxt(st.cap.s[i]):'—').join(' · ')+'<br><b>'+capTotal()+' de '+CAPS.length*3+' estrellas</b></p>':'')+erasHTML(ERA.n)+'<p class="muted">'+(E.winNote||(ERA.next?'Tu ciudad, tus ideas y tus monedas pasan '+ERA.next.to+'.':'Por ahora es la última era.'))+'</p><div class="row">'+nextBtn('btn')+'<button class="'+(ERA.next?'btn ghost':'btn')+'" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
+function showWin(){const E=ERA.text;showModal('<div class="kicker">'+MODO+' · '+ERA.name+'</div><h1>'+E.win+'</h1><p>'+E.winText()+'</p>'+(CAPS&&st.cap?'<p class="capwin">'+CAPS.map((c,i)=>st.cap.s[i]?starTxt(st.cap.s[i]):'—').join(' · ')+'<br><b>'+capTotal()+' de '+CAPS.length*3+' estrellas</b></p>':'')+erasHTML(ERA.n)+'<p class="muted">'+(E.winNote||(ERA.next?'Tu ciudad, tus ideas y tus monedas pasan '+ERA.next.to+'.':'Por ahora es la última era.'))+'</p><div class="row">'+nextBtn('btn')+'<button class="'+(ERA.next?'btn ghost':'btn')+'" data-m="close">Seguir jugando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
 // El rival llegó primero: se puede reintentar la era (con doble toque, como en el menú) o seguir mirando.
-function showLose(){const E=ERA.text;showModal('<div class="kicker">Mundo abierto · '+ERA.name+'</div><h1>'+E.lose+'</h1><p>'+E.loseText+'</p><div class="row"><button class="btn" data-m="reset">Intentar de nuevo</button><button class="btn ghost" data-m="close">Seguir mirando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
+function showLose(){const E=ERA.text;showModal('<div class="kicker">'+MODO+' · '+ERA.name+'</div><h1>'+E.lose+'</h1><p>'+E.loseText+'</p><div class="row"><button class="btn" data-m="reset">Intentar de nuevo</button><button class="btn ghost" data-m="close">Seguir mirando</button><button class="btn ghost" data-m="hub">Todas las eras</button></div>');}
 // La era siguiente se carga sobre esta página, como las eras desde el hub.
 function goPage(f){save();window.__rtagiActive='switching';fetch(f).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{document.open();document.write(t);document.close();}).catch(()=>{window.__rtagiActive=ERA_ID;requestAnimationFrame(frame);toast('No se pudo cargar. Volvé a abrir el juego.','bad');});}
 // Volver al inicio: si la era se cargó sobre el inicio (lo normal), recargar lo muestra; si se abrió directo por su link, se va a él.
-function toHub(){if(/mundo\d*\.html$/.test(location.pathname))location.href='./';else location.reload();}
+function toHub(){if(/(mundo|ia)\d*\.html$/.test(location.pathname))location.href='./';else location.reload();}
 $('modalCard').addEventListener('click',e=>{
   const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
   if(m==='start'){st.seen=true;save();hideModal();}
@@ -2797,7 +2805,7 @@ function onTap(tx,ty){
 let down=null;
 cv.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,t:performance.now()};});
 cv.addEventListener('pointerup',e=>{if(!down||paused)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;
-  if(dx*dx+dy*dy<196&&performance.now()-down.t<800){const r=cv.getBoundingClientRect();onTap(Math.floor(((e.clientX-r.left)*DPR/SC+cam.x)/T),Math.floor(((e.clientY-r.top)*DPR/SC+cam.y)/T));}down=null;});
+  if(dx*dx+dy*dy<196&&performance.now()-down.t<800){const r=cv.getBoundingClientRect(),sc=SCENE();if(sc){sc.sceneTap((e.clientX-r.left)*DPR,(e.clientY-r.top)*DPR);down=null;return;}onTap(Math.floor(((e.clientX-r.left)*DPR/SC+cam.x)/T),Math.floor(((e.clientY-r.top)*DPR/SC+cam.y)/T));}down=null;});
 const KMAP={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right'};
 const KD={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
 const keys=new Set();let lastKey=null;
