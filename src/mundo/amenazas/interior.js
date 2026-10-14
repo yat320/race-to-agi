@@ -44,6 +44,12 @@ function intPath(sx,sy,goal){const k=(x,y)=>y*INT_W+x,prev=new Map([[k(sx,sy),nu
   while(q.length){const[x,y]=q.shift();if(goal(x,y)){const p=[];let c=k(x,y);while(c!==k(sx,sy)){p.unshift([c%INT_W,(c/INT_W)|0]);c=prev.get(c);}return p;}
     for(const[dx,dy]of DIRS8){const nx=x+dx,ny=y+dy;if(!intWalk(nx,ny)||prev.has(k(nx,ny)))continue;if(dx&&dy&&(!intWalk(x+dx,y)||!intWalk(x,y+dy)))continue;prev.set(k(nx,ny),k(x,y));q.push([nx,ny]);}}
   return null;}
+// Caminar adentro: como stepEnt del motor, pero mirando el mapa de adentro (stepEnt mira el de afuera, y en las mismas
+// coordenadas, la esquina del mapa, hay agua: el personaje se frenaba de golpe y no llegaba a los racks).
+function intStep(e,dt,spd){e.moving=false;let move=spd*dt;
+  while(move>0&&e.path.length){const[tx,ty]=e.path[0];if(!intWalk(tx,ty)){e.path.length=0;break;}
+    const dx=tx-e.x,dy=ty-e.y,dist=Math.hypot(dx,dy);if(Math.abs(dx)>0.01)e.face=dx>0?1:-1;
+    if(dist<=move){e.x=tx;e.y=ty;e.path.shift();move-=dist;}else{e.x+=dx/dist*move;e.y+=dy/dist*move;move=0;}e.moving=true;}}
 const intNear=(x,y,tx,ty)=>Math.max(Math.abs(x-tx),Math.abs(y-ty))<=1;
 // Usar lo que hay en (tx,ty), ya pegado.
 function intUse(tx,ty){const i=intIn,s=intGet(i),c=intCell(tx,ty),def=intDef(obj[i].t);
@@ -113,7 +119,7 @@ amenaza({on:'interiores',
       else if(!P.path.length)intGo=null;}
     if(intIn==null)return;
     if(placing||!obj[intIn]||!intDef(obj[intIn].t)){intExit();return;}
-    stepEnt(intP,dt,4);
+    intStep(intP,dt,4);
     if(intAct&&!intP.path.length){const[tx,ty]=intAct;const[px,py]=[Math.round(intP.x),Math.round(intP.y)];intAct=null;if(intNear(px,py,tx,ty)){if(tx!==px)intP.face=tx>px?1:-1;intUse(tx,ty);}}
     if(intBug){intBug.x+=Math.sin(st.time*2.3)*dt*1.4;intBug.y+=Math.cos(st.time*1.7)*dt*1.4;intBug.x=clamp(intBug.x,1,INT_W-2);intBug.y=clamp(intBug.y,3,INT_H-2);}
     for(const f of intFloats){f.t-=dt;f.y-=dt*10;}intFloats=intFloats.filter(f=>f.t>0);},
