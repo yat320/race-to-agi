@@ -33,6 +33,9 @@ Como todos los archivos van al mismo script que el motor, las otras amenazas y e
 | `fresh()` | partida nueva, con el mapa y la gente ya puestos | armar lo que la mecánica pone al empezar (la niebla y los hallazgos de `explora.js`) |
 | `save()` | al guardar | devolver los campos que se suman a la partida (`{explora:{…}}`); casi ninguna amenaza guarda nada |
 | `load(d)` | al cargar, después de `reset()` | leer lo suyo de la partida `d`; si no está (una partida de antes), armarlo como corresponda |
+| `extra(id)` | lo que produce cada tipo de edificio | cuántos edificios de más suma ese tipo (lo de adentro de los centros de datos en `interior.js`) |
+| `scene()` | cada cuadro | `true` mientras la mecánica toma la pantalla (adentro de un edificio): el motor no dibuja el mundo ni mueve al jugador afuera |
+| `sceneDraw()`, `sceneTap(px,py)`, `sceneBack()` | con la escena abierta | dibujarla, atender un toque (en píxeles de la pantalla) y el botón atrás del celular |
 | `debug` | con `?debug` | funciones que se suman a `window.__rtagiDebug` (`twins`, `spawnTwin`, `twinEvery`) |
 | `guardia` | el arte del guardián | `{kind, pal:{c,C,j}, draw(a,K)}`: el guardián que dice `ERA.guard.kind`, con el cuerpo de una persona (`pal`: chaqueta, sombra, pantalón) y lo que lo distingue (`draw`, sobre el lienzo `a` de 64×64; `K` es el color del contorno) |
 

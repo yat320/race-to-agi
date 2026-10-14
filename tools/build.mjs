@@ -54,3 +54,20 @@ for (const e of ERAS) {
   writeFileSync('dist/' + page, out);
   console.log('dist/' + page, out.length, 'bytes (src/mundo/' + e.f + ')');
 }
+
+// Juegos aparte con el mismo motor (src/ia/: la carrera de la IA). Cada etapa dice arriba sobre qué era del mundo abierto se
+// arma (`// base: ia.js`): sus datos van después de los de esa era (y los cambian) y su arte después del arte de esa era.
+// Salen como dist/ia1.html, ia2.html…; no entran en el inicio del mundo abierto ni en el bot o la huella.
+if (existsSync('src/ia')) for (const f of readdirSync('src/ia').filter(f => /^etapa\d+\.js$/.test(f)).sort()) {
+  const src = readFileSync('src/ia/' + f, 'utf8'), base = (src.match(/^\/\/ base: (\S+)/m) || [])[1];
+  const b = ERAS.find(e => e.f === base);
+  if (!b) throw new Error('src/ia/' + f + ': falta "// base: <era>.js" con una era de src/mundo');
+  const MARK = '/* ---------- arte de la era ---------- */';
+  if (!src.includes(MARK)) throw new Error('src/ia/' + f + ': falta la marca del arte');
+  const [datos, arte] = src.split(MARK), page = 'ia' + f.match(/\d+/)[0] + '.html';
+  let out = fill(motor, '/*@siguiente*/null', 'null', 'src/mundo/motor.html');
+  out = fill(out, '/*@datos*/', b.datos + '\n' + datos.trim(), 'src/mundo/motor.html');
+  out = fill(out, '/*@arte*/', b.arte + '\n' + arte.trim(), 'src/mundo/motor.html');
+  writeFileSync('dist/' + page, out);
+  console.log('dist/' + page, out.length, 'bytes (src/ia/' + f + ' sobre src/mundo/' + base + ')');
+}
