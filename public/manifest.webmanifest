@@ -1,0 +1,17 @@
+{
+  "name": "Race to AGI",
+  "short_name": "Race to AGI",
+  "description": "Juego de gestión en pixel art: de las piedras a la AGI.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#15131b",
+  "theme_color": "#15131b",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

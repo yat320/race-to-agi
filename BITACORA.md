@@ -16,3 +16,10 @@ Los criterios de Juani: lo que haga el juego más divertido en el celular y lo a
 4. **Un segundo edificio para recorrer:** el laboratorio de IA. Si da el tiempo.
 
 ### Hecho
+
+1. **PWA (app instalable y sin conexión).**
+   - `public/manifest.webmanifest`, íconos en `public/icons/` (un chip en pixel art que dibuja `tools/iconos.mjs`) y `src/sw.js`. El build mete en el `<head>` de cada página el manifiesto, los meta de app y el registro del service worker, copia `public/` a `dist/` y escribe `dist/sw.js` con una versión que es el hash de las páginas.
+   - El service worker busca primero en la red las páginas (así cada versión publicada llega sola) y, sin conexión, usa la copia guardada. El resto (íconos, fuentes) sale de la copia.
+   - Probado con Playwright y el servidor apagado: el inicio, la Edad Media y la carrera de la IA abren sin conexión. Una era que nunca se abrió lleva al inicio. Sin errores de página.
+   - La huella del mundo abierto da igual: solo cambian los campos de `save`, el ruido de siempre entre corridas, y se ganan las 21 eras.
+   - No lo pude probar en un celular de verdad (instalar en la pantalla de inicio). Queda para Juani.

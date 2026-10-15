@@ -5,7 +5,13 @@
 // Prehistoria y la fila de eras del motor), el link a la era siguiente y los papeles de los edificios salen de los datos de
 // cada era: una era nueva es un archivo nuevo y nada más.
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { loadEras, missing, shortName, obraName, toName } from './eras.mjs';
+// La app instalable (PWA, octubre de 2026): el manifiesto, el color de la barra, el ícono de iPhone y el service worker.
+// Va en el <head> de todas las páginas, así se puede instalar desde cualquiera (el inicio o el link directo a una era).
+const PWA = '<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#15131b"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="icons/apple-180.png">' +
+  '<script>if("serviceWorker"in navigator&&location.protocol!=="file:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>';
+const withPWA = html => html.replace(/<head>/i, '<head>' + PWA);
 const WRAP = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}body{margin:0}</style></head><body>';
 const ERAS = loadEras();
 if (missing(ERAS).length) console.warn('Aviso: faltan las eras ' + missing(ERAS).join(', ') + ' (la de antes no pasa a la de después y el inicio las saltea).');
@@ -33,7 +39,7 @@ for (const f of readdirSync('.').filter(f => f.endsWith('.html'))) {
   if (f === 'index.html') src = fill(src, '/*@mundo*/[]', MUNDO, f);
   if (f === 'mundo.html') src = fill(src, '/*@eras*/[]', NAMES, f);
   const out = src.trimStart().toLowerCase().startsWith('<!doctype') ? src : WRAP + src + '</body></html>';
-  writeFileSync('dist/' + f, out);
+  writeFileSync('dist/' + f, withPWA(out));
   console.log('dist/' + f, out.length, 'bytes');
 }
 
@@ -51,7 +57,7 @@ for (const e of ERAS) {
   let out = fill(motor, '/*@siguiente*/null', next, 'src/mundo/motor.html');
   out = fill(out, '/*@datos*/', e.datos, 'src/mundo/motor.html');
   out = fill(out, '/*@arte*/', e.arte, 'src/mundo/motor.html');
-  writeFileSync('dist/' + page, out);
+  writeFileSync('dist/' + page, withPWA(out));
   console.log('dist/' + page, out.length, 'bytes (src/mundo/' + e.f + ')');
 }
 
@@ -68,6 +74,16 @@ if (existsSync('src/ia')) for (const f of readdirSync('src/ia').filter(f => /^et
   let out = fill(motor, '/*@siguiente*/null', 'null', 'src/mundo/motor.html');
   out = fill(out, '/*@datos*/', b.datos + '\n' + datos.trim(), 'src/mundo/motor.html');
   out = fill(out, '/*@arte*/', b.arte + '\n' + arte.trim(), 'src/mundo/motor.html');
-  writeFileSync('dist/' + page, out);
+  writeFileSync('dist/' + page, withPWA(out));
   console.log('dist/' + page, out.length, 'bytes (src/ia/' + f + ' sobre src/mundo/' + base + ')');
 }
+
+// Lo estático de la app (public/: el manifiesto y los íconos) va tal cual; el service worker lleva la versión: un resumen de
+// todo lo publicado, así cada versión nueva estrena su caché y la vieja se borra.
+const copyDir = (from, to) => { mkdirSync(to, { recursive: true }); for (const f of readdirSync(from, { withFileTypes: true })) {
+  if (f.isDirectory()) copyDir(from + '/' + f.name, to + '/' + f.name); else writeFileSync(to + '/' + f.name, readFileSync(from + '/' + f.name)); } };
+copyDir('public', 'dist');
+{ const h = createHash('sha256'); for (const f of readdirSync('dist').filter(f => f.endsWith('.html')).sort()) h.update(readFileSync('dist/' + f));
+  const v = h.digest('hex').slice(0, 12);
+  writeFileSync('dist/sw.js', fill(readFileSync('src/sw.js', 'utf8'), '/*@version*/', v, 'src/sw.js'));
+  console.log('dist/sw.js versión ' + v); }
