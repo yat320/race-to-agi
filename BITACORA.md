@@ -23,3 +23,25 @@ Los criterios de Juani: lo que haga el juego más divertido en el celular y lo a
    - Probado con Playwright y el servidor apagado: el inicio, la Edad Media y la carrera de la IA abren sin conexión. Una era que nunca se abrió lleva al inicio. Sin errores de página.
    - La huella del mundo abierto da igual: solo cambian los campos de `save`, el ruido de siempre entre corridas, y se ganan las 21 eras.
    - No lo pude probar en un celular de verdad (instalar en la pantalla de inicio). Queda para Juani.
+   - Publicado: https://github.com/yat320/race-to-agi/pull/78.
+2. **Etapa 2: los espías se meten en las supercomputadoras.**
+   - Antes el espía copiaba en 4 segundos parado al lado del edificio. Ahora entra, camina hasta un rack y copia 20 segundos.
+   - Hay que ir, entrar y tocarlo. Si termina, sale con los planos y se lo puede atrapar en el camino, como antes.
+   - En el motor: gancho `spyIn` y `s.inside`. En `interior.js`, el resto.
+   - Probado con Playwright: entra, lo atrapé tocándolo con el dedo, y otro que dejé terminar salió con +2% para el rival. Sin errores.
+3. **Balance de lo de adentro:** con cuentas, porque el bot no juega la carrera de la IA. Un rack al máximo cuesta como el tercer o cuarto centro de datos y suma lo mismo. Lo dejo: premia jugar adentro. Detalle en `docs/ia.md`.
+4. **El laboratorio de IA por dentro (etapa 1; en la etapa 2 es el instituto).**
+   - Tiene mesas de experimentos: prudente (60 s, casi seguro) o ambicioso (30 s, da más, 40% de que salga mal).
+   - Al terminar hay que ir a ver qué salió. Si sale mal, se escapa un modelo desalineado que hay que tocar.
+   - Los escritorios aceleran los experimentos, porque el laboratorio no produce ideas por sí solo y si no, no servían.
+   - Probado con Playwright:
+     - experimentos que siguen al recargar la partida;
+     - uno que sale mal y el modelo atrapado con el dedo;
+     - el escritorio que acelera;
+     - el pase a la etapa 2 como instituto, con sus experimentos.
+   - Sin errores. La huella del mundo abierto da igual y las partidas viejas cargan.
+   - PR abierta, sin mergear: toca el motor (gancho `spyIn`) y agrega datos al guardado de la carrera de la IA. Está anotada en PENDIENTES.
+
+### Qué sigue
+- Que Juani pruebe la PR abierta en el celular. Si le gusta, se mergea.
+- La etapa 2 todavía es la era AGI con interiores: falta algo propio, como una decisión de seguridad contra velocidad que se juegue adentro.

@@ -73,6 +73,35 @@ Juani: "falta la parte que le sigue a la nueva etapa de ia". `src/ia/etapa2.js` 
 - Una que vino de la etapa 1 rinde la mitad hasta modernizarla.
 - Al tocarla, un cartel deja elegir entre entrar o modernizarla.
 
+**Espías adentro** (decidido en el trabajo autónomo: afuera el espía copiaba en 4 segundos parado al lado y no había nada que recorrer).
+- El espía que llega a una supercomputadora se mete. El motor le pregunta a las amenazas con el gancho `spyIn`; `s.inside` lo saca de lo que se ve, se toca y atrapan los puestos de guardia afuera.
+- Adentro camina hasta un rack al azar y copia los planos 20 segundos (`INT_SPY`), con una barra roja.
+- Afuera, la supercomputadora late en rojo, hay flecha si queda fuera de pantalla y la pista dice "¡Espía adentro!".
+- Entrás y lo tocás: lo atrapás (+2 ideas) y no se lleva nada. Si termina, sale con los planos (rival +2%) y vuelve a su laboratorio como los de afuera; tocándolo en el camino los recuperás.
+- Los guardianes no entran: adentro es cosa tuya.
+- Lo demás de los espías no cambia (de dónde salen, cada cuánto, los puestos de guardia). En el mundo abierto no hay edificios recorribles, así que nada cambia ahí.
+
+**El laboratorio de IA por dentro** (etapa 1; en la etapa 2 pasa a instituto, con lo de adentro). Lo decidí en el trabajo autónomo: era el punto 4 del plan, un segundo edificio para recorrer y distinto del centro de datos.
+- Es otro plano en `interior.js` (`plano:'lab'`, `INT_MAPS`), con la puerta en el mismo lugar.
+- Tiene 3 mesas de experimentos, una cuarta que traen las cajas, 2 escritorios y las cajas.
+- Una mesa entrena un modelo y hay que elegir cómo (`INT_EXP`, ideas en la unidad de la Antigüedad):
+
+  | Experimento | Tarda | Da | Cuesta | Sale mal |
+  |---|---|---|---|---|
+  | Prudente | 60 s | +6 | 15 monedas | 10% |
+  | Ambicioso | 30 s | +10 | 30 monedas | 40% |
+
+- El experimento sigue con el laboratorio cerrado (también con la partida cerrada: se guarda). Al terminar avisa, y hay que ir a ver qué salió.
+- Si sale mal, se escapa un modelo desalineado que corre por el piso 15 segundos. Tocarlo da la mitad de las ideas; si salís o se escapa, no da nada.
+- El laboratorio no produce ideas por sí mismo (multiplica las de los demás), así que adentro los escritorios aceleran los experimentos: +50% cada persona sentada.
+- Se guarda con lo demás de adentro, como séptimo y octavo dato de cada edificio: lo que falta de cada mesa y qué experimento tiene. Una partida sin esos datos arranca con las mesas libres.
+- Los espías de la etapa 2 también se meten en los institutos: van a una mesa en vez de un rack.
+
+**Balance de lo de adentro** (cuentas, sin bot: el bot no juega la carrera de la IA).
+- Un rack al máximo cuesta en total 20 de piedra, 48 de mineral y 45 monedas, y suma lo que un centro de datos entero. El tercer centro de datos cuesta 90 de piedra y 22 de mineral, y sigue subiendo ×1,5.
+- O sea: los racks rinden como el tercer o cuarto centro de datos. No se encarecen, pero hay 5 por edificio, se recalientan cada ~75 s y hay que entrar a enfriarlos.
+- Lo dejo así: premia jugar adentro, que es lo que se está probando. Si la etapa 1 se pasa demasiado rápido, lo primero es encarecer los racks.
+
 **Dos arreglos de esta tanda:**
 - Una cabra que pastaba al lado de un edificio se quedaba con el toque, y salías a cazarla en vez de entrar. Ahora un toque sobre un edificio es para el edificio (`vida.js`, en todas las eras con mundo vivo).
 - Entrar desde el cartel cerraba el cartel con un paso atrás en el historial y entraba con uno adelante. Se cruzaban, y al salir se volvía una página de más: se salía del juego. Ahora entra sobre la misma entrada del historial (`intEnter(i, keepNav)`).
