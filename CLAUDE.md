@@ -97,6 +97,6 @@ Juego de gestión en pixel art, en español rioplatense (voseo: "tocá", "vendé
 
 ## Pendientes conocidos
 
-- Android: la idea original era compilar para Android. Camino sugerido: Capacitor sobre `dist/`. Todavía no se hizo.
+- Android: la idea original era compilar para Android. Desde octubre de 2026 el juego es una PWA (se instala desde el navegador con "Agregar a la pantalla de inicio" y anda sin conexión): `public/manifest.webmanifest`, los íconos de `public/icons/` (los dibuja `tools/iconos.mjs`) y `src/sw.js`. El build pone en cada página el manifiesto y el registro del service worker, copia `public/` a `dist/` y versiona `dist/sw.js` con el hash de las páginas. El service worker busca las páginas primero en la red y, sin conexión, usa la copia; lo demás sale de la copia. El camino a Play Store es empaquetarla como TWA (ver `PENDIENTES.md`); todavía no se hizo.
 - Hosting: `.github/workflows/pages.yml` publica `dist/` en GitHub Pages (https://yat320.github.io/race-to-agi/) en cada push a `main`; en otras ramas solo arma. Juani pidió que cada cambio, una vez probado, se publique sin preguntar (PR a `main` y merge cuando el build de la rama pasa). Las versiones publicadas como artifacts de Claude siguen existiendo pero no se actualizan desde acá.
 - `carrera.html`: la IA conoce el mapa entero para moverse (no respeta su niebla). Aceptable para el prototipo.
