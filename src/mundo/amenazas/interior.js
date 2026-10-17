@@ -32,7 +32,7 @@ const INT_MAPS={datos:['WWWWWWWWWWW','WP........W','W.0.1.2.3.W','W.........W','
 // Experimentos: cuánto tardan, cuánto cuestan, cuántas ideas dan (en la unidad de la Antigüedad) y la chance de que salga mal.
 const INT_EXP={1:{n:'Prudente',t:60,c:{monedas:15},i:6,risk:0.1},2:{n:'Ambicioso',t:30,c:{monedas:30},i:10,risk:0.4}},INT_ROGUE=15,INT_LABDESK=0.5;
 let INT_MAP=INT_MAPS.datos;
-let intChose=false,intIn=null,intP=null,intState={},intGo=null,intGoT=0,intAct=null,intBug=null,intHotT=0,intBugT=0,intSeen=false;
+let intXp=0,intCool=0,intSpyN=0,intChose=false,intIn=null,intP=null,intState={},intGo=null,intGoT=0,intAct=null,intBug=null,intHotT=0,intBugT=0,intSeen=false;
 const intDef=t=>ERA.interiores&&ERA.interiores[t];
 const intPlan=i=>{const d=obj[i]&&intDef(obj[i].t);return INT_MAPS[d&&d.plano]||INT_MAPS.datos;};
 const intBench=c=>'efgh'.indexOf(c);
@@ -77,11 +77,11 @@ const intSpies=i=>spies.filter(s=>s.inside&&!s.dead&&(i==null||s.target===i));
 const intSpyAt=(i,x,y)=>intSpies(i).find(s=>Math.hypot(s.ip.x-x,s.ip.y-y)<=1.2);
 // Usar lo que hay en (tx,ty), ya pegado.
 function intUse(tx,ty){const i=intIn,s=intGet(i),c=intCell(tx,ty),def=intDef(obj[i].t);
-  {const sp=intSpyAt(i,tx,ty);if(sp){sp.dead=true;st.res.ideas+=2*IX;floatIn(sp.ip.x,sp.ip.y,ideaTxt(2),RCOL.ideas);toast('¡Espía atrapado! No se llevó nada.');return;}}
+  {const sp=intSpyAt(i,tx,ty);if(sp){sp.dead=true;intSpyN++;st.res.ideas+=2*IX;floatIn(sp.ip.x,sp.ip.y,ideaTxt(2),RCOL.ideas);toast('¡Espía atrapado! No se llevó nada.');return;}}
   if(intBug&&Math.round(intBug.x)===tx&&Math.round(intBug.y)===ty){const r=intBug.rogue,n=r?Math.ceil(intBug.i/2):3;intBug=null;st.res.ideas+=n*IX;floatIn(tx,ty,ideaTxt(n),RCOL.ideas);toast(r?'¡Modelo corregido! Algo aprendiste del error.':'¡Bicho aplastado!');return;}
   const bk=intBench(c);if(bk>=0){intUseBench(i,s,bk,tx,ty,def);return;}
   if(/[0-4]/.test(c)){const k=+c;if(k===4&&!s.five){toast('Un rincón vacío. Algo habrá en las cajas…');return;}
-    if(s.hot[k]){s.hot[k]=0;st.res.ideas+=2*IX;floatIn(tx,ty,'¡enfriado!','#5fe3d0');toast('Rack enfriado: vuelve a sumar.');save();return;}
+    if(s.hot[k]){s.hot[k]=0;intCool++;st.res.ideas+=2*IX;floatIn(tx,ty,'¡enfriado!','#5fe3d0');toast('Rack enfriado: vuelve a sumar.');save();return;}
     const lv=s.r[k];if(lv>=3){toast('Rack al máximo: suma '+Math.round(INT_RACK[3]*100)+'% de '+intUn(def)+'.');return;}
     const cost=intRackCost(lv),title=lv?'Rack de GPUs: nivel '+lv+' → '+(lv+1):'Rack de GPUs';
     showModal('<div class="kicker">'+def.name+'</div><h2>'+title+'</h2><p>+'+Math.round(INT_RACK[lv]*100)+'% → +'+Math.round(INT_RACK[lv+1]*100)+'% de lo que da '+intUn(def)+'.</p><p class="muted">Cuesta '+intTxt(cost)+'. Se puede recalentar: entrá a enfriarlo.</p>'+
@@ -106,7 +106,7 @@ function intUseBench(i,s,k,tx,ty,def){if(k===3&&!s.five){toast('Un rincón vací
   const m=s.m[k];if(m&&s.e[k]>0){toast('Experimento '+INT_EXP[m].n.toLowerCase()+': faltan '+Math.ceil(s.e[k])+' s.');return;}
   if(m){const X=INT_EXP[m];s.m[k]=0;s.e[k]=0;
     if(Math.random()<X.risk){intBug={x:tx,y:ty+1,t:INT_ROGUE,rogue:true,i:X.i};floatIn(tx,ty,'¡salió mal!','#e8654d');toast('¡Salió mal! Se escapó un modelo desalineado: tocalo antes de que se meta en la red.');save();return;}
-    st.res.ideas+=X.i*IX;floatIn(tx,ty,ideaTxt(X.i),RCOL.ideas);toast('¡Salió bien! El modelo nuevo da '+fmt(X.i*IX)+' ideas.');save();return;}
+    intXp++;st.res.ideas+=X.i*IX;floatIn(tx,ty,ideaTxt(X.i),RCOL.ideas);toast('¡Salió bien! El modelo nuevo da '+fmt(X.i*IX)+' ideas.');save();return;}
   const opt=n=>{const X=INT_EXP[n];return'<button class="btn'+(n===1?'':' ghost')+'" id="intX'+n+'"'+(afford(X.c)?'':' disabled')+'>'+X.n+': '+X.t+' s, +'+fmt(X.i*IX)+' ideas'+(X.risk>0.2?', puede salir mal':'')+' ('+intTxt(X.c)+')</button>';};
   showModal('<div class="kicker">'+def.name+'</div><h2>Mesa de experimentos</h2><p>Entrená un modelo. Cuando termine, vení a ver qué salió.</p><div class="row" style="flex-direction:column;align-items:stretch">'+opt(1)+opt(2)+'<button class="btn ghost" id="intNo">Cerrar</button></div>');
   const go=n=>{const X=INT_EXP[n];if(!afford(X.c))return;pay(X.c);s.m[k]=n;s.e[k]=X.t;floatIn(tx,ty,'¡a entrenar!','#93d36c');hideModal();save();};
@@ -150,13 +150,13 @@ function intTap(tx,ty){if(quiet||!inb(tx,ty))return false;const i=ty*MW+tx,o=obj
     if(fromCard)navPop();
     P.task=null;P.act=null;const p=pathAdj(px,py,tx,ty);if(!p){toast('No llegás hasta ahí.');return'vida';}P.path=p;intGo=i;intGoT=30;marker={x:tx,y:ty,t:0.6};return'vida';}
 amenaza({on:'interiores',
-  reset(){intIn=null;intGo=null;intAct=null;intBug=null;intFloats=[];intState={};for(const v of vil)if(v.held==='interior'){v.held=null;v.inside=false;v.desk=null;}},
+  reset(){intXp=0;intCool=0;intSpyN=0;intIn=null;intGo=null;intAct=null;intBug=null;intFloats=[];intState={};for(const v of vil)if(v.held==='interior'){v.held=null;v.inside=false;v.desk=null;}},
   // Una etapa que arranca con la ciudad de la anterior (ERA.legacy.key) se trae lo de adentro de los edificios que siguen siendo
   // recorribles (los centros de datos pasan a supercomputadoras en el mismo casillero): racks, foco, cajas y gente sentada.
   fresh(){let d=null;try{d=JSON.parse(localStorage.getItem(ERA.legacy.key));}catch(e){}const e=d&&d.won&&d.interior;if(!e||!e.s)return;
     this.load({interior:{s:e.s,seen:e.seen}});for(const i in intState)for(let k=0;k<5;k++)intState[i].hot[k]=0;},
-  save(){const o={};for(const i in intState){const s=intState[i];if(obj[i]&&intDef(obj[i].t))o[i]=[s.r.join(''),s.hot.join(''),s.d,s.f==='monedas'?1:s.f==='seguridad'?2:0,s.box,s.five,s.e.map(Math.ceil).join(','),s.m.join('')];}return{interior:{s:o,seen:intSeen?1:0}};},
-  load(d){const e=d&&d.interior;intSeen=!!(e&&e.seen);if(!e||!e.s)return;
+  save(){const o={};for(const i in intState){const s=intState[i];if(obj[i]&&intDef(obj[i].t))o[i]=[s.r.join(''),s.hot.join(''),s.d,s.f==='monedas'?1:s.f==='seguridad'?2:0,s.box,s.five,s.e.map(Math.ceil).join(','),s.m.join('')];}return{interior:{s:o,seen:intSeen?1:0,xp:intXp,cool:intCool,spy:intSpyN}};},
+  load(d){const e=d&&d.interior;intSeen=!!(e&&e.seen);intXp=(e&&e.xp)|0;intCool=(e&&e.cool)|0;intSpyN=(e&&e.spy)|0;if(!e||!e.s)return;
     for(const i in e.s){const a=e.s[i];if(!obj[i]||!intDef(obj[i].t)||!Array.isArray(a))continue;const s=intGet(+i);
       s.r=String(a[0]).split('').map(Number).slice(0,5);s.hot=String(a[1]).split('').map(Number).slice(0,5);while(s.r.length<5)s.r.push(0);while(s.hot.length<5)s.hot.push(0);
       s.f=a[3]===2&&ERA.rival?'seguridad':a[3]===1?'monedas':'ideas';s.box=a[4]|0;s.five=a[5]|0;
@@ -168,6 +168,16 @@ amenaza({on:'interiores',
     const ip={x:dx,y:dy-1,path:[],face:1,moving:false};ip.path=intPath(dx,dy-1,(x,y)=>x===r[0]&&y===r[1]+1,M)||[];s.ip=ip;s.it=0;
     if(!quiet&&!intSpies().length)toast('¡Un espía entró '+intAl(intDef(o.t))+'! Entrá y tocalo antes de que copie tus planos.');return true;},
   arrows(){return intIn!=null?[]:intSpies().map(s=>({x:s.target%MW,y:(s.target/MW)|0}));},
+  // Metas de los capítulos: racks instalados, gente sentada adentro, experimentos que salieron bien, racks enfriados y espías
+  // atrapados adentro.
+  goal(m){const S=Object.keys(intState).filter(i=>obj[i]&&intDef(obj[i].t)).map(i=>intState[i]);
+    if(m.t==='rack')return S.reduce((t,s)=>t+s.r.filter(Boolean).length,0);
+    if(m.t==='rackLv')return S.reduce((t,s)=>t+s.r.reduce((a,l)=>a+Math.max(0,l-1),0),0);
+    if(m.t==='desk')return S.reduce((t,s)=>t+s.d,0);
+    if(m.t==='exp')return intXp;
+    if(m.t==='cool')return intCool;
+    if(m.t==='spy')return intSpyN;
+    return null;},
   scene(){return intIn!=null;},
   sceneBack(){intExit(true);},
   tick(step){

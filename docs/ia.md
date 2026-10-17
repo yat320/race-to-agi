@@ -81,6 +81,39 @@ Juani: "falta la parte que le sigue a la nueva etapa de ia". `src/ia/etapa2.js` 
 - Los guardianes no entran: adentro es cosa tuya.
 - Lo demás de los espías no cambia (de dónde salen, cada cuánto, los puestos de guardia). En el mundo abierto no hay edificios recorribles, así que nada cambia ahí.
 
+**Capítulos con reloj en la etapa 1** (decidido en el trabajo autónomo: una de las quejas de Juani es que "nada apura", y los capítulos de la Antigüedad ya existían). La etapa 1 se juega de a un capítulo, con 3 o 4 metas y estrellas por tiempo, y cada capítulo tiene una meta de adentro. Las metas nuevas las cuenta `interior.js` con el gancho `goal`, que el motor llama para lo que no conoce:
+- `rack`: racks instalados;
+- `rackLv`: niveles de rack por encima del 1;
+- `desk`: gente sentada adentro;
+- `exp`: experimentos que salieron bien;
+- `cool`: racks enfriados.
+
+`exp` y `cool` se guardan en `interior` como `xp` y `cool`; una partida sin ellos arranca en 0.
+
+| Capítulo | Metas | ★★★ hasta | ★★ hasta |
+|---|---|---|---|
+| Los primeros datos | redes, un centro de datos, un rack | 4:00 | 6:00 |
+| Los robots | robótica, una fábrica de robots, alguien sentado | 2:30 | 3:45 |
+| El negocio | software, una empresa, alineación, un rack nivel 2 | 3:00 | 4:30 |
+| El laboratorio | lenguaje, un laboratorio, un experimento bueno | 6:40 | 10:00 |
+| El asistente | interpretabilidad, chips, el asistente | 5:40 | 8:30 |
+
+Calibrado con el bot en la era IA sola (3 corridas, 9,7 min; los inventos a los 98, 167, 199, 245, 411, 489, 532 y 582 s), con oro ≈ 2× y plata ≈ 3×. El bot no entra a los edificios: lo de adentro se sumó a mano (~20 s por meta, un minuto más para el experimento). Las marcas se guardan como `ia1` en `rtagi-estrellas-v1`. Una partida de antes cuenta lo ya hecho sin estrellas.
+
+**Capítulos con reloj en la etapa 2.** Con dos metas propias:
+- `seg`: el % de seguridad, que cuenta el motor;
+- `spy`: los espías atrapados adentro, que cuenta `interior.js` y se guarda como `spy`.
+
+| Capítulo | Metas | ★★★ hasta | ★★ hasta |
+|---|---|---|---|
+| Cómputo a escala | cómputo, una supercomputadora al día, un puesto de guardia | 4:00 | 6:00 |
+| Seguridad primero | seguridad, un laboratorio de seguridad, 20% de seguridad | 3:20 | 5:00 |
+| Espías | productos, una empresa de IA, un espía atrapado adentro | 4:00 | 6:00 |
+| La diplomacia | diplomacia, una embajada, ciencia, 50% de seguridad | 5:20 | 8:00 |
+| La AGI | tratado, escalado, 100% de seguridad, la AGI | 8:20 | 12:30 |
+
+Calibrado con el bot en la era AGI sola (3 corridas, 11,5 min; los inventos a los 100, 189, 289, 326, 372, 442, 539, 601 y 690 s).
+
 **La pizarra de la supercomputadora: seguridad o velocidad** (etapa 2, decidido en el trabajo autónomo: la etapa necesitaba una decisión propia y la AGI pide seguridad 100%). En una era con rival, la pizarra tiene una tercera opción.
 - **Seguridad:** lo de adentro deja de dar ideas o monedas y suma `INT_SAFE` (0,02) puntos de seguridad por segundo por cada edificio que suma por dentro. Un rack al máximo da 1,2% por minuto; un laboratorio de seguridad, 3%. Una supercomputadora llena (5 racks y 2 escritorios), unos 7% por minuto.
 - Se decide por edificio y se puede cambiar cuando quieras: ir más rápido o ir con cuidado.

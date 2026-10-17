@@ -56,3 +56,18 @@ Juani mergeó la PR #79 para probarla en el celular y pidió seguir en modo aut�
    - Es la decisión propia que le faltaba a la etapa: la AGI pide seguridad 100% y el rival apura.
    - Probado con Playwright: con 2,6 racks pasa de unas 31 mil ideas por minuto a 3,1% de seguridad por minuto, se guarda y vuelve igual al recargar. Sin errores.
    - No toca el motor. El guardado suma un valor posible a un dato que ya existía: una partida vieja carga igual. Por eso se publica directo.
+2. **Etapa 1: capítulos con reloj.**
+   - Cinco capítulos, cada uno con una meta de adentro: instalar un rack, sentar a alguien, mejorar un rack o sacar un experimento bueno.
+   - Calibrados con el bot en la era IA sola (3 corridas), más un poco para lo de adentro.
+   - En el motor: un gancho `goal` para metas nuevas, y las marcas de un juego aparte se guardan con su nombre (`ia1`).
+   - Probado con Playwright:
+     - el primer capítulo se completa al instalar el rack con el dedo y da 3 estrellas;
+     - la marca queda como `ia1`;
+     - una partida vieja sin capítulos cuenta lo hecho sin estrellas.
+   - Sin errores.
+3. **Etapa 2: capítulos con reloj.**
+   - Cinco capítulos, con metas de seguridad (20%, 50%, 100%) y un espía atrapado adentro.
+   - Calibrados con el bot en la era AGI sola (3 corridas, 11,5 min).
+   - La huella del mundo abierto da igual (solo los `save`, el ruido de siempre), se ganan las 21 eras y las partidas viejas cargan.
+   - Repetí todas las pruebas de adentro: espías, laboratorio, seguridad y capítulos. Sin errores.
+   - El motor suma un gancho `goal` y la meta `seg`: solo se usan con metas nuevas, así que lo publico directo.

@@ -2551,7 +2551,9 @@ function capGoal(m){const C=st.cap,N=m.n||1;let n;
   else if(m.t==='of')n=Object.values(POSTN).reduce((a,b)=>a+b,0);
   else if(m.t==='lv')n=obj.reduce((t,o)=>t+(o&&o.lv>1&&BUILD[o.t]?o.lv-1:0),0);
   else if(m.t==='vil')n=vil.filter(v=>!v.bot).length;
-  else return[false,''];
+  else if(m.t==='seg')n=Math.floor(st.safety||0);
+  // Otras metas las cuenta una amenaza con su gancho `goal` (la carrera de la IA: racks, gente adentro, experimentos).
+  else{let r=null;for(const a of AM)if(a.goal&&(r=a.goal(m,C))!=null)break;if(r==null)return[false,''];n=r;}
   return[n>=N,N>1?Math.min(n,N)+'/'+N:''];}
 const capStars=(c,sec)=>sec<=c.oro?3:sec<=c.plata?2:1;
 const starTxt=s=>'★'.repeat(s)+'☆'.repeat(3-s);
@@ -2562,8 +2564,9 @@ function capInit(old){const C=st.cap={i:0,t0:st.time,s:[],d:[],th:st.threats||0}
   // Los de más adelante que también estaban hechos se cuentan igual cuando les toque, sin estrellas ni premio.
   C.pre=CAPS.map((c,j)=>j>C.i&&c.metas.every(m=>capGoal(m)[0])?1:0);}
 // La mejor marca de cada capítulo, aparte de la partida (así sobrevive a "Reiniciar era").
-function capBest(){try{const all=JSON.parse(localStorage.getItem('rtagi-estrellas-v1')||'{}'),b=all[ERA.n]||[];
-  st.cap.s.forEach((v,i)=>{if((v||0)>(b[i]||0))b[i]=v;});all[ERA.n]=b;localStorage.setItem('rtagi-estrellas-v1',JSON.stringify(all));}catch(e){}}
+// Un juego aparte (la carrera de la IA) guarda sus marcas con su nombre y etapa ("ia1"), no con el número de la era.
+function capBest(){try{const K=ERA.juego?ERA.juego.id+ERA.juego.etapa:ERA.n,all=JSON.parse(localStorage.getItem('rtagi-estrellas-v1')||'{}'),b=all[K]||[];
+  st.cap.s.forEach((v,i)=>{if((v||0)>(b[i]||0))b[i]=v;});all[K]=b;localStorage.setItem('rtagi-estrellas-v1',JSON.stringify(all));}catch(e){}}
 // Cada segundo: si se cumplieron todas las metas del capítulo, da las estrellas y el premio y arranca el siguiente.
 function capTick(quiet){const C=st.cap;if(!CAPS||!C||C.i>=CAPS.length)return;const c=CAPS[C.i];
   if(!c.metas.every(m=>capGoal(m)[0]))return;
