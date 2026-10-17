@@ -21,8 +21,8 @@ ERA.capitulos=[
   {name:'La AGI',oro:500,plata:750,premio:0,metas:[{t:'tech',id:'tratado',txt:'Firmá el tratado internacional'},{t:'tech',id:'escalado',txt:'Investigá el escalado'},{t:'seg',n:100,txt:'Llegá a 100% de seguridad'},{t:'tech',id:'agi',txt:'Terminá la AGI antes que el rival'}]}];
 ERA.text=Object.assign({},ERA.text,{
   title:'La carrera por la AGI',
-  intro:'Un laboratorio rival también quiere llegar a la AGI y va cada vez más rápido. Ganás si la terminás antes que ellos y con seguridad 100%. Tus centros de datos ahora son supercomputadoras: se recorren por dentro como antes, con sus racks, sus escritorios y su pizarra, que ahora también puede poner lo de adentro a trabajar en seguridad: más lento, pero más seguro. Y ojo con los espías del rival: se meten adentro a copiar tus planos, y hay que entrar a atraparlos.',
-  news:'Novedades: el laboratorio rival con su barra y sus espías, la seguridad, las embajadas y los puestos de guardia. Las supercomputadoras y los institutos se recorren por dentro.',
+  intro:'Un laboratorio rival quiere llegar a la AGI antes que vos. Ganás si la terminás primero y con seguridad 100%. Sus espías se meten en tus supercomputadoras: entrá a atraparlos.',
+  news:'',
   legacy:'Lo que trae tu ciudad de la etapa 1',
   noLegacy:'No terminaste la etapa 1 en este navegador: arrancás con lo básico para juntar.',
   winText:()=>'Terminaste una AGI segura en el día '+(Math.floor(st.time/DAY)+1)+', cuando el rival iba '+Math.floor(st.rival)+'%.',

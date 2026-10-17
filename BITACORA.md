@@ -75,3 +75,11 @@ Juani mergeó la PR #79 para probarla en el celular y pidió seguir en modo aut�
    - Recorriendo el juego como Juani: la tarjeta de la carrera estaba al fondo, debajo de las 22 eras, y había que bajar mucho para encontrarla.
    - Ahora va arriba de la barra de progreso, con la etapa en la que vas y tus mejores estrellas ("Etapa 1 · ★ 8 de 15").
    - Probado con Playwright: sin partida no muestra el renglón, el botón abre la etapa que toca y no hay errores.
+5. **Intro corta en la carrera de la IA.**
+   - Antes eran cuatro párrafos antes de jugar, contra la regla 1. Ahora son dos o tres líneas: la meta, que los edificios se recorren y que hay reloj.
+   - El botón de volver dice "Inicio" en vez de "Todas las eras".
+   - Motor: solo textos, y solo en un juego aparte o sin `news`.
+
+### Qué sigue
+- Esperar si a Juani le gustan los capítulos (PENDIENTES 3) antes de llevarlos a las otras eras.
+- Mientras tanto, pulir la carrera de la IA jugándola: textos, pistas y lo que se trabe en el celular.
