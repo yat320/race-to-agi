@@ -64,6 +64,7 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
 .others h3{margin:18px 0 0;font:700 16px var(--f-display)}
 .others .btn{background:transparent;border:1px solid var(--line);color:var(--bone)}
 #protos{margin-top:18px}
+#iaState{color:var(--signal);font-size:14px;margin-top:-4px}
 .loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--night);font:600 18px var(--f-display);color:var(--signal)}
 </style>
 
@@ -74,6 +75,15 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
     <p class="lede">De las piedras al ábaco, del ábaco a la AGI y de la AGI a las estrellas. Cada era es una partida larga: cuando terminás su obra pasás a la siguiente con tu gente, tus ideas y tus monedas.</p>
   </header>
 
+  <!-- Un juego aparte con el mismo motor: la carrera de la IA (src/ia/, sale como ia1.html…), en prototipo. Va arriba de las
+       eras porque es en lo que se está trabajando (octubre de 2026): antes quedaba al fondo, debajo de las 22 eras. -->
+  <section class="legacy" aria-labelledby="iaTitle">
+    <h2 id="iaTitle">Nuevo: la carrera de la IA</h2>
+    <p>Un juego aparte, solo de la IA, en dos etapas con capítulos y estrellas: recorrés tus centros de datos y laboratorios por dentro y le ganás la AGI a un rival. No toca el mundo abierto.</p>
+    <p class="muted" id="iaState" hidden></p>
+    <div class="row"><button class="btn" id="iaGo">Probar</button></div>
+  </section>
+
   <section class="total" aria-label="Progreso total">
     <div class="total-top"><span>Progreso hacia la AGI</span><span id="pct">0%</span></div>
     <div class="bar" id="bar"><div class="fill" id="fill" style="width:0"></div></div>
@@ -81,13 +91,6 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
 
   <section aria-label="Eras">
     <ol class="eras" id="mundo"></ol>
-  </section>
-
-  <!-- Un juego aparte con el mismo motor: la carrera de la IA (src/ia/, sale como ia1.html…), en prototipo. -->
-  <section class="legacy" aria-labelledby="iaTitle">
-    <h2 id="iaTitle">Nuevo: la carrera de la IA</h2>
-    <p>Un juego aparte, solo de la IA, en prototipo: entrás a los centros de datos y los recorrés por dentro. Tiene sus propias partidas y no toca el mundo abierto.</p>
-    <div class="row"><button class="btn" id="iaGo">Probar</button></div>
   </section>
 
   <section class="legacy" aria-labelledby="legTitle">
@@ -233,6 +236,10 @@ $('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto
 // Abre la etapa en la que vas: la 2 si ya terminaste la 1 (o la empezaste).
 let iaFile='ia1.html';try{const g=k=>JSON.parse(localStorage.getItem(k)||'null');const e1=g('rtagi-ia1-v1'),e2=g('rtagi-ia2-v1');
   if(e2||(e1&&e1.won)){iaFile='ia2.html';$('iaGo').textContent=e2?'Continuar la etapa 2':'Pasar a la etapa 2';}else if(e1)$('iaGo').textContent='Continuar';}catch(x){}
+// En qué etapa vas y tus mejores estrellas de cada una (5 capítulos, 3 estrellas cada uno).
+try{const g=k=>JSON.parse(localStorage.getItem(k)||'null'),best=g('rtagi-estrellas-v1')||{},e2=g('rtagi-ia2-v1'),star=k=>best[k]?' · ★ '+best[k].reduce((a,b)=>a+(b||0),0)+' de 15':'';
+  let t='';if(iaFile==='ia2.html')t=(e2&&e2.won?'Etapa 2 terminada':'Etapa 2')+star('ia2')+(best.ia1?' (etapa 1: '+star('ia1').slice(3)+')':'');else if(g('rtagi-ia1-v1'))t='Etapa 1'+star('ia1');
+  if(t){$('iaState').textContent=t;$('iaState').hidden=false;}}catch(x){}
 $('iaGo').addEventListener('click',()=>loadPage(iaFile,'Cargando la carrera de la IA…'));
 $('copy').addEventListener('click',()=>{
   const v=$('code').value;

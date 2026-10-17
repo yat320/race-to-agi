@@ -71,3 +71,7 @@ Juani mergeó la PR #79 para probarla en el celular y pidió seguir en modo aut�
    - La huella del mundo abierto da igual (solo los `save`, el ruido de siempre), se ganan las 21 eras y las partidas viejas cargan.
    - Repetí todas las pruebas de adentro: espías, laboratorio, seguridad y capítulos. Sin errores.
    - El motor suma un gancho `goal` y la meta `seg`: solo se usan con metas nuevas, así que lo publico directo.
+4. **El inicio muestra la carrera de la IA arriba.**
+   - Recorriendo el juego como Juani: la tarjeta de la carrera estaba al fondo, debajo de las 22 eras, y había que bajar mucho para encontrarla.
+   - Ahora va arriba de la barra de progreso, con la etapa en la que vas y tus mejores estrellas ("Etapa 1 · ★ 8 de 15").
+   - Probado con Playwright: sin partida no muestra el renglón, el botón abre la etapa que toca y no hay errores.
