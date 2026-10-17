@@ -22,6 +22,9 @@
 // Se guarda con la partida (`interior`, por casillero del edificio).
 const INT_W=11,INT_H=10,INT_SLOTS=4,INT_DESKS=2,INT_DESK=0.4,INT_BOX=3,INT_HOT_EVERY=75,INT_BUG_EVERY=50;
 const INT_RACK=[0,0.3,0.6,1],INT_SPY=20;
+// Con el foco en seguridad (solo en una era con rival, la etapa 2), cada edificio de lo de adentro suma INT_SAFE puntos de
+// seguridad por segundo: un rack al máximo, 1,2% por minuto (un laboratorio de seguridad da 3%).
+const INT_SAFE=0.02;
 // Lo de adentro: paredes (W), puerta (D), racks (0-4), escritorios (a, b) con su silla abajo, pizarra (P), cajas (C) y, en el
 // laboratorio, mesas de experimentos (e-h; la h la traen las cajas). La puerta va en el mismo lugar en todos.
 const INT_MAPS={datos:['WWWWWWWWWWW','WP........W','W.0.1.2.3.W','W.........W','W.........W','W.a.b....4W','W.........W','W........CW','W.........W','WWWWWDWWWWW'],
@@ -89,8 +92,9 @@ function intUse(tx,ty){const i=intIn,s=intGet(i),c=intCell(tx,ty),def=intDef(obj
       '<div class="row"><button class="btn" id="intOk">'+(on?'Que vuelva afuera':'Sentar a alguien')+'</button><button class="btn ghost" id="intNo">Cerrar</button></div>');
     $('intOk').onclick=()=>{if(on){intStand(i);s.d--;}else if(intSit(i)){s.d++;floatIn(tx,ty+1,'¡a investigar!','#93d36c');}hideModal();save();};$('intNo').onclick=()=>hideModal();return;}
   if(c==='P'){showModal('<div class="kicker">'+def.name+'</div><h2>La pizarra</h2><p>¿En qué trabaja lo de adentro?</p><div class="row" style="flex-direction:column;align-items:stretch">'+
-      '<button class="btn'+(s.f==='ideas'?'':' ghost')+'" id="intF1">Investigar: da ideas</button><button class="btn'+(s.f==='monedas'?'':' ghost')+'" id="intF2">Producto: da monedas</button><button class="btn ghost" id="intNo">Cerrar</button></div>');
-    const set=f=>{s.f=f;hideModal();toast(f==='ideas'?'Lo de adentro investiga: da ideas.':'Lo de adentro hace producto: da monedas.');save();};$('intF1').onclick=()=>set('ideas');$('intF2').onclick=()=>set('monedas');$('intNo').onclick=()=>hideModal();return;}
+      '<button class="btn'+(s.f==='ideas'?'':' ghost')+'" id="intF1">Investigar: da ideas</button><button class="btn'+(s.f==='monedas'?'':' ghost')+'" id="intF2">Producto: da monedas</button>'+
+      (ERA.rival?'<button class="btn'+(s.f==='seguridad'?'':' ghost')+'" id="intF3">Seguridad: sube la seguridad, no da ideas</button>':'')+'<button class="btn ghost" id="intNo">Cerrar</button></div>');
+    const set=f=>{s.f=f;hideModal();toast(f==='ideas'?'Lo de adentro investiga: da ideas.':f==='monedas'?'Lo de adentro hace producto: da monedas.':'Lo de adentro trabaja en seguridad: más lento, pero más seguro.');save();};$('intF1').onclick=()=>set('ideas');$('intF2').onclick=()=>set('monedas');if($('intF3'))$('intF3').onclick=()=>set('seguridad');$('intNo').onclick=()=>hideModal();return;}
   if(c==='C'){if(s.box>=INT_BOX){toast('Las cajas ya están vacías.');return;}s.box++;zaps.push({x:tx,y:ty,t:0.3});
     if(s.box<INT_BOX){floatIn(tx,ty,'¡crac!','#e8c05a');toast('Cajas viejas llenas de polvo. '+(INT_BOX-s.box===1?'Un golpe más.':'Faltan '+(INT_BOX-s.box)+' golpes.'));return;}
     s.five=1;st.res.ideas+=40*IX;floatIn(tx,ty,ideaTxt(40),RCOL.ideas);
@@ -151,11 +155,11 @@ amenaza({on:'interiores',
   // recorribles (los centros de datos pasan a supercomputadoras en el mismo casillero): racks, foco, cajas y gente sentada.
   fresh(){let d=null;try{d=JSON.parse(localStorage.getItem(ERA.legacy.key));}catch(e){}const e=d&&d.won&&d.interior;if(!e||!e.s)return;
     this.load({interior:{s:e.s,seen:e.seen}});for(const i in intState)for(let k=0;k<5;k++)intState[i].hot[k]=0;},
-  save(){const o={};for(const i in intState){const s=intState[i];if(obj[i]&&intDef(obj[i].t))o[i]=[s.r.join(''),s.hot.join(''),s.d,s.f==='monedas'?1:0,s.box,s.five,s.e.map(Math.ceil).join(','),s.m.join('')];}return{interior:{s:o,seen:intSeen?1:0}};},
+  save(){const o={};for(const i in intState){const s=intState[i];if(obj[i]&&intDef(obj[i].t))o[i]=[s.r.join(''),s.hot.join(''),s.d,s.f==='monedas'?1:s.f==='seguridad'?2:0,s.box,s.five,s.e.map(Math.ceil).join(','),s.m.join('')];}return{interior:{s:o,seen:intSeen?1:0}};},
   load(d){const e=d&&d.interior;intSeen=!!(e&&e.seen);if(!e||!e.s)return;
     for(const i in e.s){const a=e.s[i];if(!obj[i]||!intDef(obj[i].t)||!Array.isArray(a))continue;const s=intGet(+i);
       s.r=String(a[0]).split('').map(Number).slice(0,5);s.hot=String(a[1]).split('').map(Number).slice(0,5);while(s.r.length<5)s.r.push(0);while(s.hot.length<5)s.hot.push(0);
-      s.f=a[3]?'monedas':'ideas';s.box=a[4]|0;s.five=a[5]|0;
+      s.f=a[3]===2&&ERA.rival?'seguridad':a[3]===1?'monedas':'ideas';s.box=a[4]|0;s.five=a[5]|0;
       if(a[6]!=null){const e=String(a[6]).split(',').map(Number),m=String(a[7]||'').split('').map(Number);for(let k=0;k<4;k++){s.e[k]=e[k]>0?e[k]:0;s.m[k]=INT_EXP[m[k]]?m[k]:0;}}const want=Math.min(INT_DESKS,a[2]|0);s.d=0;for(let k=0;k<want;k++)if(intSit(+i,true))s.d++;}},
   // Lo de adentro suma edificios enteros a lo que produce (con el foco en ideas); con el foco en producto da monedas aparte.
   extra(id){let b=0;for(const i in intState){const o=obj[i];if(o&&o.t===id&&!o.bug&&intState[i].f==='ideas')b+=intBonus(intState[i]);}return b;},
@@ -176,7 +180,8 @@ amenaza({on:'interiores',
     // Los experimentos avanzan aunque no estés adentro; al terminar, hay que ir a ver qué salió.
     for(const i in intState){const S=intState[i];if(!obj[i]||!intDef(obj[i].t))continue;const sp=1+INT_LABDESK*S.d;for(let k=0;k<4;k++)if(S.m[k]&&S.e[k]>0){S.e[k]-=step*sp;if(S.e[k]<=0){S.e[k]=0;if(!quiet&&intIn!=+i)toast('¡Terminó un experimento! Entrá '+intAl(intDef(obj[i].t))+' a ver qué salió.');}}}
     // Con el foco en producto, lo de adentro da monedas en vez de ideas.
-    for(const i in intState){const o=obj[i],s=intState[i];if(!o||!intDef(o.t)||o.bug||s.f!=='monedas')continue;add('monedas',intBonus(s)*0.18*step);}},
+    for(const i in intState){const o=obj[i],s=intState[i];if(!o||!intDef(o.t)||o.bug)continue;if(s.f==='monedas')add('monedas',intBonus(s)*0.18*step);
+      else if(s.f==='seguridad'&&ERA.rival&&!st.won&&!st.lost)st.safety=Math.min(100,st.safety+intBonus(s)*INT_SAFE*step);}},
   update(dt){
     // Afuera: caminar hasta la puerta del edificio que tocaste, y entrar.
     if(intGo!=null&&intIn==null){intGoT-=dt;const i=intGo,x=i%MW,y=(i/MW)|0;
@@ -207,7 +212,7 @@ amenaza({on:'interiores',
       {const bk=intBench(ch);if(bk>=0){if(bk===3&&!S.five){c.fillStyle='rgba(0,0,0,0.12)';c.fillRect(px+2,py+2,12,12);}else intDrawBench(px,py,S,bk,t);}}
       if(ch==='a'||ch==='b'){c.fillStyle='#8a5a3a';c.fillRect(px,py+3,T,8);c.fillStyle='#a66a3a';c.fillRect(px,py+3,T,2);c.fillStyle='#1d2230';c.fillRect(px+4,py-2,8,6);
         c.fillStyle=(ch==='a'?0:1)<S.d?'#5fe3d0':'#3a4258';c.fillRect(px+5,py-1,6,4);c.fillStyle='#5a3a2a';c.fillRect(px+5,py+T+2,6,5);}
-      if(ch==='P'){c.fillStyle='#f4f1e8';c.fillRect(px-2,py-10,20,12);c.fillStyle='#8a8070';c.fillRect(px-2,py+2,20,1);c.fillStyle=S.f==='ideas'?'#3a72c8':'#c8413b';
+      if(ch==='P'){c.fillStyle='#f4f1e8';c.fillRect(px-2,py-10,20,12);c.fillStyle='#8a8070';c.fillRect(px-2,py+2,20,1);c.fillStyle=S.f==='ideas'?'#3a72c8':S.f==='seguridad'?'#3a9a5a':'#c8413b';
         c.fillRect(px+1,py-7,7,1);c.fillRect(px+1,py-4,11,1);c.fillRect(px+10,py-8,4,4);}
       if(ch==='C'&&S.box<INT_BOX){c.fillStyle='#a6824a';c.fillRect(px+1,py+3,14,11);c.fillStyle='#8a6a3a';c.fillRect(px+1,py+8,14,1);c.fillRect(px+7,py+3,1,11);
         c.fillStyle='rgba(255,255,255,0.25)';c.fillRect(px+2,py+3,6,1);c.fillStyle='#ffd35a';c.font='600 7px "Pixelify Sans", monospace';c.textAlign='center';c.fillText('?',px+8,py-1+Math.sin(t*3)*1.5);}}
@@ -220,7 +225,8 @@ amenaza({on:'interiores',
     for(const f of intFloats){c.globalAlpha=Math.min(1,f.t*1.5);c.font='600 7px "Pixelify Sans", monospace';c.textAlign='center';c.lineWidth=2;c.strokeStyle='#1b1a24';c.strokeText(f.txt,f.x,f.y);c.fillStyle=f.col;c.fillText(f.txt,f.x,f.y);}
     c.globalAlpha=1;c.font='600 8px "Pixelify Sans", monospace';c.textAlign='center';c.fillStyle='#ffd35a';c.fillText('salir',INT_DOOR[0]*T+8,INT_H*T+9);
     const nb=Math.round(intBonus(S)*100),lab=INT_MAP===INT_MAPS.lab,ne=S.m.filter((m,k)=>m&&S.e[k]>0).length;
-    c.fillStyle='#f0e7d4';c.fillText(lab?def.name+(S.d?' · ×'+String(1+INT_LABDESK*S.d).replace('.',','):'')+' · '+(ne?ne+' entrenando':'mesas libres'):def.name+' · +'+nb+'% '+(S.f==='ideas'?'ideas':'monedas'),INT_W*T/2,INT_H*T+22);},
+    // El renglón de abajo: si no entra en el ancho del interior, la letra se achica.
+    const ft=lab?def.name+(S.d?' · ×'+String(1+INT_LABDESK*S.d).replace('.',','):'')+' · '+(ne?ne+' entrenando':'mesas libres'):S.f==='seguridad'?def.name+' · +'+String(Math.round(intBonus(S)*INT_SAFE*600)/10).replace('.',',')+'% seguridad/min':def.name+' · +'+nb+'% '+(S.f==='ideas'?'ideas':'monedas');c.fillStyle='#f0e7d4';for(let fs=8;fs>5;fs--){c.font='600 '+fs+'px "Pixelify Sans", monospace';if(c.measureText(ft).width<=INT_W*T)break;}c.fillText(ft,INT_W*T/2,INT_H*T+22);},
   sceneTap(px,py){intSceneTap(px,py);},
   tap(tx,ty){return intTap(tx,ty);},
   hint(){const ok=i=>obj[i]&&intDef(obj[i].t),hot=Object.keys(intState).find(i=>ok(i)&&intState[i].hot.some(Boolean));

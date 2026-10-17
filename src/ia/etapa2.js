@@ -13,7 +13,7 @@ ERA.interiores={supercomp:{name:'Supercomputadora',un:'una supercomputadora',al:
   instituto:{name:'Instituto',plano:'lab',un:'un instituto',al:'al instituto',el:'el instituto'}};
 ERA.text=Object.assign({},ERA.text,{
   title:'La carrera por la AGI',
-  intro:'Un laboratorio rival también quiere llegar a la AGI y va cada vez más rápido. Ganás si la terminás antes que ellos y con seguridad 100%. Tus centros de datos ahora son supercomputadoras: se recorren por dentro como antes, con sus racks, sus escritorios y su pizarra. Y ojo con los espías del rival: se meten adentro a copiar tus planos, y hay que entrar a atraparlos.',
+  intro:'Un laboratorio rival también quiere llegar a la AGI y va cada vez más rápido. Ganás si la terminás antes que ellos y con seguridad 100%. Tus centros de datos ahora son supercomputadoras: se recorren por dentro como antes, con sus racks, sus escritorios y su pizarra, que ahora también puede poner lo de adentro a trabajar en seguridad: más lento, pero más seguro. Y ojo con los espías del rival: se meten adentro a copiar tus planos, y hay que entrar a atraparlos.',
   news:'Novedades: el laboratorio rival con su barra y sus espías, la seguridad, las embajadas y los puestos de guardia. Las supercomputadoras y los institutos se recorren por dentro.',
   legacy:'Lo que trae tu ciudad de la etapa 1',
   noLegacy:'No terminaste la etapa 1 en este navegador: arrancás con lo básico para juntar.',
