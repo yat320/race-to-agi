@@ -8,11 +8,13 @@ ERA.juego={id:'ia',etapa:2,nombre:'La carrera de la IA'};
 ERA.legacy=Object.assign({},ERA.legacy,{key:'rtagi-ia1-v1',prevN:9,de:'de la etapa 1'});
 ERA.next=null;
 // Las supercomputadoras se recorren por dentro, como los centros de datos de la etapa 1.
-ERA.interiores={supercomp:{name:'Supercomputadora',un:'una supercomputadora',al:'a la supercomputadora',el:'la supercomputadora'}};
+ERA.interiores={supercomp:{name:'Supercomputadora',un:'una supercomputadora',al:'a la supercomputadora',el:'la supercomputadora'},
+  // Los laboratorios de IA de la etapa 1 pasan a institutos (su papel: los que multiplican las ideas), con sus mesas de experimentos.
+  instituto:{name:'Instituto',plano:'lab',un:'un instituto',al:'al instituto',el:'el instituto'}};
 ERA.text=Object.assign({},ERA.text,{
   title:'La carrera por la AGI',
-  intro:'Un laboratorio rival también quiere llegar a la AGI y va cada vez más rápido. Ganás si la terminás antes que ellos y con seguridad 100%. Tus centros de datos ahora son supercomputadoras: se recorren por dentro como antes, con sus racks, sus escritorios y su pizarra. Y ojo con los espías del rival.',
-  news:'Novedades: el laboratorio rival con su barra y sus espías, la seguridad, las embajadas y los puestos de guardia. Las supercomputadoras se recorren por dentro.',
+  intro:'Un laboratorio rival también quiere llegar a la AGI y va cada vez más rápido. Ganás si la terminás antes que ellos y con seguridad 100%. Tus centros de datos ahora son supercomputadoras: se recorren por dentro como antes, con sus racks, sus escritorios y su pizarra. Y ojo con los espías del rival: se meten adentro a copiar tus planos, y hay que entrar a atraparlos.',
+  news:'Novedades: el laboratorio rival con su barra y sus espías, la seguridad, las embajadas y los puestos de guardia. Las supercomputadoras y los institutos se recorren por dentro.',
   legacy:'Lo que trae tu ciudad de la etapa 1',
   noLegacy:'No terminaste la etapa 1 en este navegador: arrancás con lo básico para juntar.',
   winText:()=>'Terminaste una AGI segura en el día '+(Math.floor(st.time/DAY)+1)+', cuando el rival iba '+Math.floor(st.rival)+'%.',

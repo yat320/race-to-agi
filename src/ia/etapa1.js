@@ -8,12 +8,13 @@ ERA.juego={id:'ia',etapa:1,nombre:'La carrera de la IA'};
 // Sin etapa anterior: arranca solo (una clave que no existe); al terminar pasa a la etapa 2 (ia2.html), no a la AGI del mundo abierto.
 ERA.legacy=Object.assign({},ERA.legacy,{key:'rtagi-ia0-v1',perks:[]});
 ERA.next={file:'ia2.html',to:'a la carrera por la AGI'};
-// Los edificios que se recorren por dentro: el centro de datos (racks de GPUs, escritorios, la pizarra y cajas viejas).
-ERA.interiores={datacenter:{name:'Centro de datos'}};
+// Los edificios que se recorren por dentro: el centro de datos (racks de GPUs, escritorios, la pizarra y cajas viejas) y el
+// laboratorio de IA (mesas de experimentos, escritorios y cajas).
+ERA.interiores={datacenter:{name:'Centro de datos'},labia:{name:'Laboratorio de IA',plano:'lab',un:'un laboratorio de IA',al:'al laboratorio de IA',el:'el laboratorio de IA'}};
 ERA.text=Object.assign({},ERA.text,{
   title:'La carrera de la IA',
-  intro:'Un prototipo de un juego aparte, solo de la IA. Ahora podés entrar a tus centros de datos y recorrerlos: instalá y mejorá racks de GPUs, sentá a tu gente a investigar, elegí en la pizarra qué hacen y enfriá los racks que se recalientan. Y revisá las cajas del rincón.',
-  news:'Novedad: los centros de datos se recorren por dentro. Tocá uno para entrar.',
+  intro:'Un prototipo de un juego aparte, solo de la IA. Ahora podés entrar a tus centros de datos y recorrerlos: instalá y mejorá racks de GPUs, sentá a tu gente a investigar, elegí en la pizarra qué hacen y enfriá los racks que se recalientan. En los laboratorios de IA, entrená modelos en las mesas de experimentos: con cuidado, o a lo loco. Y revisá las cajas del rincón.',
+  news:'Novedad: los centros de datos y los laboratorios de IA se recorren por dentro. Tocá uno para entrar.',
   noLegacy:'Arrancás con lo básico para juntar. Los robots, los desalineados y la supervisión son los de la era IA del mundo abierto.',
   winNote:'Tu ciudad, tus ideas y lo de adentro de tus centros de datos pasan a la etapa 2: la carrera por la AGI.'});
 /* ---------- arte de la era ---------- */
