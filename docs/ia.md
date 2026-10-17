@@ -81,6 +81,8 @@ Juani: "falta la parte que le sigue a la nueva etapa de ia". `src/ia/etapa2.js` 
 - Los guardianes no entran: adentro es cosa tuya.
 - Lo demás de los espías no cambia (de dónde salen, cada cuánto, los puestos de guardia). En el mundo abierto no hay edificios recorribles, así que nada cambia ahí.
 
+**Intro corta** (regla 1: nada de tutorial largo). Las dos etapas arrancan con dos o tres líneas: la meta, que se recorren los edificios y que hay reloj. Lo de adentro lo explican las pistas cuando entrás. Sin `news` no hay renglón de novedades, un juego aparte no repite lo que arma `starterKit` (lo dice corto su `noLegacy`) y el botón que vuelve dice "Inicio" (`HUBTXT`).
+
 **Capítulos con reloj en la etapa 1** (decidido en el trabajo autónomo: una de las quejas de Juani es que "nada apura", y los capítulos de la Antigüedad ya existían). La etapa 1 se juega de a un capítulo, con 3 o 4 metas y estrellas por tiempo, y cada capítulo tiene una meta de adentro. Las metas nuevas las cuenta `interior.js` con el gancho `goal`, que el motor llama para lo que no conoce:
 - `rack`: racks instalados;
 - `rackLv`: niveles de rack por encima del 1;

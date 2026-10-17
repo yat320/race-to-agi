@@ -21,8 +21,8 @@ ERA.capitulos=[
   {name:'El asistente',oro:340,plata:510,premio:0,metas:[{t:'tech',id:'interpretabilidad',txt:'Investigá la interpretabilidad'},{t:'tech',id:'chips',txt:'Investigá los chips de IA'},{t:'tech',id:'asistente',txt:'Terminá el asistente universal'}]}];
 ERA.text=Object.assign({},ERA.text,{
   title:'La carrera de la IA',
-  intro:'Un prototipo de un juego aparte, solo de la IA. Ahora podés entrar a tus centros de datos y recorrerlos: instalá y mejorá racks de GPUs, sentá a tu gente a investigar, elegí en la pizarra qué hacen y enfriá los racks que se recalientan. En los laboratorios de IA, entrená modelos en las mesas de experimentos: con cuidado, o a lo loco. Y revisá las cajas del rincón.',
-  news:'Novedad: los centros de datos y los laboratorios de IA se recorren por dentro. Tocá uno para entrar.',
-  noLegacy:'Arrancás con lo básico para juntar. Los robots, los desalineados y la supervisión son los de la era IA del mundo abierto.',
+  intro:'Llegá al asistente universal. Entrá a tus centros de datos y laboratorios y mejoralos por dentro. Cada capítulo tiene reloj: cuanto más rápido, más estrellas.',
+  news:'',
+  noLegacy:'Arrancás con lo básico armado: una casa con 2 aldeanos más, una granja, una maderera y una cantera.',
   winNote:'Tu ciudad, tus ideas y lo de adentro de tus centros de datos pasan a la etapa 2: la carrera por la AGI.'});
 /* ---------- arte de la era ---------- */

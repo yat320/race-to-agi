@@ -9,3 +9,6 @@ Preguntas que necesitan tu respuesta. Mientras tanto sigo con otras cosas. Respo
 
    Eso no lo hago solo: es plata y es a tu nombre. Si me decís que sí, te dejo listo el paquete (TWA) para que lo subas.
 2. **¿Ganar plata con el juego?** Si la idea es cobrar (precio, anuncios o compras dentro del juego), conviene decidirlo antes de publicar, porque cambia cómo se arma. Mi recomendación por ahora: publicarlo gratis y sin anuncios para ver si engancha, y decidir después.
+3. **¿Los capítulos con reloj de la Antigüedad te gustaron?** Ahora también están en las dos etapas de la carrera de la IA.
+   - Si funcionan, los llevo a las demás eras, una por una y calibradas con el bot. Es lo que más ataca el "nada apura".
+   - Si no, ¿qué cambiarías: más cortos, menos metas, sin reloj?
