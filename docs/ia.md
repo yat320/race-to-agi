@@ -81,6 +81,12 @@ Juani: "falta la parte que le sigue a la nueva etapa de ia". `src/ia/etapa2.js` 
 - Los guardianes no entran: adentro es cosa tuya.
 - Lo demás de los espías no cambia (de dónde salen, cada cuánto, los puestos de guardia). En el mundo abierto no hay edificios recorribles, así que nada cambia ahí.
 
+**La pizarra de la supercomputadora: seguridad o velocidad** (etapa 2, decidido en el trabajo autónomo: la etapa necesitaba una decisión propia y la AGI pide seguridad 100%). En una era con rival, la pizarra tiene una tercera opción.
+- **Seguridad:** lo de adentro deja de dar ideas o monedas y suma `INT_SAFE` (0,02) puntos de seguridad por segundo por cada edificio que suma por dentro. Un rack al máximo da 1,2% por minuto; un laboratorio de seguridad, 3%. Una supercomputadora llena (5 racks y 2 escritorios), unos 7% por minuto.
+- Se decide por edificio y se puede cambiar cuando quieras: ir más rápido o ir con cuidado.
+- Se guarda en el cuarto dato de cada edificio: 2 es seguridad (0, ideas; 1, monedas).
+- El renglón de abajo del interior achica la letra si no entra.
+
 **El laboratorio de IA por dentro** (etapa 1; en la etapa 2 pasa a instituto, con lo de adentro). Lo decidí en el trabajo autónomo: era el punto 4 del plan, un segundo edificio para recorrer y distinto del centro de datos.
 - Es otro plano en `interior.js` (`plano:'lab'`, `INT_MAPS`), con la puerta en el mismo lugar.
 - Tiene 3 mesas de experimentos, una cuarta que traen las cajas, 2 escritorios y las cajas.

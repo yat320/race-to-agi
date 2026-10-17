@@ -45,3 +45,14 @@ Los criterios de Juani: lo que haga el juego más divertido en el celular y lo a
 ### Qué sigue
 - Que Juani pruebe la PR abierta en el celular. Si le gusta, se mergea.
 - La etapa 2 todavía es la era AGI con interiores: falta algo propio, como una decisión de seguridad contra velocidad que se juegue adentro.
+
+## 17 de octubre de 2026
+
+Juani mergeó la PR #79 para probarla en el celular y pidió seguir en modo autónomo.
+
+### Hecho
+1. **Etapa 2: la pizarra elige seguridad o velocidad.**
+   - En la supercomputadora, la pizarra tiene una tercera opción: lo de adentro deja de dar ideas y sube la seguridad (1,2% por minuto por rack al máximo).
+   - Es la decisión propia que le faltaba a la etapa: la AGI pide seguridad 100% y el rival apura.
+   - Probado con Playwright: con 2,6 racks pasa de unas 31 mil ideas por minuto a 3,1% de seguridad por minuto, se guarda y vuelve igual al recargar. Sin errores.
+   - No toca el motor. El guardado suma un valor posible a un dato que ya existía: una partida vieja carga igual. Por eso se publica directo.
