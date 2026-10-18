@@ -14,6 +14,12 @@ const ERA={
   // sequía que el laboratorio de semillas salva y mercaderes desde el comercio electrónico; sin puerto no hay barcos;
   // src/mundo/amenazas/vida.js).
   obras:true,vida:true,
+  capitulos:[
+    {name:'La red',oro:255,plata:390,premio:15,metas:[{t:'tech',id:'www',txt:'Investigá la World Wide Web'},{t:'build',id:'servidor',txt:'Construí un servidor'},{t:'build',id:'antena',txt:'Construí una antena'}]},
+    {name:'Las compras',oro:90,plata:135,premio:25,metas:[{t:'tech',id:'comercio',txt:'Investigá el comercio electrónico'},{t:'build',id:'tienda',txt:'Construí una tienda online'},{t:'build',id:'cibercafe',txt:'Construí un cibercafé'},{t:'tap',n:1,era:1,txt:'Borrá un virus'}]},
+    {name:'Buscar y cultivar',oro:90,plata:135,premio:35,metas:[{t:'tech',id:'biotec',txt:'Investigá la biotecnología'},{t:'tech',id:'buscadores',txt:'Investigá los buscadores'},{t:'build',id:'buscador',txt:'Construí un buscador'},{t:'build',id:'semillas',txt:'Construí un laboratorio de semillas'}]},
+    {name:'Protegerse',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'firewall',txt:'Investigá el cortafuegos'},{t:'build',id:'soporte',txt:'Construí un soporte técnico'},{t:'tech',id:'antivirus',txt:'Investigá el antivirus'}]},
+    {name:'El teléfono',oro:105,plata:150,premio:0,metas:[{t:'tech',id:'banda',txt:'Investigá la banda ancha'},{t:'tech',id:'smartphone',txt:'Armá el teléfono inteligente'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'tecnico',building:'Mesa de ayuda',unit:'Técnico',done:'Mesa de ayuda lista: llegó un técnico',desc:'Trae un técnico que sale solo a borrar virus y a limpiar las compus, a 8 casilleros o menos.',info:'Mesa de ayuda: su técnico borra virus cerca.',tip:'una mesa de ayuda: el técnico sale solo a borrar virus.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

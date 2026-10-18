@@ -10,6 +10,12 @@ const ERA={
   // Como la Prehistoria (octubre de 2026): obras a mano y mundo vivo (cabras, sequía que el jardín botánico salva, mercaderes
   // desde la banca y barcos en el puerto; src/mundo/amenazas/vida.js).
   obras:true,vida:true,
+  capitulos:[
+    {name:'La plata',oro:90,plata:135,premio:15,metas:[{t:'tech',id:'mineria',txt:'Investigá la minería de plata'},{t:'build',id:'herreria',txt:'Construí una herrería'},{t:'tech',id:'perspectiva',txt:'Investigá la perspectiva'}]},
+    {name:'Artistas y banqueros',oro:90,plata:135,premio:25,metas:[{t:'build',id:'taller',txt:'Construí un taller de artistas'},{t:'tech',id:'banca',txt:'Investigá la banca'},{t:'build',id:'banco',txt:'Construí un banco'}]},
+    {name:'El jardín',oro:120,plata:195,premio:35,metas:[{t:'tech',id:'botanica',txt:'Investigá la botánica'},{t:'build',id:'jardin',txt:'Construí un jardín botánico'},{t:'tap',n:1,era:1,txt:'Espantá una nube de langostas'}]},
+    {name:'El nuevo mundo',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'carabelas',txt:'Investigá las carabelas'},{t:'build',id:'puerto',txt:'Construí un puerto'},{t:'tech',id:'academias',txt:'Investigá las academias'},{t:'build',id:'academia',txt:'Construí una academia'}]},
+    {name:'La pascalina',oro:105,plata:150,premio:0,metas:[{t:'tech',id:'mecanica',txt:'Investigá la mecánica de precisión'},{t:'tech',id:'pascalina',txt:'Armá la pascalina'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'campo',building:'Puesto del campo',unit:'Guardián del campo',done:'Puesto del campo listo: llegó un guardián',desc:'Trae un guardián con una antorcha que sale solo a espantar las langostas a 8 casilleros o menos.',info:'Puesto del campo: su guardián espanta las langostas.',tip:'un puesto del campo: el guardián sale solo a espantar las langostas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

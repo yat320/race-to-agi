@@ -10,6 +10,12 @@ const ERA={
   // Los espías del rival van a uno de estos edificios (con su nombre para los avisos); el puesto de guardia atrapa a los que
   // pasan a 4 casilleros (reglas en motor.html).
   spies:{supercomp:'una supercomputadora',empresa:'una empresa de IA',instituto:'un instituto'},defense:{id:'guardia',r:4,label:'Guardias',of:['supercomp','empresa','instituto']},
+  capitulos:[
+    {name:'El cómputo',oro:240,plata:360,premio:15,metas:[{t:'tech',id:'computo',txt:'Investigá el cómputo a escala'},{t:'build',id:'supercomp',txt:'Construí una supercomputadora'},{t:'tech',id:'seguridad',txt:'Empezá la investigación de seguridad'}]},
+    {name:'Los espías',oro:90,plata:135,premio:25,metas:[{t:'build',id:'guardia',txt:'Construí un puesto de guardia'},{t:'build',id:'labseg',txt:'Construí un laboratorio de seguridad'},{t:'tap',n:1,era:1,txt:'Atrapá un espía'},{t:'tech',id:'productos',txt:'Investigá los productos de IA'}]},
+    {name:'El mercado',oro:90,plata:135,premio:35,metas:[{t:'build',id:'empresa',txt:'Construí una empresa de IA'},{t:'tech',id:'automatizacion',txt:'Investigá la automatización'},{t:'build',id:'agro',txt:'Construí una granja automática'},{t:'tech',id:'diplomacia',txt:'Investigá la diplomacia'}]},
+    {name:'La ciencia',oro:90,plata:135,premio:50,metas:[{t:'build',id:'embajada',txt:'Construí una embajada'},{t:'tech',id:'ciencia',txt:'Investigá la ciencia automatizada'},{t:'build',id:'instituto',txt:'Construí un instituto de investigación'},{t:'tech',id:'tratado',txt:'Firmá el tratado internacional'}]},
+    {name:'La carrera',oro:375,plata:555,premio:0,metas:[{t:'tech',id:'escalado',txt:'Investigá el escalado'},{t:'seg',n:100,txt:'Llegá a 100% de seguridad'},{t:'tech',id:'agi',txt:'Creá la AGI'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'seguridad',building:'Central de seguridad',unit:'Guardia',done:'Central de seguridad lista: llegó un guardia',desc:'Trae un guardia que sale solo a atrapar espías, a 8 casilleros o menos.',info:'Central de seguridad: su guardia atrapa espías cerca.',tip:'una central de seguridad: el guardia sale solo a atrapar espías.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

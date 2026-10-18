@@ -69,6 +69,7 @@ function threats(){const o=D.obj();let n=0;
   S.taps+=n;}
 // Qué construir y cuántos, en orden de prioridad.
 function wants(){const V=D.vil.filter(v=>!v.bot).length,nT=Object.keys(D.st.techs).length,w=[];
+  for(const m of capBuilds())w.push([m.id,m.n||1]);
   w.push(['granja',1+Math.floor((V+1)/4)],['aserradero',1],['casa',Math.min(4,1+Math.ceil(nT/2))]);
   // Si el próximo invento pide un objeto, primero el edificio que lo hace (y el que hace lo que ese gasta).
   {const t=nextTech(),seen=new Set(),add=k=>{const b=E.builds.find(b=>b.craft&&b.prod&&b.prod[k]);if(!b||seen.has(b.id))return;seen.add(b.id);for(const u in b.use){add(u);const pb=E.builds.find(p=>!p.craft&&p.prod&&p.prod[u]&&p.req);if(pb&&!seen.has(pb.id)){seen.add(pb.id);w.push([pb.id,2]);}}w.push([b.id,1]);};if(t)for(const k in t.cost)add(k);}
@@ -116,13 +117,15 @@ function gather(){const P=D.P;if(P.task||P.act||P.path.length)return;
   for(let i=0;i<o.length;i++){const q=o[i];if(!q||q.t!==TYPE[k]||!(q.hp>0))continue;const d=Math.abs(i%MW-px)+Math.abs(((i/MW)|0)-py);if(d<bd){bd=d;best=i;}}
   if(best>=0)D.onTap(best%MW,(best/MW)|0);}
 // Modernizar lo que vino de la era anterior (rinde la mitad): primero lo que produce, uno por vez, si alcanza.
-function modern(){if(!D.modernize)return false;const o=D.obj();let best=-1,bv=-1;
+// Los edificios que pide el capítulo en curso (si la era tiene capítulos): se construyen o se modernizan primero.
+const capBuilds=()=>{const C=D.st.cap,CA=E.capitulos;return C&&CA&&C.i<CA.length?CA[C.i].metas.filter(m=>m.t==='build'):[];};
+function modern(){if(!D.modernize)return false;const o=D.obj();let best=-1,bv=-1;const cw=new Set(capBuilds().map(m=>m.id));
   const ns=E.grid==='power'?nodes():null;
   for(let i=0;i<o.length;i++){const q=o[i];if(!D.canModern(q))continue;const b=B[q.t],x=i%MW,y=(i/MW)|0;
     // Uno con ⚡ modernizado necesita luz: si queda lejos de la red, primero un poste hacia él.
     if(b.elec&&ns&&!ns.some(n=>Math.hypot(n.x-x,n.y-y)<=2.9)){if(B.poste&&ns.length&&afford(D.buildCost('poste'))){let bn=null,bd=1e9;for(const n of ns){const d=Math.hypot(n.x-x,n.y-y);if(d<bd){bd=d;bn=n;}}
         if(place('poste',{any:true,at:[bn.x,bn.y],r:5,ok:(px,py)=>Math.hypot(px-bn.x,py-bn.y)<=4.4&&Math.hypot(px-x,py-y)<bd-1}))return true;}continue;}
-    const v=b&&b.prod?2:b&&(b.id===E.ideaBuild||b.id===E.farmBuild)?1:0;if(v>bv){bv=v;best=i;}}
+    const v=cw.has(q.t)?3:b&&b.prod?2:b&&(b.id===E.ideaBuild||b.id===E.farmBuild)?1:0;if(v>bv){bv=v;best=i;}}
   if(best<0)return false;const t=o[best].t;if(D.modernize(best)){S.modern=(S.modern||0)+1;return true;}return false;}
 // Adentro de las industrias (edificios con puestos): cada 5 s, por la hoja como una persona, pone una máquina rápida (o una
 // limpia si hay mucho humo y el edificio echa) en la industria que más hace de lo que le falta al próximo invento (si hace al
@@ -187,7 +190,7 @@ return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
     while(!D.st.won&&!D.st.lost&&D.st.time<maxMin*60){for(let k=0;k<10;k++)D.update(0.1);step();}
     closeAll();const n=E.builds.reduce((s,b)=>s+cnt(b.id),0);
     return{won:D.st.won,lost:!!D.st.lost,min:Math.round(D.st.time/6)/10,day:Math.floor(D.st.time/160)+1,vil:D.vil.filter(v=>!v.bot).length,bots:D.vil.filter(v=>v.bot).length,
-      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],ideaStart:S.ideaStart||null,cap:D.st.cap?{s:D.st.cap.s,d:D.st.cap.d}:null,of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
+      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],ideaStart:S.ideaStart||null,cap:D.st.cap?{s:D.st.cap.s,d:D.st.cap.d,left:E.capitulos&&D.st.cap.i<E.capitulos.length&&D.capGoal?E.capitulos[D.st.cap.i].metas.filter(m=>!D.capGoal(m)[0]).map(m=>m.t+':'+(m.id||m.n)):null}:null,of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
       legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety,obra:S.obra||null,res:Object.fromEntries(Object.entries(R()).map(([k,v])=>[k,Math.round(v)]))};}};
 })();`;
 

@@ -6,6 +6,12 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','nucleo','contencion','astillero','terraformador','colector','academia'],
   goo:true,defense:{id:'contencion',r:4,label:'Contención'},
+  capitulos:[
+    {name:'Lo exótico',oro:120,plata:165,premio:15,metas:[{t:'tech',id:'exotica',txt:'Investigá la física exótica'},{t:'build',id:'nucleo',txt:'Construí un núcleo cuántico'},{t:'tech',id:'campos',txt:'Investigá los campos de contención'}]},
+    {name:'Los nanobots',oro:225,plata:330,premio:25,metas:[{t:'build',id:'contencion',txt:'Construí un campo de contención'},{t:'tap',n:1,era:1,txt:'Apagá una nube de nanobots'},{t:'tech',id:'naves',txt:'Investigá las naves de colonización'},{t:'build',id:'astillero',txt:'Construí un astillero estelar'}]},
+    {name:'Colonias',oro:90,plata:135,premio:35,metas:[{t:'tech',id:'terraformacion',txt:'Investigá la terraformación'},{t:'build',id:'terraformador',txt:'Construí un terraformador'},{t:'tech',id:'antimateria',txt:'Investigá la antimateria'},{t:'build',id:'colector',txt:'Construí un colector exótico'}]},
+    {name:'Los sensores',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'sensores',txt:'Investigá los sensores cuánticos'},{t:'tech',id:'xenologia',txt:'Investigá la xenobiología'},{t:'build',id:'academia',txt:'Construí una academia galáctica'}]},
+    {name:'La curvatura',oro:90,plata:135,premio:0,metas:[{t:'tech',id:'cuantica',txt:'Investigá la computación cuántica'},{t:'tech',id:'curvatura',txt:'Armá el motor de curvatura'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'dron',fly:true,building:'Hangar de drones',unit:'Dron',done:'Hangar listo: salió un dron',desc:'Trae un dron que vuela solo a apagar nubes de nanobots, a 8 casilleros o menos.',info:'Hangar de drones: su dron apaga nanobots cerca.',tip:'un hangar de drones: el dron vuela solo a apagar nanobots.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

@@ -6,6 +6,13 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','arbolsabio','arco','especies','pradera','hongar','simbiosis'],
   riders:true,defense:{id:'arco',r:4,label:'Arcos'},
+  // Capítulos: metas con reloj (tiempos provisorios, falta calibrarlos con el bot).
+  capitulos:[
+    {name:'Las esporas',oro:90,plata:150,premio:15,metas:[{t:'tech',id:'esporas',txt:'Investigá las esporas'},{t:'build',id:'arbolsabio',txt:'Plantá un árbol sabio'},{t:'tech',id:'limpieza',txt:'Investigá los arcos de limpieza'}]},
+    {name:'La feria',oro:90,plata:135,premio:25,metas:[{t:'tech',id:'trueque',txt:'Investigá la feria de especies'},{t:'build',id:'especies',txt:'Construí una feria de especies'},{t:'build',id:'arco',txt:'Construí un arco de limpieza'}]},
+    {name:'La pradera',oro:90,plata:135,premio:35,metas:[{t:'tech',id:'pradera',txt:'Investigá la pradera viva'},{t:'build',id:'pradera',txt:'Plantá una pradera viva'},{t:'tech',id:'hongar',txt:'Investigá el hongar de esporas'},{t:'tap',n:1,era:1,txt:'Espantá un polizón'}]},
+    {name:'La simbiosis',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'repelente',txt:'Investigá el repelente'},{t:'build',id:'hongar',txt:'Construí un hongar de esporas'},{t:'tech',id:'simbiosis',txt:'Investigá el templo de la simbiosis'},{t:'build',id:'simbiosis',txt:'Construí un templo de la simbiosis'}]},
+    {name:'El Edén',oro:150,plata:240,premio:0,metas:[{t:'tech',id:'ecosistema',txt:'Investigá el ecosistema'},{t:'tech',id:'eden',txt:'Creá el Edén cósmico'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'cuidador',building:'Refugio de cuidadores',unit:'Cuidador',done:'Refugio de cuidadores abierto: llegó un cuidador',desc:'Trae un cuidador que sale solo, con su red, a bajarle los polizones a tu gente, a 8 casilleros o menos.',info:'Refugio de cuidadores: su cuidador le baja los polizones a tu gente cerca.',tip:'un refugio de cuidadores: el cuidador le baja los polizones a tu gente solo.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

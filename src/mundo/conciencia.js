@@ -8,6 +8,12 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','memoria','silencio','suenos','jardinmente','destileria','colmena'],
   sirens:true,defense:{id:'silencio',r:4,label:'Cúpulas'},
+  capitulos:[
+    {name:'Recuerdos',oro:180,plata:270,premio:15,metas:[{t:'tech',id:'memoria',txt:'Investigá los cristales de recuerdo'},{t:'build',id:'memoria',txt:'Construí un palacio de la memoria'},{t:'build',id:'herreria',txt:'Construí un nanotaller'}]},
+    {name:'Sueños',oro:90,plata:135,premio:25,metas:[{t:'tech',id:'silencio',txt:'Investigá las cúpulas de silencio'},{t:'build',id:'silencio',txt:'Construí una cúpula de silencio'},{t:'tech',id:'suenos',txt:'Investigá el mercado de sueños'},{t:'build',id:'suenos',txt:'Abrí un mercado de sueños'}]},
+    {name:'Las sirenas',oro:105,plata:150,premio:35,metas:[{t:'tech',id:'jardines',txt:'Investigá los jardines de la mente'},{t:'build',id:'jardinmente',txt:'Plantá un jardín de la mente'},{t:'tech',id:'destilado',txt:'Investigá el destilado de recuerdos'},{t:'tap',n:1,era:1,txt:'Callá a una sirena'}]},
+    {name:'Armonía',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'armonia',txt:'Investigá la armonía'},{t:'build',id:'destileria',txt:'Construí una destilería de recuerdos'},{t:'tech',id:'empatia',txt:'Investigá la empatía total'}]},
+    {name:'Una sola mente',oro:105,plata:165,premio:0,metas:[{t:'tech',id:'colmena',txt:'Investigá la mente colmena'},{t:'build',id:'colmena',txt:'Conectá una colmena'},{t:'tech',id:'conciencia',txt:'Despertá la conciencia compartida'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'director',building:'Conservatorio',unit:'Director de orquesta',done:'Conservatorio abierto: llegó un director de orquesta',desc:'Trae un director de orquesta que tapa el canto con su música y sale solo a callar sirenas, a 8 casilleros o menos.',info:'Conservatorio: su director de orquesta calla a las sirenas cerca.',tip:'un conservatorio: el director de orquesta sale solo a callar a las sirenas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

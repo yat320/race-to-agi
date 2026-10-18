@@ -6,6 +6,13 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','prisma','estabilizador','espectro','huertoluz','condensador','catedral'],
   whirls:true,defense:{id:'estabilizador',r:4,label:'Estabilizadores'},
+  // Capítulos: metas con reloj (tiempos provisorios, falta calibrarlos con el bot).
+  capitulos:[
+    {name:'Los fotones',oro:165,plata:240,premio:15,metas:[{t:'tech',id:'fotones',txt:'Investigá los fotones'},{t:'build',id:'prisma',txt:'Construí un prisma de ideas'},{t:'tech',id:'estabilizador',txt:'Investigá los estabilizadores de campo'}]},
+    {name:'El espectro',oro:90,plata:135,premio:25,metas:[{t:'tech',id:'espectro',txt:'Investigá el mercado del espectro'},{t:'build',id:'espectro',txt:'Construí un mercado del espectro'},{t:'build',id:'estabilizador',txt:'Construí un estabilizador de campo'}]},
+    {name:'La cosecha de luz',oro:105,plata:150,premio:35,metas:[{t:'tech',id:'cultivoluz',txt:'Investigá el cultivo de luz'},{t:'build',id:'huertoluz',txt:'Construí un huerto de luz'},{t:'tech',id:'condensador',txt:'Investigá el condensador de fotones'},{t:'tap',n:1,era:1,txt:'Deshacé un torbellino de luz'}]},
+    {name:'La catedral',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'calma',txt:'Investigá los campos en calma'},{t:'build',id:'condensador',txt:'Construí un condensador de fotones'},{t:'tech',id:'catedral',txt:'Investigá la catedral de luz'},{t:'build',id:'catedral',txt:'Construí una catedral de luz'}]},
+    {name:'La primera luz',oro:150,plata:225,premio:0,metas:[{t:'tech',id:'resonancia',txt:'Investigá la resonancia'},{t:'tech',id:'primeraluz',txt:'Encendé la primera luz'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'cazavientos',building:'Puesto de cazavientos',unit:'Cazavientos',done:'Puesto de cazavientos listo: llegó un cazavientos',desc:'Trae un cazavientos que sale solo a atrapar con su frasco los torbellinos de luz, a 8 casilleros o menos. Las motas no las junta.',info:'Puesto de cazavientos: su cazavientos deshace torbellinos cerca.',tip:'un puesto de cazavientos: el cazavientos deshace los torbellinos solo.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
