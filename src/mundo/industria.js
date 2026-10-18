@@ -19,11 +19,11 @@ const ERA={
   // salva, mercaderes desde el telar y barcos en el puerto; src/mundo/amenazas/vida.js).
   obras:true,vida:true,
   capitulos:[
-    {name:'El vapor',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'vapor',txt:'Investigá la máquina de vapor'},{t:'build',id:'mina',txt:'Construí una mina de carbón'},{t:'build',id:'fundicion',txt:'Construí una fundición'}]},
-    {name:'Los telares',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'telar',txt:'Investigá el telar mecánico'},{t:'build',id:'torneria',txt:'Construí un taller mecánico'},{t:'tap',n:1,era:1,txt:'Calmá a un luddita'}]},
-    {name:'Química y vías',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'quimica',txt:'Investigá la química'},{t:'build',id:'laboratorio',txt:'Construí un laboratorio'},{t:'tech',id:'ferrocarril',txt:'Investigá el ferrocarril'},{t:'build',id:'estacion',txt:'Construí una estación de tren'}]},
-    {name:'La exposición',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'exposiciones',txt:'Investigá las exposiciones'},{t:'build',id:'palacio',txt:'Construí el palacio de cristal'},{t:'lv',n:1,txt:'Mejorá un edificio'}]},
-    {name:'La máquina',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'barcos',txt:'Investigá el barco de vapor'},{t:'tech',id:'tarjetas',txt:'Investigá las tarjetas perforadas'},{t:'tech',id:'analitica',txt:'Armá la máquina analítica'}]}],
+    {name:'El vapor',oro:195,plata:285,premio:15,metas:[{t:'tech',id:'vapor',txt:'Investigá la máquina de vapor'},{t:'build',id:'mina',txt:'Construí una mina de carbón'},{t:'build',id:'fundicion',txt:'Construí una fundición'}]},
+    {name:'Los telares',oro:105,plata:165,premio:25,metas:[{t:'tech',id:'telar',txt:'Investigá el telar mecánico'},{t:'build',id:'torneria',txt:'Construí un taller mecánico'},{t:'tap',n:1,era:1,txt:'Calmá a un luddita'}]},
+    {name:'Química y vías',oro:90,plata:135,premio:35,metas:[{t:'tech',id:'quimica',txt:'Investigá la química'},{t:'build',id:'laboratorio',txt:'Construí un laboratorio'},{t:'tech',id:'ferrocarril',txt:'Investigá el ferrocarril'},{t:'build',id:'estacion',txt:'Construí una estación de tren'}]},
+    {name:'La exposición',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'exposiciones',txt:'Investigá las exposiciones'},{t:'build',id:'palacio',txt:'Construí el palacio de cristal'},{t:'lv',n:1,txt:'Mejorá un edificio'}]},
+    {name:'La máquina',oro:135,plata:195,premio:0,metas:[{t:'tech',id:'barcos',txt:'Investigá el barco de vapor'},{t:'tech',id:'tarjetas',txt:'Investigá las tarjetas perforadas'},{t:'tech',id:'analitica',txt:'Armá la máquina analítica'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'policia',building:'Comisaría',unit:'Policía',done:'Comisaría lista: llegó un policía',desc:'Trae un policía que sale solo a calmar a los ludditas y a arreglar las máquinas rotas, a 8 casilleros o menos.',info:'Comisaría: su policía calma a los ludditas cerca.',tip:'una comisaría: el policía sale solo a calmar a los ludditas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

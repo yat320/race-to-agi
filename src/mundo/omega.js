@@ -8,11 +8,11 @@ const ERA={
   frost:true,defense:{id:'estufa',r:4,label:'Estufas'},
   // Capítulos: metas con reloj (tiempos provisorios, falta calibrarlos con el bot).
   capitulos:[
-    {name:'Las chispas',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'chispa',txt:'Investigá las chispas'},{t:'build',id:'faro',txt:'Construí un faro de la última luz'},{t:'tech',id:'estufas',txt:'Investigá las estufas estelares'}]},
-    {name:'El calor',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'calor',txt:'Investigá la lonja del calor'},{t:'build',id:'lonja',txt:'Construí una lonja del calor'},{t:'build',id:'estufa',txt:'Construí una estufa estelar'}]},
-    {name:'El invernadero',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'invernadero',txt:'Investigá el invernadero eterno'},{t:'build',id:'invernadero',txt:'Construí un invernadero eterno'},{t:'tech',id:'recolector',txt:'Investigá el recolector de chispas'},{t:'tap',n:1,era:1,txt:'Rompé una ola de frío'}]},
-    {name:'La crónica',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'abrigo',txt:'Investigá el abrigo cuántico'},{t:'build',id:'recolector',txt:'Construí un recolector de chispas'},{t:'tech',id:'cronica',txt:'Investigá la crónica del universo'},{t:'build',id:'cronica',txt:'Construí una crónica del universo'}]},
-    {name:'El final',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'eternidad',txt:'Investigá la eternidad'},{t:'tech',id:'omega',txt:'Alcanzá el punto omega'}]}],
+    {name:'Las chispas',oro:135,plata:195,premio:15,metas:[{t:'tech',id:'chispa',txt:'Investigá las chispas'},{t:'build',id:'faro',txt:'Construí un faro de la última luz'},{t:'tech',id:'estufas',txt:'Investigá las estufas estelares'}]},
+    {name:'El calor',oro:90,plata:135,premio:25,metas:[{t:'tech',id:'calor',txt:'Investigá la lonja del calor'},{t:'build',id:'lonja',txt:'Construí una lonja del calor'},{t:'build',id:'estufa',txt:'Construí una estufa estelar'}]},
+    {name:'El invernadero',oro:90,plata:150,premio:35,metas:[{t:'tech',id:'invernadero',txt:'Investigá el invernadero eterno'},{t:'build',id:'invernadero',txt:'Construí un invernadero eterno'},{t:'tech',id:'recolector',txt:'Investigá el recolector de chispas'},{t:'tap',n:1,era:1,txt:'Rompé una ola de frío'}]},
+    {name:'La crónica',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'abrigo',txt:'Investigá el abrigo cuántico'},{t:'build',id:'recolector',txt:'Construí un recolector de chispas'},{t:'tech',id:'cronica',txt:'Investigá la crónica del universo'},{t:'build',id:'cronica',txt:'Construí una crónica del universo'}]},
+    {name:'El final',oro:150,plata:225,premio:0,metas:[{t:'tech',id:'eternidad',txt:'Investigá la eternidad'},{t:'tech',id:'omega',txt:'Alcanzá el punto omega'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'fogonero',building:'Sala de fogoneros',unit:'Fogonero',done:'Sala de fogoneros abierta: llegó un fogonero',desc:'Trae un fogonero que sale solo, con su pala y su brasa, a romper las olas de frío y descongelar lo que encuentra, a 8 casilleros o menos.',info:'Sala de fogoneros: su fogonero rompe las olas de frío cerca.',tip:'una sala de fogoneros: el fogonero rompe las olas de frío y descongela solo.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

@@ -12,11 +12,11 @@ const ERA={
   // sequía que el galpón de tractores salva y mercaderes desde el transistor; sin puerto no hay barcos; src/mundo/amenazas/vida.js).
   obras:true,vida:true,
   capitulos:[
-    {name:'La computadora',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'eniac',txt:'Investigá la computadora electrónica'},{t:'build',id:'computadora',txt:'Construí una computadora'},{t:'tech',id:'tractor',txt:'Investigá los tractores'}]},
-    {name:'El transistor',oro:120,plata:180,premio:25,metas:[{t:'build',id:'galpon',txt:'Construí un galpón de tractores'},{t:'tech',id:'transistor',txt:'Investigá el transistor'},{t:'build',id:'oficina',txt:'Construí una oficina'},{t:'tap',n:1,era:1,txt:'Atrapá una polilla o aplastá un bicho'}]},
-    {name:'La carrera',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'universidades',txt:'Investigá las carreras de computación'},{t:'build',id:'universidad',txt:'Construí una universidad'},{t:'tech',id:'satelite',txt:'Investigá los satélites'}]},
-    {name:'Sin bichos',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'depuracion',txt:'Investigá la depuración'},{t:'build',id:'computadora',n:2,txt:'Tené 2 computadoras'}]},
-    {name:'El microprocesador',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'circuito',txt:'Investigá el circuito integrado'},{t:'tech',id:'micro',txt:'Armá el microprocesador'}]}],
+    {name:'La computadora',oro:255,plata:390,premio:15,metas:[{t:'tech',id:'eniac',txt:'Investigá la computadora electrónica'},{t:'build',id:'computadora',txt:'Construí una computadora'},{t:'tech',id:'tractor',txt:'Investigá los tractores'}]},
+    {name:'El transistor',oro:90,plata:135,premio:25,metas:[{t:'build',id:'galpon',txt:'Construí un galpón de tractores'},{t:'tech',id:'transistor',txt:'Investigá el transistor'},{t:'build',id:'oficina',txt:'Construí una oficina'},{t:'tap',n:1,era:1,txt:'Atrapá una polilla o aplastá un bicho'}]},
+    {name:'La carrera',oro:90,plata:135,premio:35,metas:[{t:'tech',id:'universidades',txt:'Investigá las carreras de computación'},{t:'build',id:'universidad',txt:'Construí una universidad'},{t:'tech',id:'satelite',txt:'Investigá los satélites'}]},
+    {name:'Sin bichos',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'depuracion',txt:'Investigá la depuración'},{t:'build',id:'computadora',n:2,txt:'Tené 2 computadoras'}]},
+    {name:'El microprocesador',oro:90,plata:135,premio:0,metas:[{t:'tech',id:'circuito',txt:'Investigá el circuito integrado'},{t:'tech',id:'micro',txt:'Armá el microprocesador'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'exterminador',building:'Control de plagas',unit:'Exterminador',done:'Control de plagas listo: llegó un exterminador',desc:'Trae un exterminador con una red que sale solo a atrapar polillas y aplastar bichos, a 8 casilleros o menos.',info:'Control de plagas: su exterminador atrapa polillas cerca.',tip:'un control de plagas: el exterminador sale solo a atrapar polillas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

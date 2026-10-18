@@ -19,11 +19,11 @@ const ERA={
   // pueblo; sin piratas, el campamento es de bandidos (src/mundo/amenazas/explora.js).
   explora:{nombres:{ruinas:'unas ruinas romanas',oraculo:'una ermita en la colina'}},
   capitulos:[
-    {name:'El hierro',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'forja',txt:'Investigá la forja del hierro'},{t:'build',id:'herreria',txt:'Construí una herrería'},{t:'tech',id:'monasterios',txt:'Investigá los monasterios'}]},
-    {name:'Monjes y gremios',oro:120,plata:180,premio:25,metas:[{t:'build',id:'monasterio',txt:'Construí un monasterio'},{t:'tech',id:'gremios',txt:'Investigá los gremios'},{t:'build',id:'feria',txt:'Construí una feria'},{t:'tap',n:1,era:1,txt:'Curá un edificio con peste'}]},
-    {name:'El viento',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'molinos',txt:'Investigá los molinos de viento'},{t:'build',id:'molino',txt:'Construí un molino'},{t:'of',n:1,txt:'Poné a alguien en un oficio'},{t:'lv',n:1,txt:'Mejorá un edificio'}]},
-    {name:'Rutas y sabios',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'universidades',txt:'Investigá las universidades'},{t:'build',id:'universidad',txt:'Construí una universidad'},{t:'tech',id:'rutas',txt:'Investigá las rutas comerciales'},{t:'build',id:'puerto',txt:'Construí un puerto'}]},
-    {name:'La imprenta',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'reloj',txt:'Investigá el reloj mecánico'},{t:'tech',id:'imprenta',txt:'Armá la imprenta'}]}],
+    {name:'El hierro',oro:105,plata:165,premio:15,metas:[{t:'tech',id:'forja',txt:'Investigá la forja del hierro'},{t:'build',id:'herreria',txt:'Construí una herrería'},{t:'tech',id:'monasterios',txt:'Investigá los monasterios'}]},
+    {name:'Monjes y gremios',oro:150,plata:225,premio:25,metas:[{t:'build',id:'monasterio',txt:'Construí un monasterio'},{t:'tech',id:'gremios',txt:'Investigá los gremios'},{t:'build',id:'feria',txt:'Construí una feria'},{t:'tap',n:1,era:1,txt:'Curá un edificio con peste'}]},
+    {name:'El viento',oro:90,plata:135,premio:35,metas:[{t:'tech',id:'molinos',txt:'Investigá los molinos de viento'},{t:'build',id:'molino',txt:'Construí un molino'},{t:'of',n:1,txt:'Poné a alguien en un oficio'},{t:'lv',n:1,txt:'Mejorá un edificio'}]},
+    {name:'Rutas y sabios',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'universidades',txt:'Investigá las universidades'},{t:'build',id:'universidad',txt:'Construí una universidad'},{t:'tech',id:'rutas',txt:'Investigá las rutas comerciales'},{t:'build',id:'puerto',txt:'Construí un puerto'}]},
+    {name:'La imprenta',oro:90,plata:135,premio:0,metas:[{t:'tech',id:'reloj',txt:'Investigá el reloj mecánico'},{t:'tech',id:'imprenta',txt:'Armá la imprenta'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'medico',building:'Casa del médico',unit:'Médico',done:'Casa del médico lista: llegó un médico',desc:'Trae un médico que sale solo a curar los edificios con peste a 8 casilleros o menos.',info:'Casa del médico: su médico cura la peste cerca.',tip:'una casa del médico: el médico sale solo a curar la peste.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

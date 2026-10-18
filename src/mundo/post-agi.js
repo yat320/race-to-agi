@@ -7,11 +7,11 @@ const ERA={
   lights:['herreria','centro','escudo','puerto','sintetizador','minero','instituto'],
   meteors:true,defense:{id:'escudo',r:5,label:'Escudos'},
   capitulos:[
-    {name:'La nanotecnología',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'nanotec',txt:'Investigá la nanotecnología'},{t:'build',id:'centro',txt:'Construí un centro de la AGI'},{t:'tech',id:'escudos',txt:'Investigá los escudos'}]},
-    {name:'Los meteoritos',oro:120,plata:180,premio:25,metas:[{t:'build',id:'escudo',txt:'Construí un escudo'},{t:'tap',n:1,era:1,txt:'Desviá un meteorito'},{t:'tech',id:'cohetes',txt:'Investigá los cohetes reutilizables'},{t:'build',id:'puerto',txt:'Construí un puerto espacial'}]},
-    {name:'Comer y minar',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'sintesis',txt:'Investigá la síntesis de alimentos'},{t:'build',id:'sintetizador',txt:'Construí un sintetizador'},{t:'tech',id:'mineria',txt:'Investigá la minería de asteroides'},{t:'build',id:'minero',txt:'Construí una mina de asteroides'}]},
-    {name:'El cielo',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'radar',txt:'Investigá el radar orbital'},{t:'tech',id:'cosmologia',txt:'Investigá la cosmología'},{t:'build',id:'instituto',txt:'Construí un instituto del espacio'}]},
-    {name:'La esfera',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'fusion',txt:'Investigá la fusión nuclear'},{t:'tech',id:'dyson',txt:'Armá la esfera de Dyson'}]}],
+    {name:'La nanotecnología',oro:165,plata:240,premio:15,metas:[{t:'tech',id:'nanotec',txt:'Investigá la nanotecnología'},{t:'build',id:'centro',txt:'Construí un centro de la AGI'},{t:'tech',id:'escudos',txt:'Investigá los escudos'}]},
+    {name:'Los meteoritos',oro:90,plata:135,premio:25,metas:[{t:'build',id:'escudo',txt:'Construí un escudo'},{t:'tap',n:1,era:1,txt:'Desviá un meteorito'},{t:'tech',id:'cohetes',txt:'Investigá los cohetes reutilizables'},{t:'build',id:'puerto',txt:'Construí un puerto espacial'}]},
+    {name:'Comer y minar',oro:90,plata:135,premio:35,metas:[{t:'tech',id:'sintesis',txt:'Investigá la síntesis de alimentos'},{t:'build',id:'sintetizador',txt:'Construí un sintetizador'},{t:'tech',id:'mineria',txt:'Investigá la minería de asteroides'},{t:'build',id:'minero',txt:'Construí una mina de asteroides'}]},
+    {name:'El cielo',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'radar',txt:'Investigá el radar orbital'},{t:'tech',id:'cosmologia',txt:'Investigá la cosmología'},{t:'build',id:'instituto',txt:'Construí un instituto del espacio'}]},
+    {name:'La esfera',oro:150,plata:210,premio:0,metas:[{t:'tech',id:'fusion',txt:'Investigá la fusión nuclear'},{t:'tech',id:'dyson',txt:'Armá la esfera de Dyson'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'dron',fly:true,building:'Hangar de drones',unit:'Dron',done:'Hangar listo: salió un dron',desc:'Trae un dron que vuela solo a desviar meteoritos y a reparar lo dañado, a 8 casilleros o menos.',info:'Hangar de drones: su dron desvía meteoritos cerca.',tip:'un hangar de drones: el dron vuela solo a desviar meteoritos.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
