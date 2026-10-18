@@ -6,6 +6,12 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','archivo','interferencia','mercado','jardin','forja','observatorio'],
   ufos:true,defense:{id:'interferencia',r:4,label:'Interferencia'},
+  capitulos:[
+    {name:'El neutronio',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'neutronio',txt:'Investigá la física de neutrones'},{t:'build',id:'archivo',txt:'Construí un archivo galáctico'},{t:'build',id:'herreria',txt:'Construí un nanotaller'}]},
+    {name:'Señales y monedas',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'interferencia',txt:'Investigá la interferencia'},{t:'build',id:'interferencia',txt:'Construí una torre de interferencia'},{t:'tech',id:'comercio',txt:'Investigá el comercio galáctico'},{t:'build',id:'mercado',txt:'Construí un mercado galáctico'}]},
+    {name:'Visitantes',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'xenoagro',txt:'Investigá la xenoagricultura'},{t:'build',id:'jardin',txt:'Plantá un jardín alienígena'},{t:'tech',id:'forjas',txt:'Investigá las forjas estelares'},{t:'tap',n:1,txt:'Espantá un ovni'}]},
+    {name:'Hablar con ellos',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'lenguas',txt:'Investigá las lenguas alienígenas'},{t:'build',id:'forja',txt:'Construí una forja de neutronio'},{t:'tech',id:'energia',txt:'Investigá la energía del vacío'}]},
+    {name:'La federación',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'cartografia',txt:'Investigá la cartografía galáctica'},{t:'build',id:'observatorio',txt:'Construí un observatorio galáctico'},{t:'tech',id:'federacion',txt:'Fundá la federación galáctica'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'agente',building:'Agencia',unit:'Agente',done:'Agencia lista: llegó un agente',desc:'Trae un agente que sale solo a espantar ovnis, a 8 casilleros o menos.',info:'Agencia: su agente espanta ovnis cerca.',tip:'una agencia: el agente sale solo a espantar ovnis.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

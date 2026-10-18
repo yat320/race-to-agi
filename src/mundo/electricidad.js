@@ -11,6 +11,12 @@ const ERA={
   // Como la Prehistoria (octubre de 2026): obras que levantan vos y tu gente y mundo vivo (cabras, sequía que el frigorífico
   // salva y mercaderes desde el motor eléctrico; no hay puerto, así que no llegan barcos; src/mundo/amenazas/vida.js).
   obras:true,vida:true,
+  capitulos:[
+    {name:'La corriente',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'dinamo',txt:'Investigá el dínamo'},{t:'build',id:'usina',txt:'Construí una usina'},{t:'build',id:'poste',n:2,txt:'Poné 2 postes'}]},
+    {name:'Motores y luz',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'motor',txt:'Investigá el motor eléctrico'},{t:'build',id:'fabrica',txt:'Construí una fábrica eléctrica'},{t:'tech',id:'lamparita',txt:'Investigá la lamparita'},{t:'tap',n:1,txt:'Disipá una tormenta'}]},
+    {name:'El frío',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'frio',txt:'Investigá la refrigeración'},{t:'build',id:'frigorifico',txt:'Construí un frigorífico'},{t:'build',id:'laboratorio',txt:'Construí un laboratorio'}]},
+    {name:'Agua y escuelas',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'hidro',txt:'Investigá la hidroelectricidad'},{t:'build',id:'represa',txt:'Construí una represa'},{t:'tech',id:'escuelas',txt:'Investigá la escuela pública'},{t:'build',id:'escuela',txt:'Construí una escuela'}]},
+    {name:'La tabuladora',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'valvulas',txt:'Investigá las válvulas de vacío'},{t:'tech',id:'tabuladora',txt:'Armá la tabuladora eléctrica'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'electricista',building:'Cuadrilla eléctrica',unit:'Electricista',done:'Cuadrilla eléctrica lista: llegó un electricista',desc:'Trae un electricista que sale solo a disipar tormentas y a arreglar lo quemado, a 8 casilleros o menos.',info:'Cuadrilla eléctrica: su electricista arregla lo quemado cerca.',tip:'una cuadrilla eléctrica: el electricista sale solo a arreglar lo quemado.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

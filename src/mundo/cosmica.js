@@ -6,6 +6,12 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','babel','repulsor','bolsa','sol','colisionador','radio'],
   holes:true,defense:{id:'repulsor',r:4,label:'Repulsión'},
+  capitulos:[
+    {name:'Los quarks',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'quarks',txt:'Investigá la física de quarks'},{t:'build',id:'babel',txt:'Construí una biblioteca de Babel'},{t:'build',id:'herreria',txt:'Construí un nanotaller'}]},
+    {name:'Estrellas en venta',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'antigravedad',txt:'Investigá la antigravedad'},{t:'build',id:'repulsor',txt:'Construí un repulsor gravitatorio'},{t:'tech',id:'estrellas',txt:'Investigá el comercio de estrellas'},{t:'build',id:'bolsa',txt:'Abrí una bolsa de estrellas'}]},
+    {name:'Agujeros negros',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'soles',txt:'Investigá los soles de bolsillo'},{t:'build',id:'sol',txt:'Encendé un sol de bolsillo'},{t:'tech',id:'colisionadores',txt:'Investigá los colisionadores'},{t:'tap',n:1,txt:'Evaporá un agujero negro'}]},
+    {name:'Hawking',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'hawking',txt:'Investigá la radiación de Hawking'},{t:'build',id:'colisionador',txt:'Construí un colisionador'},{t:'tech',id:'cuerdas',txt:'Investigá la teoría de cuerdas'}]},
+    {name:'La última pregunta',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'fondo',txt:'Investigá el fondo cósmico'},{t:'build',id:'radio',txt:'Construí un radiotelescopio'},{t:'tech',id:'computadora',txt:'Armá la computadora cósmica'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa). Los astronautas vuelan.
   guard:{kind:'astronauta',building:'Base de astronautas',unit:'Astronauta',fly:true,done:'Base de astronautas lista: llegó un astronauta',desc:'Trae un astronauta que vuela con su mochila cohete a evaporar agujeros negros y a arreglar lo estirado, a 8 casilleros o menos.',info:'Base de astronautas: su astronauta evapora agujeros negros cerca.',tip:'una base de astronautas: el astronauta sale solo a evaporar agujeros negros.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.

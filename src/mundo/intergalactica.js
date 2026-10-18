@@ -6,6 +6,12 @@ const ERA={
   // Edificios que alumbran de noche (además de fogatas, casas y lo que tiene luz eléctrica).
   lights:['herreria','cronoteca','ancla','portal','huerto','pozo','ondas'],
   rifts:true,defense:{id:'ancla',r:4,label:'Anclaje'},
+  capitulos:[
+    {name:'Materia oscura',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'oscura',txt:'Investigá la materia oscura'},{t:'build',id:'cronoteca',txt:'Construí una cronoteca'},{t:'build',id:'herreria',txt:'Construí un nanotaller'}]},
+    {name:'Portales',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'anclas',txt:'Investigá las anclas temporales'},{t:'build',id:'ancla',txt:'Construí un ancla temporal'},{t:'tech',id:'gusanos',txt:'Investigá los agujeros de gusano'},{t:'build',id:'portal',txt:'Construí un portal intergaláctico'}]},
+    {name:'Las grietas',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'cuantica',txt:'Investigá la cosecha cuántica'},{t:'build',id:'huerto',txt:'Plantá un huerto cuántico'},{t:'tech',id:'gravedad',txt:'Investigá la ingeniería gravitatoria'},{t:'tap',n:1,txt:'Cerrá una grieta'}]},
+    {name:'El tiempo',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'cronologia',txt:'Investigá la física del tiempo'},{t:'build',id:'pozo',txt:'Construí un pozo gravitatorio'},{t:'tech',id:'entropia',txt:'Investigá la inversión de la entropía'}]},
+    {name:'La red',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'universo',txt:'Investigá el mapa del universo'},{t:'build',id:'ondas',txt:'Construí un detector de ondas'},{t:'tech',id:'red',txt:'Tendé la red de agujeros de gusano'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
   guard:{kind:'crono',building:'Patrulla del tiempo',unit:'Patrullero',done:'Patrulla del tiempo lista: llegó un patrullero',desc:'Trae un patrullero que sale solo a cerrar grietas y a traer al presente lo que retrocedió, a 8 casilleros o menos.',info:'Patrulla del tiempo: su patrullero cierra grietas cerca.',tip:'una patrulla del tiempo: el patrullero sale solo a cerrar grietas.'},
   // Lo que trae la gente de la era anterior: tope de aldeanos, ideas y monedas, y [invento, campo, valor, texto] por cada bono.
