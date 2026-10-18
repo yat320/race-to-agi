@@ -2546,7 +2546,8 @@ function prodLine(b){const p=prodOf(b);const parts=Object.entries(p).map(([k,v])
 // [cumplida, progreso] de una meta del capítulo en curso.
 function capGoal(m){const C=st.cap,N=m.n||1;let n;
   if(m.t==='tech')return[!!st.techs[m.id],''];
-  if(m.t==='build')n=(counts[m.id]||0)-(OLDN[m.id]||0);
+  // Uno que vino de otra era no cuenta hasta modernizarlo: si tenés uno y falta, la meta lo dice (si no, parece cumplida).
+  if(m.t==='build'){n=(counts[m.id]||0)-(OLDN[m.id]||0);if(n<N&&(OLDN[m.id]||0)>0)return[false,'o modernizá con ↑'];}
   else if(m.t==='tap')n=(st.threats||0)-(C.th||0);
   else if(m.t==='of')n=Object.values(POSTN).reduce((a,b)=>a+b,0);
   else if(m.t==='lv')n=obj.reduce((t,o)=>t+(o&&o.lv>1&&BUILD[o.t]?o.lv-1:0),0);
