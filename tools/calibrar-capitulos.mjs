@@ -19,6 +19,8 @@ for (const e of eras) {
   if (!rs.length) { console.log(`era ${e.n}: sin corridas ganadas en ${file}`); continue; }
   const rows = caps.map((c, i) => {
     const ds = rs.map(r => r.cap.d[i]).filter(d => d != null), avg = ds.reduce((a, b) => a + b, 0) / (ds.length || 1);
+    // Un capítulo al que el bot no llegó en ninguna corrida se queda como estaba.
+    if (!ds.length) return { name: c.name, ds, avg: NaN, oro: c.oro, plata: c.plata, before: [c.oro, c.plata] };
     const oro = Math.max(60, r15(2 * avg)), plata = Math.max(oro + 30, r15(3 * avg));
     return { name: c.name, ds, avg: Math.round(avg), oro, plata, before: [c.oro, c.plata] };
   });

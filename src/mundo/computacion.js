@@ -13,7 +13,7 @@ const ERA={
   obras:true,vida:true,
   capitulos:[
     {name:'La computadora',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'eniac',txt:'Investigá la computadora electrónica'},{t:'build',id:'computadora',txt:'Construí una computadora'},{t:'tech',id:'tractor',txt:'Investigá los tractores'}]},
-    {name:'El transistor',oro:120,plata:180,premio:25,metas:[{t:'build',id:'galpon',txt:'Construí un galpón de tractores'},{t:'tech',id:'transistor',txt:'Investigá el transistor'},{t:'build',id:'oficina',txt:'Construí una oficina'},{t:'tap',n:1,txt:'Atrapá una polilla o aplastá un bicho'}]},
+    {name:'El transistor',oro:120,plata:180,premio:25,metas:[{t:'build',id:'galpon',txt:'Construí un galpón de tractores'},{t:'tech',id:'transistor',txt:'Investigá el transistor'},{t:'build',id:'oficina',txt:'Construí una oficina'},{t:'tap',n:1,era:1,txt:'Atrapá una polilla o aplastá un bicho'}]},
     {name:'La carrera',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'universidades',txt:'Investigá las carreras de computación'},{t:'build',id:'universidad',txt:'Construí una universidad'},{t:'tech',id:'satelite',txt:'Investigá los satélites'}]},
     {name:'Sin bichos',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'depuracion',txt:'Investigá la depuración'},{t:'build',id:'computadora',n:2,txt:'Tené 2 computadoras'}]},
     {name:'El microprocesador',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'circuito',txt:'Investigá el circuito integrado'},{t:'tech',id:'micro',txt:'Armá el microprocesador'}]}],

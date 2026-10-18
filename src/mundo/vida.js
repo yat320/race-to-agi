@@ -10,7 +10,7 @@ const ERA={
   capitulos:[
     {name:'Las esporas',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'esporas',txt:'Investigá las esporas'},{t:'build',id:'arbolsabio',txt:'Plantá un árbol sabio'},{t:'tech',id:'limpieza',txt:'Investigá los arcos de limpieza'}]},
     {name:'La feria',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'trueque',txt:'Investigá la feria de especies'},{t:'build',id:'especies',txt:'Construí una feria de especies'},{t:'build',id:'arco',txt:'Construí un arco de limpieza'}]},
-    {name:'La pradera',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'pradera',txt:'Investigá la pradera viva'},{t:'build',id:'pradera',txt:'Plantá una pradera viva'},{t:'tech',id:'hongar',txt:'Investigá el hongar de esporas'},{t:'tap',n:1,txt:'Espantá un polizón'}]},
+    {name:'La pradera',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'pradera',txt:'Investigá la pradera viva'},{t:'build',id:'pradera',txt:'Plantá una pradera viva'},{t:'tech',id:'hongar',txt:'Investigá el hongar de esporas'},{t:'tap',n:1,era:1,txt:'Espantá un polizón'}]},
     {name:'La simbiosis',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'repelente',txt:'Investigá el repelente'},{t:'build',id:'hongar',txt:'Construí un hongar de esporas'},{t:'tech',id:'simbiosis',txt:'Investigá el templo de la simbiosis'},{t:'build',id:'simbiosis',txt:'Construí un templo de la simbiosis'}]},
     {name:'El Edén',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'ecosistema',txt:'Investigá el ecosistema'},{t:'tech',id:'eden',txt:'Creá el Edén cósmico'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).

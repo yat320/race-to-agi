@@ -10,7 +10,7 @@ const ERA={
   capitulos:[
     {name:'El polvo',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'primordial',txt:'Investigá el polvo primordial'},{t:'build',id:'incubadora',txt:'Construí una incubadora de universos'},{t:'tech',id:'barrera',txt:'Investigá las barreras de vacío'}]},
     {name:'Las estrellas',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'inflacion',txt:'Investigá la inflación cósmica'},{t:'build',id:'estrellero',txt:'Construí una fábrica de estrellas'},{t:'build',id:'barrera',txt:'Construí una barrera de vacío'}]},
-    {name:'Las galaxias',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'cosecha',txt:'Investigá la cosecha de galaxias'},{t:'build',id:'vivero',txt:'Construí un vivero de galaxias'},{t:'tech',id:'crisol',txt:'Investigá el crisol primordial'},{t:'tap',n:1,txt:'Cazá un devorador del vacío'}]},
+    {name:'Las galaxias',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'cosecha',txt:'Investigá la cosecha de galaxias'},{t:'build',id:'vivero',txt:'Construí un vivero de galaxias'},{t:'tech',id:'crisol',txt:'Investigá el crisol primordial'},{t:'tap',n:1,era:1,txt:'Cazá un devorador del vacío'}]},
     {name:'Las leyes',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'cuarentena',txt:'Investigá la cuarentena'},{t:'build',id:'crisol',txt:'Construí un crisol primordial'},{t:'tech',id:'leyes',txt:'Investigá las leyes físicas a medida'},{t:'build',id:'leyes',txt:'Construí un taller de leyes físicas'}]},
     {name:'El universo bebé',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'constantes',txt:'Investigá las constantes afinadas'},{t:'tech',id:'genesis',txt:'Creá el universo bebé'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).

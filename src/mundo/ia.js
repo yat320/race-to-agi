@@ -15,7 +15,7 @@ const ERA={
   obras:true,vida:true,
   capitulos:[
     {name:'Las redes',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'redes',txt:'Investigá las redes neuronales'},{t:'build',id:'datacenter',txt:'Construí un centro de datos'},{t:'tech',id:'vertical',txt:'Investigá el cultivo vertical'}]},
-    {name:'Los robots',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'robotica',txt:'Investigá la robótica'},{t:'build',id:'fabrob',txt:'Construí una fábrica de robots'},{t:'build',id:'supervision',txt:'Construí un centro de supervisión'},{t:'tap',n:1,txt:'Corregí un robot desalineado'}]},
+    {name:'Los robots',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'robotica',txt:'Investigá la robótica'},{t:'build',id:'fabrob',txt:'Construí una fábrica de robots'},{t:'build',id:'supervision',txt:'Construí un centro de supervisión'},{t:'tap',n:1,era:1,txt:'Corregí un robot desalineado'}]},
     {name:'La nube',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'software',txt:'Investigá el software en la nube'},{t:'build',id:'startup',txt:'Construí una empresa de software'},{t:'build',id:'huerta',txt:'Construí una huerta vertical'}]},
     {name:'Alinear',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'alineacion',txt:'Investigá la alineación'},{t:'build',id:'seguridad',txt:'Construí un instituto de alineación'},{t:'tech',id:'lenguaje',txt:'Investigá los modelos de lenguaje'},{t:'build',id:'labia',txt:'Construí un laboratorio de IA'}]},
     {name:'El asistente',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'interpretabilidad',txt:'Investigá la interpretabilidad'},{t:'tech',id:'chips',txt:'Investigá los chips de IA'},{t:'tech',id:'asistente',txt:'Armá el asistente universal'}]}],

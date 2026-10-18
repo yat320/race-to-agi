@@ -9,7 +9,7 @@ const ERA={
   capitulos:[
     {name:'Materia espejo',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'espejo',txt:'Investigá la materia espejo'},{t:'build',id:'ventana',txt:'Abrí una ventana a otros universos'},{t:'build',id:'herreria',txt:'Construí un nanotaller'}]},
     {name:'Canje',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'verdad',txt:'Investigá los espejos de la verdad'},{t:'build',id:'verdad',txt:'Colgá un espejo de la verdad'},{t:'tech',id:'canje',txt:'Investigá el comercio entre universos'},{t:'build',id:'canje',txt:'Abrí una casa de canje'}]},
-    {name:'Los dobles',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'semillas',txt:'Investigá las semillas de mil mundos'},{t:'build',id:'semillero',txt:'Plantá un semillero de mil mundos'},{t:'tech',id:'pulido',txt:'Investigá los espejos perfectos'},{t:'tap',n:1,txt:'Atrapá un doble'}]},
+    {name:'Los dobles',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'semillas',txt:'Investigá las semillas de mil mundos'},{t:'build',id:'semillero',txt:'Plantá un semillero de mil mundos'},{t:'tech',id:'pulido',txt:'Investigá los espejos perfectos'},{t:'tap',n:1,era:1,txt:'Atrapá un doble'}]},
     {name:'¿Quién sos?',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'identidad',txt:'Investigá la prueba de identidad'},{t:'build',id:'pulidora',txt:'Construí una pulidora de espejos'},{t:'tech',id:'superposicion',txt:'Investigá la superposición'}]},
     {name:'La puerta',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'destinos',txt:'Investigá el mapa de destinos'},{t:'build',id:'telar',txt:'Construí un telar de destinos'},{t:'tech',id:'puerta',txt:'Abrí la puerta al multiverso'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).

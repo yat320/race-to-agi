@@ -9,7 +9,7 @@ const ERA={
   capitulos:[
     {name:'Materia oscura',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'oscura',txt:'Investigá la materia oscura'},{t:'build',id:'cronoteca',txt:'Construí una cronoteca'},{t:'build',id:'herreria',txt:'Construí un nanotaller'}]},
     {name:'Portales',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'anclas',txt:'Investigá las anclas temporales'},{t:'build',id:'ancla',txt:'Construí un ancla temporal'},{t:'tech',id:'gusanos',txt:'Investigá los agujeros de gusano'},{t:'build',id:'portal',txt:'Construí un portal intergaláctico'}]},
-    {name:'Las grietas',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'cuantica',txt:'Investigá la cosecha cuántica'},{t:'build',id:'huerto',txt:'Plantá un huerto cuántico'},{t:'tech',id:'gravedad',txt:'Investigá la ingeniería gravitatoria'},{t:'tap',n:1,txt:'Cerrá una grieta'}]},
+    {name:'Las grietas',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'cuantica',txt:'Investigá la cosecha cuántica'},{t:'build',id:'huerto',txt:'Plantá un huerto cuántico'},{t:'tech',id:'gravedad',txt:'Investigá la ingeniería gravitatoria'},{t:'tap',n:1,era:1,txt:'Cerrá una grieta'}]},
     {name:'El tiempo',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'cronologia',txt:'Investigá la física del tiempo'},{t:'build',id:'pozo',txt:'Construí un pozo gravitatorio'},{t:'tech',id:'entropia',txt:'Investigá la inversión de la entropía'}]},
     {name:'La red',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'universo',txt:'Investigá el mapa del universo'},{t:'build',id:'ondas',txt:'Construí un detector de ondas'},{t:'tech',id:'red',txt:'Tendé la red de agujeros de gusano'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).

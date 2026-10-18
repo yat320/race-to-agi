@@ -8,7 +8,7 @@ const ERA={
   goo:true,defense:{id:'contencion',r:4,label:'Contención'},
   capitulos:[
     {name:'Lo exótico',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'exotica',txt:'Investigá la física exótica'},{t:'build',id:'nucleo',txt:'Construí un núcleo cuántico'},{t:'tech',id:'campos',txt:'Investigá los campos de contención'}]},
-    {name:'Los nanobots',oro:120,plata:180,premio:25,metas:[{t:'build',id:'contencion',txt:'Construí un campo de contención'},{t:'tap',n:1,txt:'Apagá una nube de nanobots'},{t:'tech',id:'naves',txt:'Investigá las naves de colonización'},{t:'build',id:'astillero',txt:'Construí un astillero estelar'}]},
+    {name:'Los nanobots',oro:120,plata:180,premio:25,metas:[{t:'build',id:'contencion',txt:'Construí un campo de contención'},{t:'tap',n:1,era:1,txt:'Apagá una nube de nanobots'},{t:'tech',id:'naves',txt:'Investigá las naves de colonización'},{t:'build',id:'astillero',txt:'Construí un astillero estelar'}]},
     {name:'Colonias',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'terraformacion',txt:'Investigá la terraformación'},{t:'build',id:'terraformador',txt:'Construí un terraformador'},{t:'tech',id:'antimateria',txt:'Investigá la antimateria'},{t:'build',id:'colector',txt:'Construí un colector exótico'}]},
     {name:'Los sensores',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'sensores',txt:'Investigá los sensores cuánticos'},{t:'tech',id:'xenologia',txt:'Investigá la xenobiología'},{t:'build',id:'academia',txt:'Construí una academia galáctica'}]},
     {name:'La curvatura',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'cuantica',txt:'Investigá la computación cuántica'},{t:'tech',id:'curvatura',txt:'Armá el motor de curvatura'}]}],

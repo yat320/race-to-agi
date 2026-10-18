@@ -10,7 +10,7 @@ const ERA={
   capitulos:[
     {name:'El helio',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'helio',txt:'Investigá el helio'},{t:'build',id:'planetario',txt:'Construí un planetario'},{t:'tech',id:'blindaje',txt:'Investigá el blindaje solar'}]},
     {name:'La subasta',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'subasta',txt:'Investigá la subasta de estrellas'},{t:'build',id:'subasta',txt:'Abrí una subasta de estrellas'},{t:'build',id:'blindaje',txt:'Construí un blindaje solar'}]},
-    {name:'El jardín',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'jardinsolar',txt:'Investigá el jardín solar'},{t:'build',id:'jardinsolar',txt:'Plantá un jardín solar'},{t:'tech',id:'extraccion',txt:'Investigá el destilador de helio'},{t:'tap',n:1,txt:'Apagá una estrella inestable'}]},
+    {name:'El jardín',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'jardinsolar',txt:'Investigá el jardín solar'},{t:'build',id:'jardinsolar',txt:'Plantá un jardín solar'},{t:'tech',id:'extraccion',txt:'Investigá el destilador de helio'},{t:'tap',n:1,era:1,txt:'Apagá una estrella inestable'}]},
     {name:'Las cartas',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'enfriado',txt:'Investigá el enfriado'},{t:'build',id:'destilador',txt:'Construí un destilador de helio'},{t:'tech',id:'cartas',txt:'Investigá las cartas estelares'},{t:'build',id:'astrolabio',txt:'Construí un gran astrolabio'}]},
     {name:'La galaxia nueva',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'sinfonia',txt:'Investigá la sinfonía de las esferas'},{t:'tech',id:'galaxia',txt:'Creá la galaxia nueva'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).

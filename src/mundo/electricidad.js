@@ -13,7 +13,7 @@ const ERA={
   obras:true,vida:true,
   capitulos:[
     {name:'La corriente',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'dinamo',txt:'Investigá el dínamo'},{t:'build',id:'usina',txt:'Construí una usina'},{t:'build',id:'poste',n:2,txt:'Poné 2 postes'}]},
-    {name:'Motores y luz',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'motor',txt:'Investigá el motor eléctrico'},{t:'build',id:'fabrica',txt:'Construí una fábrica eléctrica'},{t:'tech',id:'lamparita',txt:'Investigá la lamparita'},{t:'tap',n:1,txt:'Disipá una tormenta'}]},
+    {name:'Motores y luz',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'motor',txt:'Investigá el motor eléctrico'},{t:'build',id:'fabrica',txt:'Construí una fábrica eléctrica'},{t:'tech',id:'lamparita',txt:'Investigá la lamparita'},{t:'tap',n:1,era:1,txt:'Disipá una tormenta'}]},
     {name:'El frío',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'frio',txt:'Investigá la refrigeración'},{t:'build',id:'frigorifico',txt:'Construí un frigorífico'},{t:'build',id:'laboratorio',txt:'Construí un laboratorio'}]},
     {name:'Agua y escuelas',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'hidro',txt:'Investigá la hidroelectricidad'},{t:'build',id:'represa',txt:'Construí una represa'},{t:'tech',id:'escuelas',txt:'Investigá la escuela pública'},{t:'build',id:'escuela',txt:'Construí una escuela'}]},
     {name:'La tabuladora',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'valvulas',txt:'Investigá las válvulas de vacío'},{t:'tech',id:'tabuladora',txt:'Armá la tabuladora eléctrica'}]}],

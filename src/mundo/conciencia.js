@@ -11,7 +11,7 @@ const ERA={
   capitulos:[
     {name:'Recuerdos',oro:120,plata:180,premio:15,metas:[{t:'tech',id:'memoria',txt:'Investigá los cristales de recuerdo'},{t:'build',id:'memoria',txt:'Construí un palacio de la memoria'},{t:'build',id:'herreria',txt:'Construí un nanotaller'}]},
     {name:'Sueños',oro:120,plata:180,premio:25,metas:[{t:'tech',id:'silencio',txt:'Investigá las cúpulas de silencio'},{t:'build',id:'silencio',txt:'Construí una cúpula de silencio'},{t:'tech',id:'suenos',txt:'Investigá el mercado de sueños'},{t:'build',id:'suenos',txt:'Abrí un mercado de sueños'}]},
-    {name:'Las sirenas',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'jardines',txt:'Investigá los jardines de la mente'},{t:'build',id:'jardinmente',txt:'Plantá un jardín de la mente'},{t:'tech',id:'destilado',txt:'Investigá el destilado de recuerdos'},{t:'tap',n:1,txt:'Callá a una sirena'}]},
+    {name:'Las sirenas',oro:120,plata:180,premio:35,metas:[{t:'tech',id:'jardines',txt:'Investigá los jardines de la mente'},{t:'build',id:'jardinmente',txt:'Plantá un jardín de la mente'},{t:'tech',id:'destilado',txt:'Investigá el destilado de recuerdos'},{t:'tap',n:1,era:1,txt:'Callá a una sirena'}]},
     {name:'Armonía',oro:120,plata:180,premio:50,metas:[{t:'tech',id:'armonia',txt:'Investigá la armonía'},{t:'build',id:'destileria',txt:'Construí una destilería de recuerdos'},{t:'tech',id:'empatia',txt:'Investigá la empatía total'}]},
     {name:'Una sola mente',oro:120,plata:180,premio:0,metas:[{t:'tech',id:'colmena',txt:'Investigá la mente colmena'},{t:'build',id:'colmena',txt:'Conectá una colmena'},{t:'tech',id:'conciencia',txt:'Despertá la conciencia compartida'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
