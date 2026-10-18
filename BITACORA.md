@@ -83,3 +83,19 @@ Juani mergeó la PR #79 para probarla en el celular y pidió seguir en modo aut�
 ### Qué sigue
 - Esperar si a Juani le gustan los capítulos (PENDIENTES 3) antes de llevarlos a las otras eras.
 - Mientras tanto, pulir la carrera de la IA jugándola: textos, pistas y lo que se trabe en el celular.
+
+## 18 de octubre de 2026
+
+Juani respondió PENDIENTES 3: "sí, llevá los capítulos a las demás eras".
+
+### Hecho
+1. **Capítulos en las eras 3 a 22.**
+   - Cinco capítulos por era. Los escribieron cuatro agentes en paralelo y los revisé yo.
+   - Los relojes los calibré con el bot encadenado, 3 corridas, usando `tools/calibrar-capitulos.mjs` (nuevo). La lista está en `docs/capitulos.md`.
+   - Lo que encontré calibrando:
+     - Una meta de construir no contaba el edificio viejo que trae la ciudad. El bot no lo modernizaba y se trababa. Ahora la meta dice "o modernizá con ↑" y el bot persigue las metas del capítulo.
+     - En un capítulo corto puede no aparecer ninguna amenaza. La meta de echar una cuenta ahora toda la era.
+     - Uso la mediana y no el promedio, porque una corrida trabada (la Industria sin carbón) corría el reloj.
+   - Huella: cambian el HUD, el guardado (`cap`) y el estado (las ideas de premio), como se esperaba. Se ganan las 21 eras y las partidas viejas cargan sin errores.
+   - Probado en el celular (Playwright 400×850): la fila del capítulo y la hoja se ven bien en las 20 eras.
+   - Queda: en la Electricidad, al bot se le traba "Construí una fábrica eléctrica" (no la moderniza). A una persona, la meta le avisa qué hacer.
