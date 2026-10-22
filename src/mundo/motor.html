@@ -57,6 +57,10 @@ img.px{image-rendering:pixelated;width:16px;height:16px;flex:none}
 #capTxt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 #capClock{margin-left:auto;font:600 13px var(--f-display);font-variant-numeric:tabular-nums;white-space:nowrap}
 #capClock.hurry{color:var(--danger)}#capClock.late{color:var(--muted)}
+/* La fila de una mecánica en archivo propio (gancho `bar`, la burbuja de la IA): como las de arriba, pero se toca. */
+#amRow{pointer-events:auto;width:100%;min-height:32px;font:12px var(--f-body);color:var(--muted);text-align:left;background:rgba(32,29,39,.94);border:1px solid var(--line);border-left:3px solid var(--afill,#d9a0ff);padding:4px 9px;cursor:pointer}
+#aFill{display:block;height:100%;background:var(--afill,#d9a0ff);width:0}#aFill.hi{background:var(--danger)}
+#aMeta{margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 p.capwin{color:#ffd35a;font-size:14px;line-height:1.5}p.capwin b{font-family:var(--f-display)}
 ul.metas{list-style:none;margin:6px 0 4px;padding:0;display:grid;gap:3px}ul.metas li.ok{color:var(--ok)}
 #goal{font-size:12.5px;background:rgba(32,29,39,.9);border:1px solid var(--line);padding:5px 9px;justify-self:start;max-width:100%}
@@ -150,6 +154,7 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
     <div class="vitals"><span class="lbl" id="eLbl">Energía</span><div class="ebar" id="eBar"><div id="eFill"></div></div><span id="eNum">100</span><span id="meta">Día 1</span></div>
     <div class="vitals" id="smogRow" hidden><span class="lbl" id="sLbl"></span><div class="ebar"><div id="sFill"></div></div><span id="sNum">0%</span><span id="sMeta"></span></div>
     <div class="vitals" id="gridRow" hidden><span class="lbl" id="gLbl"></span><div class="ebar"><div id="gFill"></div></div><span id="gNum">0/0</span><span id="gMeta"></span></div>
+    <button class="vitals" id="amRow" hidden><span class="lbl" id="aLbl"></span><span class="ebar"><span id="aFill"></span></span><span id="aNum"></span><span id="aMeta"></span></button>
     <button id="capRow" hidden><span id="capStars"></span><span id="capTxt"></span><span id="capClock"></span></button>
     <div id="goal"></div>
   </div>
@@ -535,7 +540,9 @@ function nearNode(g,x,y){let d=1e9;for(const n of g.on.values())if(n.t!=='ciudad
 function broken(id){if(!BROKEN){BROKEN={};BROKEN_OLD={};const off=o=>{BROKEN[o.t]=(BROKEN[o.t]||0)+1;const w=wOf(o);if(w<1)BROKEN_OLD[o.t]=(BROKEN_OLD[o.t]||0)+1-w;};
   for(const o of obj)if(o&&o.bug&&BUILD[o.t])off(o);
   if(swarms.length)for(const i of covered())off(obj[i]);
-  for(const g of goos)for(const i of g.cells){const o=obj[i];if(o&&BUILD[o.t]&&!o.bug)off(o);}}
+  for(const g of goos)for(const i of g.cells){const o=obj[i];if(o&&BUILD[o.t]&&!o.bug)off(o);}
+  // Los tipos que para una mecánica en archivo propio (gancho `off`: la crisis de la burbuja de la IA).
+  for(const m of AM)if(m.off){const ts=m.off();if(ts)for(const o of obj)if(o&&BUILD[o.t]&&!o.bug&&ts.includes(o.t))off(o);}}
   return BROKEN[id]||0;}
 // Los que vienen de otra era cuentan según su atraso (oldW, y lo que retrocedió por una grieta según pastW), también los rotos o enfermos, que ya restan. Un edificio con ⚡ que
 // vino de otra era todavía no es eléctrico: anda sin luz, según su atraso, hasta que lo modernizás, y ahí necesita la red.
@@ -2477,7 +2484,7 @@ function hud(){
     sm.textContent=full?'lleno':Math.abs(net)>=0.05?(net>0?'+':'')+fmt(nv)+'/min':RN[k];
   }
   const e=st.energy;$('eFill').style.width=e+'%';$('eFill').classList.toggle('low',e<25);$('eNum').textContent=Math.ceil(e);
-  hudRows();
+  hudRows();amBar();
   const day=Math.floor(st.time/DAY)+1;const nRob=vil.filter(v=>v.bot).length,nHum=vil.length-nRob;$('meta').textContent='Día '+day+(darkness()>0.3?' · noche':'')+' · '+nHum+(nHum===1?' aldeano':' aldeanos')+(nRob?' · '+nRob+' robots':'');
   const pct=agiPct();$('agiFill').style.width=pct+'%';$('agiPct').textContent=pctText();
   const[g1,g2]=goalText(),gk=g1+g2;if(gk!==lastGoal){lastGoal=gk;const g=$('goal');g.innerHTML='';const s=document.createElement('span');s.className='gl';s.textContent=g1;g.append(s,' '+g2);}
@@ -2511,6 +2518,10 @@ function hudRows(){
     if(ERA.defense)defenseRow('s');}
   else if(ERA.defense)defenseRow('g');
 }
+// La fila de una mecánica en archivo propio (gancho `bar`: la burbuja de la IA), abajo de las otras dos: devuelve
+// {lbl, fill, hi, num, meta}, o nada para que no se vea. Se toca (gancho `barTap`).
+function amBar(){const m=AM.find(m=>m.bar),b=m&&m.bar(),r=$('amRow');r.hidden=!b;if(!b)return;
+  $('aLbl').textContent=b.lbl;$('aFill').style.width=clamp(b.fill,0,100)+'%';$('aFill').classList.toggle('hi',!!b.hi);$('aNum').textContent=b.num;$('aMeta').textContent=b.meta;}
 
 // La defensa de la era (escudos, atalayas, hospitales, soporte técnico): qué parte de los edificios cubre (con `of`, solo esos)
 // y qué viene en camino. Va en la fila de la red (p='g') o, en Internet y en la IA, donde esa fila ya la usan las ciudades o los
@@ -2735,7 +2746,7 @@ $('modalCard').addEventListener('click',e=>{
     try{localStorage.removeItem(KEY);}catch(err){}newGame();closeSheet();stopPlace();showIntro();}
 });
 $('bEat').onclick=eat;if(!HANDS){$('bEat').hidden=true;$('bar').classList.add('nohands');for(const id of['eLbl','eBar','eNum'])$(id).hidden=true;}
-$('capRow').onclick=()=>{if(!placing)openSheet('cap');};$('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tech');$('bTribe').onclick=()=>openSheet('tribe');$('bMenu').onclick=showMenu;
+$('capRow').onclick=()=>{if(!placing)openSheet('cap');};$('amRow').onclick=()=>{const m=AM.find(m=>m.barTap);if(m&&!placing&&!sheetMode&&!SCENE())m.barTap();};$('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tech');$('bTribe').onclick=()=>openSheet('tribe');$('bMenu').onclick=showMenu;
 
 /* ---------- entrada ---------- */
 const INFO=ERA.info;
@@ -2860,7 +2871,9 @@ if(location.search.indexOf('debug')>=0)window.__rtagiDebug={get st(){return st;}
   rivalRate:()=>rivalRate(),rivalEta:()=>rivalEta(),meteors:()=>meteors,spawnMeteor:()=>spawnMeteor(),meteorEvery:()=>meteorEvery(),goos:()=>goos,spawnGoo:()=>spawnGoo(),gooEvery:()=>gooEvery(),ufos:()=>ufos,spawnUfos:()=>spawnUfos(),ufoEvery:()=>ufoEvery(),rifts:()=>rifts,spawnRift:()=>spawnRift(),riftEvery:()=>riftEvery(),holes:()=>holes,spawnHoles:()=>spawnHoles(),holeEvery:()=>holeEvery(),guards:()=>guards,threatTargets:()=>threatTargets(),capGoal:m=>capGoal(m),guardArt:(k,f)=>guardArt(k,f),epArt:(id,e)=>epArt(id,e),EP_ART,epoch,modernize:i=>modernize(i),isOld,modernCost,canModern,get MAPN(){return MAPN;},pirates:()=>pirates,spawnPirates:()=>spawnPirates(),pirateEvery:()=>pirateEvery(),plagueTick:s=>plagueTick(s),plagueEvery:()=>plagueEvery(),swarms:()=>swarms,spawnLocusts:()=>spawnLocusts(),locustEvery:()=>locustEvery(),ludds:()=>ludds,spawnLuddites:()=>spawnLuddites(),ludditeEvery:()=>ludditeEvery(),storms:()=>storms,spawnStorm:()=>spawnStorm(),stormEvery:()=>stormEvery(),moths:()=>moths,spawnMoth:()=>spawnMoth(),mothEvery:()=>mothEvery(),counts:()=>ERA.obras?Object.fromEntries(Object.keys(counts).map(k=>[k,counts[k]+(OBRAN[k]||0)])):counts,obras:()=>obraIdx(),economy:()=>economy(),IX,canPlace:(id,x,y)=>canPlace(id,x,y),buildCost:id=>buildCost(BUILD[id]),cap:k=>cap(k),
   // Las amenazas en archivos propios: dónde tocarlas (el bot) y una tanda a propósito (la huella); cada una suma sus funciones.
   vehicles:()=>vehicles,celebrate:id=>celebrate(id),gearTier:()=>gearTier(),
-  botTaps:()=>{const Q=[];for(const m of AM)if(m.botTaps)Q.push(...m.botTaps());else if(m.targets)m.targets((x,y,tx,ty)=>Q.push([tx,ty]));return Q;},prueba:()=>amEach('prueba')};
+  botTaps:()=>{const Q=[];for(const m of AM)if(m.botTaps)Q.push(...m.botTaps());else if(m.targets)m.targets((x,y,tx,ty)=>Q.push([tx,ty]));return Q;},prueba:()=>amEach('prueba'),
+  // Lo que una mecánica en archivo propio juega por su cuenta para el bot (la burbuja de la IA: invertir y vender).
+  botStep:()=>amEach('botStep')};
 if(location.search.indexOf('debug')>=0)for(const m of AMENAZAS)Object.assign(window.__rtagiDebug,m.debug);
 // Adentro de las industrias, para el bot y las pruebas.
 if(location.search.indexOf('debug')>=0)Object.assign(window.__rtagiDebug,{INL:()=>INL,MACH,MACH_COST,putMachine,upMachine,dropMachine,lvUp,lvCost:(id,lv)=>lvCost(BUILD[id],lv),LVX:()=>LVX,setOficio,postN:i=>POSTN[i]||0,inFx:i=>inFx(i),inRate:i=>inRate(i),crew:()=>vil.filter(v=>v.job!=null),drawInside});

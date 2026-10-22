@@ -1,13 +1,14 @@
 // Bot del mundo abierto: juega las eras desde la 2 hasta la última una atrás de otra (cada una arranca con lo que dejó la anterior) y
 // reporta cuántos minutos de juego tarda en terminar la obra de cada era. Sirve para ajustar el balance con datos.
-//   node tools/bot-mundo.mjs [corridas=3] [eras=2-N o una sola, como 3] [solo] [ritmo=1] [ignora] [sindefensa] [sintorres] [singuardias] [sinmaquinas] [sinniveles] [sinoficios]
+//   node tools/bot-mundo.mjs [corridas=3] [eras=2-N o una sola, como 3] [solo] [ritmo=1] [ignora] [sindefensa] [sintorres] [singuardias] [sinmaquinas] [sinniveles] [sinoficios] [sinburbuja]
 // Con `solo`, cada era arranca sin nada de la anterior (como si la abrieras suelta) en vez de encadenarlas.
 // Con `ritmo=N` decide cada N segundos de juego en vez de cada uno (y mira las amenazas cada 3N): con 2 o 3 se parece
 // más a una persona, que tarda en abrir hojas, elegir y caminar. Con `ignora` no toca nunca las amenazas (para medir cuánto
 // pesan sobre alguien distraído) y con `sindefensa` no construye la defensa de la era (atalayas, escudos) ni los cuarteles
 // de los guardianes; con `sintorres`, solo los cuarteles, y con `singuardias`, solo la defensa. Con `sinmaquinas` no pone
 // máquinas adentro de las industrias (las eras con puestos) con `sinniveles` no mejora edificios (ERA.niveles)
-// y con `sinoficios` no pone gente en los oficios (ERA.oficios).
+// y con `sinoficios` no pone gente en los oficios (ERA.oficios). Con `sinburbuja` no juega la burbuja de la IA: lo que una
+// mecánica en archivo propio juega por su cuenta para el bot (gancho `botStep`; la burbuja pone 10 monedas en cada una y vende a +40%).
 // Juega desde adentro de la página con ?debug: avanza el juego de a 0,1 s y cada segundo de juego decide qué hacer
 // (tocar amenazas, comer, investigar, construir, juntar). Investiga y construye por las hojas, como una persona.
 // La Antigüedad arranca con un legado típico de la Prehistoria (4 aldeanos, 50 ideas, ábaco, rueda y agricultura).
@@ -19,7 +20,7 @@ const ALL = loadEras(), LAST = ALL.at(-1).n;
 
 const RUNS = +(process.argv[2] || 3);
 const [E0, E1 = E0] = (process.argv[3] || '2-' + LAST).split('-').map(Number);
-const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), IGNORE = OPT.includes('ignora'), NODEF = OPT.includes('sindefensa'), NOTOWER = OPT.includes('sintorres'), NOGUARD = OPT.includes('singuardias'), NOMACH = OPT.includes('sinmaquinas'), NOLV = OPT.includes('sinniveles'), NOOF = OPT.includes('sinoficios'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
+const OPT = process.argv.slice(4), SOLO = OPT.includes('solo'), IGNORE = OPT.includes('ignora'), NODEF = OPT.includes('sindefensa'), NOTOWER = OPT.includes('sintorres'), NOGUARD = OPT.includes('singuardias'), NOMACH = OPT.includes('sinmaquinas'), NOLV = OPT.includes('sinniveles'), NOOF = OPT.includes('sinoficios'), NOBURB = OPT.includes('sinburbuja'), PACE = +((OPT.find(o => o.startsWith('ritmo=')) || 'ritmo=1').split('=')[1]);
 const MAX_MIN = 120;
 const PREHISTORIA = JSON.stringify({ v: 3, st: { won: true, res: { ideas: 50 }, techs: { abaco: true, rueda: true, agricultura: true } }, vil: [[0, 0], [0, 0], [0, 0], [0, 0]], obj: [] });
 
@@ -175,6 +176,7 @@ function ideaStart(){if(!D.economy)return;const r=D.economy().pr.ideas*60,tot=E.
 function step(){tick++;if(tick===2)ideaStart();
   if(tick%(3*PACE)===0&&!window.__ignore)threats();
   if(tick%PACE)return;
+  if(D.botStep&&!window.__noburb)D.botStep();
   if(D.st.energy<30&&R().comida>=1){$('bEat').click();S.eats++;}
   for(const t of E.techs){if(has(t.id)||!t.req.every(r=>has(r))||!afford(t.cost))continue;if(E.rival&&t===E.techs[E.techs.length-1]&&D.st.safety<100)continue;if(research(t.id))break;}
   {const t=nextTech();if(t&&!afford(t.cost)){S.short=S.short||{};for(const k in t.cost)if(R()[k]<t.cost[k])S.short[k]=(S.short[k]||0)+1;}}
@@ -190,7 +192,7 @@ return{run(maxMin){$('modalCard').querySelector('[data-m=start]')?.click();
     while(!D.st.won&&!D.st.lost&&D.st.time<maxMin*60){for(let k=0;k<10;k++)D.update(0.1);step();}
     closeAll();const n=E.builds.reduce((s,b)=>s+cnt(b.id),0);
     return{won:D.st.won,lost:!!D.st.lost,min:Math.round(D.st.time/6)/10,day:Math.floor(D.st.time/160)+1,vil:D.vil.filter(v=>!v.bot).length,bots:D.vil.filter(v=>v.bot).length,
-      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],ideaStart:S.ideaStart||null,cap:D.st.cap?{s:D.st.cap.s,d:D.st.cap.d,left:E.capitulos&&D.st.cap.i<E.capitulos.length&&D.capGoal?E.capitulos[D.st.cap.i].metas.filter(m=>!D.capGoal(m)[0]).map(m=>m.t+':'+(m.id||m.n)):null}:null,of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
+      buildings:n,techs:S.techs,builds:S.builds,taps:S.taps,short:S.short||{},lv:S.lv||0,lvLog:S.lvLog||[],ideaStart:S.ideaStart||null,cap:D.st.cap?{s:D.st.cap.s,d:D.st.cap.d,left:E.capitulos&&D.st.cap.i<E.capitulos.length&&D.capGoal?E.capitulos[D.st.cap.i].metas.filter(m=>!D.capGoal(m)[0]).map(m=>m.t+':'+(m.id||m.n)):null}:null,of:S.of||0,ofLog:S.ofLog||[],mach:S.mach||0,machLog:S.machLog||[],crew:D.crew?D.crew().length:0,guard:D.st.guardHits||0,burb:D.burbStats?Object.assign({},D.burbStats()):null,eats:S.eats,rival:Math.round(D.st.rival),rivalAt:E.rival?Math.round((D.st.time+(D.st.won?D.rivalEta():0))/6)/10:null,safety:Math.round(D.st.safety),smog:Math.round(S.smogMax),
       legacy:D.st.legacy&&D.st.legacy.has?{aldeanos:D.st.legacy.aldeanos,ideas:D.st.legacy.ideas,monedas:D.st.legacy.monedas||0}:null,curve:S.safety,obra:S.obra||null,res:Object.fromEntries(Object.entries(R()).map(([k,v])=>[k,Math.round(v)]))};}};
 })();`;
 
@@ -209,13 +211,13 @@ try {
       const t0 = Date.now();
       if (SOLO) await p.evaluate(() => { for (const k of Object.keys(localStorage)) if (k.startsWith('rtagi-mundo')) localStorage.removeItem(k); });
       await p.goto(srv.url + '/mundo' + n + '.html?debug');
-      await p.evaluate(([k, ig, nd, nt, ng, nm, nl, no]) => { window.__pace = k; window.__ignore = ig; window.__nodef = nd; window.__notower = nt; window.__noguard = ng; window.__nomach = nm; window.__nolv = nl; window.__noof = no; }, [PACE, IGNORE, NODEF, NOTOWER, NOGUARD, NOMACH, NOLV, NOOF]);
+      await p.evaluate(([k, ig, nd, nt, ng, nm, nl, no, nb]) => { window.__pace = k; window.__ignore = ig; window.__nodef = nd; window.__notower = nt; window.__noguard = ng; window.__nomach = nm; window.__nolv = nl; window.__noof = no; window.__noburb = nb; }, [PACE, IGNORE, NODEF, NOTOWER, NOGUARD, NOMACH, NOLV, NOOF, NOBURB]);
       await p.evaluate(BOT);
       const r = await p.evaluate(m => window.__bot.run(m), MAX_MIN);
       await p.evaluate(() => { window.__rtagiActive = 'fin'; });
       r.n = n; r.run = run; all.push(r);
       console.log('corrida ' + run + ' · ' + NAMES[n].padEnd(12) + (r.won ? ' terminada en ' + String(r.min).padStart(5) + ' min' : r.lost ? ' PERDIDA a los ' + r.min + ' min' : ' sin terminar a los ' + r.min + ' min') +
-        ' · día ' + r.day + ' · ' + r.vil + ' aldeanos' + (r.bots ? ' + ' + r.bots + ' robots' : '') + ' · ' + r.buildings + ' edificios · ' + r.taps + ' amenazas tocadas' + (r.mach ? ' · ' + r.mach + ' máquinas (' + r.crew + ' obreros)' : '') + (r.lv ? ' · ' + r.lv + ' niveles' : '') + (r.of ? ' · ' + r.of + ' oficios' : '') + (r.cap ? ' · capítulos ' + r.cap.d.map(x => x + ' s').join(' ') + ' (★ ' + r.cap.s.reduce((a, b) => a + (b || 0), 0) + ')' : '') + (r.guard ? ' (+' + r.guard + ' por los guardianes)' : '') +
+        ' · día ' + r.day + ' · ' + r.vil + ' aldeanos' + (r.bots ? ' + ' + r.bots + ' robots' : '') + ' · ' + r.buildings + ' edificios · ' + r.taps + ' amenazas tocadas' + (r.mach ? ' · ' + r.mach + ' máquinas (' + r.crew + ' obreros)' : '') + (r.lv ? ' · ' + r.lv + ' niveles' : '') + (r.of ? ' · ' + r.of + ' oficios' : '') + (r.cap ? ' · capítulos ' + r.cap.d.map(x => x + ' s').join(' ') + ' (★ ' + r.cap.s.reduce((a, b) => a + (b || 0), 0) + ')' : '') + (r.guard ? ' (+' + r.guard + ' por los guardianes)' : '') + (r.burb && r.burb.n ? ' · burbuja: ' + r.burb.sold + ' ventas, ' + r.burb.pops + ' reventadas, ' + (r.burb.gain >= 0 ? '+' : '') + Math.round(r.burb.gain) + ' monedas' + (r.burb.crisis ? ', ' + r.burb.crisis + ' crisis' : '') : '') +
         (r.rivalAt ? ' · rival ' + r.rival + '% (llegaba a los ' + r.rivalAt + ' min)' : '') + (r.smog ? ' · humo hasta ' + r.smog + '%' : '') + ' (' + ((Date.now() - t0) / 1000).toFixed(0) + ' s)');
       // La era siguiente lee la partida ganada de esta; si no se ganó, la cadena se corta.
       if (!r.won && !SOLO) break;
@@ -224,7 +226,7 @@ try {
   }
 } finally { await b.close(); srv.close(); }
 
-writeFileSync('out/bot-mundo' + (SOLO ? '-solo' : '') + (PACE > 1 ? '-ritmo' + PACE : '') + (IGNORE ? '-ignora' : '') + (NODEF ? '-sindefensa' : '') + (NOTOWER ? '-sintorres' : '') + (NOGUARD ? '-singuardias' : '') + (NOMACH ? '-sinmaquinas' : '') + (NOLV ? '-sinniveles' : '') + (NOOF ? '-sinoficios' : '') + '.json', JSON.stringify(all, null, 1));
+writeFileSync('out/bot-mundo' + (SOLO ? '-solo' : '') + (PACE > 1 ? '-ritmo' + PACE : '') + (IGNORE ? '-ignora' : '') + (NODEF ? '-sindefensa' : '') + (NOTOWER ? '-sintorres' : '') + (NOGUARD ? '-singuardias' : '') + (NOMACH ? '-sinmaquinas' : '') + (NOLV ? '-sinniveles' : '') + (NOOF ? '-sinoficios' : '') + (NOBURB ? '-sinburbuja' : '') + '.json', JSON.stringify(all, null, 1));
 // Resumen: minutos por era (mínimo, promedio y máximo entre corridas) y cuándo se investigó cada invento, en promedio.
 console.log('\n' + (SOLO ? 'Cada era sola, sin legado.' : 'Eras encadenadas: cada una arranca con lo que dejó la anterior.') + (PACE > 1 ? ' Decide cada ' + PACE + ' s.' : '') + '\nera            corridas  ganadas   mín   prom   máx  (minutos de juego hasta la obra)');
 for (let n = E0; n <= E1; n++) {

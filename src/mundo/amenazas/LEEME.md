@@ -34,6 +34,11 @@ Como todos los archivos van al mismo script que el motor, las otras amenazas y e
 | `save()` | al guardar | devolver los campos que se suman a la partida (`{explora:{…}}`); casi ninguna amenaza guarda nada |
 | `load(d)` | al cargar, después de `reset()` | leer lo suyo de la partida `d`; si no está (una partida de antes), armarlo como corresponda |
 | `extra(id)` | lo que produce cada tipo de edificio | cuántos edificios de más suma ese tipo (lo de adentro de los centros de datos en `interior.js`) |
+| `farm()` | lo que producen las granjas | por cuánto se multiplica (la sequía de `vida.js`: 0,5) |
+| `off()` | una vez por cuadro, al contar los edificios que andan | la lista de tipos que están parados (no producen ni suman, como uno roto, pero sin `o.bug`), o nada: la crisis de `burbuja.js` |
+| `goal(m,C)` | las metas de los capítulos que el motor no conoce | cuánto lleva de la meta `m` (un número que se compara con `m.n`), o `null` si no es suya: la venta con ganancia de `burbuja.js`, los racks de `interior.js` |
+| `bar()`, `barTap()` | el HUD, cada vez que se refresca | `bar` devuelve `{lbl, fill, hi, num, meta}` para una fila más del HUD, abajo de las otras dos (como la del humo: etiqueta, barra de 0 a 100, roja con `hi`, número y lo de la derecha), o nada para que no se vea; tocarla llama a `barTap` (la burbuja de la IA) |
+| `botStep()` | el bot, en cada decisión | jugar lo propio como una persona (la burbuja pone monedas y vende por su fila y su hoja); el bot no lo llama con `sinburbuja` |
 | `scene()` | cada cuadro | `true` mientras la mecánica toma la pantalla (adentro de un edificio): el motor no dibuja el mundo ni mueve al jugador afuera |
 | `sceneDraw()`, `sceneTap(px,py)`, `sceneBack()` | con la escena abierta | dibujarla, atender un toque (en píxeles de la pantalla) y el botón atrás del celular |
 | `debug` | con `?debug` | funciones que se suman a `window.__rtagiDebug` (`twins`, `spawnTwin`, `twinEvery`) |

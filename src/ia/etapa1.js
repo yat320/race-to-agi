@@ -8,6 +8,8 @@ ERA.juego={id:'ia',etapa:1,nombre:'La carrera de la IA'};
 // Sin etapa anterior: arranca solo (una clave que no existe); al terminar pasa a la etapa 2 (ia2.html), no a la AGI del mundo abierto.
 ERA.legacy=Object.assign({},ERA.legacy,{key:'rtagi-ia0-v1',perks:[]});
 ERA.next={file:'ia2.html',to:'a la carrera por la AGI'};
+// La burbuja de la IA es de la era del mundo abierto: acá no va (los capítulos y lo de adentro ya tienen su propio ritmo).
+ERA.burbuja=null;
 // Los edificios que se recorren por dentro: el centro de datos (racks de GPUs, escritorios, la pizarra y cajas viejas) y el
 // laboratorio de IA (mesas de experimentos, escritorios y cajas).
 ERA.interiores={datacenter:{name:'Centro de datos'},labia:{name:'Laboratorio de IA',plano:'lab',un:'un laboratorio de IA',al:'al laboratorio de IA',el:'el laboratorio de IA'}};
