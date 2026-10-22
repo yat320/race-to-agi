@@ -120,3 +120,9 @@ Juani preguntó si invertir en IA, recuperar la inversión y reinvertir arma una
      - Invertir, vender, vender lo que entra con el depósito casi lleno, la crisis y el guardado en plena crisis.
      - El botón atrás cierra la hoja.
      - En la carrera de la IA no está.
+2. **La burbuja también en la carrera de la IA** (Juani: "sí, ponela también en la carrera de la IA").
+   - Está en la etapa 1, con la meta en "El laboratorio".
+   - En la crisis paran también los racks y escritorios de adentro (`halted` en el motor, que usa `interior.js`).
+   - La fila se abre desde adentro de un edificio.
+   - Probado con Playwright en `ia1.html`, y de la etapa 1 terminada (con monedas en la burbuja) a la 2, sin errores.
+   - La huella del mundo abierto da igual que con la versión anterior, y el bot tarda lo mismo en la IA.

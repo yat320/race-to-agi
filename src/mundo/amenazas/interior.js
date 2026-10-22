@@ -162,7 +162,8 @@ amenaza({on:'interiores',
       s.f=a[3]===2&&ERA.rival?'seguridad':a[3]===1?'monedas':'ideas';s.box=a[4]|0;s.five=a[5]|0;
       if(a[6]!=null){const e=String(a[6]).split(',').map(Number),m=String(a[7]||'').split('').map(Number);for(let k=0;k<4;k++){s.e[k]=e[k]>0?e[k]:0;s.m[k]=INT_EXP[m[k]]?m[k]:0;}}const want=Math.min(INT_DESKS,a[2]|0);s.d=0;for(let k=0;k<want;k++)if(intSit(+i,true))s.d++;}},
   // Lo de adentro suma edificios enteros a lo que produce (con el foco en ideas); con el foco en producto da monedas aparte.
-  extra(id){let b=0;for(const i in intState){const o=obj[i];if(o&&o.t===id&&!o.bug&&intState[i].f==='ideas')b+=intBonus(intState[i]);}return b;},
+  // Un edificio parado (tomado por un robot, o en la crisis de la burbuja: `halted`) no suma lo de adentro.
+  extra(id){let b=0;for(const i in intState){const o=obj[i];if(o&&o.t===id&&!halted(o)&&intState[i].f==='ideas')b+=intBonus(intState[i]);}return b;},
   // Un espía que llega a un edificio recorrible se mete: entra por la puerta y va a un rack al azar.
   spyIn(s){const o=obj[s.target];if(!o||!intDef(o.t))return false;const M=intPlan(s.target),spots=[...'0123efg'].map(c=>intFind(c,M)).filter(Boolean),r=spots[Math.floor(Math.random()*spots.length)],[dx,dy]=INT_DOOR;
     const ip={x:dx,y:dy-1,path:[],face:1,moving:false};ip.path=intPath(dx,dy-1,(x,y)=>x===r[0]&&y===r[1]+1,M)||[];s.ip=ip;s.it=0;
@@ -190,7 +191,7 @@ amenaza({on:'interiores',
     // Los experimentos avanzan aunque no estés adentro; al terminar, hay que ir a ver qué salió.
     for(const i in intState){const S=intState[i];if(!obj[i]||!intDef(obj[i].t))continue;const sp=1+INT_LABDESK*S.d;for(let k=0;k<4;k++)if(S.m[k]&&S.e[k]>0){S.e[k]-=step*sp;if(S.e[k]<=0){S.e[k]=0;if(!quiet&&intIn!=+i)toast('¡Terminó un experimento! Entrá '+intAl(intDef(obj[i].t))+' a ver qué salió.');}}}
     // Con el foco en producto, lo de adentro da monedas en vez de ideas.
-    for(const i in intState){const o=obj[i],s=intState[i];if(!o||!intDef(o.t)||o.bug)continue;if(s.f==='monedas')add('monedas',intBonus(s)*0.18*step);
+    for(const i in intState){const o=obj[i],s=intState[i];if(!o||!intDef(o.t)||halted(o))continue;if(s.f==='monedas')add('monedas',intBonus(s)*0.18*step);
       else if(s.f==='seguridad'&&ERA.rival&&!st.won&&!st.lost)st.safety=Math.min(100,st.safety+intBonus(s)*INT_SAFE*step);}},
   update(dt){
     // Afuera: caminar hasta la puerta del edificio que tocaste, y entrar.

@@ -544,6 +544,9 @@ function broken(id){if(!BROKEN){BROKEN={};BROKEN_OLD={};const off=o=>{BROKEN[o.t
   // Los tipos que para una mecánica en archivo propio (gancho `off`: la crisis de la burbuja de la IA).
   for(const m of AM)if(m.off){const ts=m.off();if(ts)for(const o of obj)if(o&&BUILD[o.t]&&!o.bug&&ts.includes(o.t))off(o);}}
   return BROKEN[id]||0;}
+// Si un edificio está parado: roto, tomado o enfermo (`o.bug`) o de un tipo que para una mecánica (gancho `off`). Lo usa lo
+// que suma por su cuenta lo de un edificio (los racks de adentro, en interior.js).
+const halted=o=>!!o&&(!!o.bug||AM.some(m=>{if(!m.off)return false;const ts=m.off();return!!ts&&ts.includes(o.t);}));
 // Los que vienen de otra era cuentan según su atraso (oldW, y lo que retrocedió por una grieta según pastW), también los rotos o enfermos, que ya restan. Un edificio con ⚡ que
 // vino de otra era todavía no es eléctrico: anda sin luz, según su atraso, hasta que lo modernizás, y ahí necesita la red.
 function act(id){const b=BUILD[id];if(!b||!b.elec){const k=ERA.plague&&ERA.plague.includes(id)?0.5:1,br=broken(id);return(counts[id]||0)-br*k-(OLDC[id]||0)+(BROKEN_OLD[id]||0)*k;}
@@ -2746,7 +2749,7 @@ $('modalCard').addEventListener('click',e=>{
     try{localStorage.removeItem(KEY);}catch(err){}newGame();closeSheet();stopPlace();showIntro();}
 });
 $('bEat').onclick=eat;if(!HANDS){$('bEat').hidden=true;$('bar').classList.add('nohands');for(const id of['eLbl','eBar','eNum'])$(id).hidden=true;}
-$('capRow').onclick=()=>{if(!placing)openSheet('cap');};$('amRow').onclick=()=>{const m=AM.find(m=>m.barTap);if(m&&!placing&&!sheetMode&&!SCENE())m.barTap();};$('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tech');$('bTribe').onclick=()=>openSheet('tribe');$('bMenu').onclick=showMenu;
+$('capRow').onclick=()=>{if(!placing)openSheet('cap');};$('amRow').onclick=()=>{const m=AM.find(m=>m.barTap);if(m&&!placing&&!sheetMode)m.barTap();};$('bBuild').onclick=()=>openSheet('build');$('bTech').onclick=()=>openSheet('tech');$('bTribe').onclick=()=>openSheet('tribe');$('bMenu').onclick=showMenu;
 
 /* ---------- entrada ---------- */
 const INFO=ERA.info;

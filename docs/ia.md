@@ -57,6 +57,18 @@ Ahora camina con su propio paso (`intStep`), que mira el mapa de adentro. Probad
 
 Con la versión anterior, la misma prueba se frenaba en lugares al azar y dejaba dos racks calientes.
 
+## La burbuja de la IA en la etapa 1 (octubre de 2026)
+
+Juani: "sí, ponela también en la carrera de la IA". La etapa 1 tiene la burbuja de la era IA (cómo se juega: `docs/eras/09-ia.md`). Lo propio de acá:
+- La meta "Vendé con ganancia en la burbuja" va en "El laboratorio", el capítulo que tenía 3 metas. "El negocio", el de la empresa de software, ya tenía 4.
+- En la crisis paran también los racks y los escritorios de adentro, con `halted(o)` del motor.
+- La fila se abre también desde adentro de un edificio.
+- Probado con Playwright 400×850: aparece con la primera empresa, se invierte y se vende por la fila y cuenta para la meta.
+  - En la crisis, un centro de datos con un rack al máximo pasa de 258 ideas por segundo a 28.
+  - La hoja se abre desde adentro, y el botón atrás la cierra sin sacarte del edificio.
+  - Terminar la etapa con algo adentro lo vende al guardar, y la etapa 2 abre con esa ciudad, sin errores.
+- El reloj de "El laboratorio" quedó como estaba (6:40 y 10:00). Sobra para una venta, y el bot no juega la carrera de la IA.
+
 ## Etapa 2: la carrera por la AGI (octubre de 2026)
 
 Juani: "falta la parte que le sigue a la nueva etapa de ia". `src/ia/etapa2.js` se arma sobre la era AGI del mundo abierto (`// base: agi.js`): el laboratorio rival y sus espías, la seguridad, las embajadas y los puestos de guardia. Sale `dist/ia2.html`.
