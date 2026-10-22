@@ -13,10 +13,14 @@ const ERA={
   // sequía que la huerta vertical salva y mercaderes desde el software en la nube; sin puerto no hay barcos;
   // src/mundo/amenazas/vida.js).
   obras:true,vida:true,
+  // La burbuja de la IA (octubre de 2026, Juani: "sí, armá la burbuja en la era IA"): con el software en la nube y la primera
+  // empresa se arma una burbuja donde invertís monedas; si revienta y perdés más que lo que ganan tus empresas en 2 minutos,
+  // estos edificios paran (src/mundo/amenazas/burbuja.js).
+  burbuja:{tech:'software',of:['datacenter','startup','labia'],los:'tus centros de datos, empresas y laboratorios',respaldo:'empresas de software'},
   capitulos:[
     {name:'Las redes',oro:165,plata:240,premio:15,metas:[{t:'tech',id:'redes',txt:'Investigá las redes neuronales'},{t:'build',id:'datacenter',txt:'Construí un centro de datos'},{t:'tech',id:'vertical',txt:'Investigá el cultivo vertical'}]},
     {name:'Los robots',oro:165,plata:255,premio:25,metas:[{t:'tech',id:'robotica',txt:'Investigá la robótica'},{t:'build',id:'fabrob',txt:'Construí una fábrica de robots'},{t:'build',id:'supervision',txt:'Construí un centro de supervisión'},{t:'tap',n:1,era:1,txt:'Corregí un robot desalineado'}]},
-    {name:'La nube',oro:90,plata:135,premio:35,metas:[{t:'tech',id:'software',txt:'Investigá el software en la nube'},{t:'build',id:'startup',txt:'Construí una empresa de software'},{t:'build',id:'huerta',txt:'Construí una huerta vertical'}]},
+    {name:'La nube',oro:90,plata:135,premio:35,metas:[{t:'tech',id:'software',txt:'Investigá el software en la nube'},{t:'build',id:'startup',txt:'Construí una empresa de software'},{t:'build',id:'huerta',txt:'Construí una huerta vertical'},{t:'burb',n:1,txt:'Vendé con ganancia en la burbuja'}]},
     {name:'Alinear',oro:90,plata:135,premio:50,metas:[{t:'tech',id:'alineacion',txt:'Investigá la alineación'},{t:'build',id:'seguridad',txt:'Construí un instituto de alineación'},{t:'tech',id:'lenguaje',txt:'Investigá los modelos de lenguaje'},{t:'build',id:'labia',txt:'Construí un laboratorio de IA'}]},
     {name:'El asistente',oro:90,plata:135,premio:0,metas:[{t:'tech',id:'interpretabilidad',txt:'Investigá la interpretabilidad'},{t:'tech',id:'chips',txt:'Investigá los chips de IA'},{t:'tech',id:'asistente',txt:'Armá el asistente universal'}]}],
   // El cuartel de esta era y su guardián (el motor le da el mismo invento y costo que a la defensa).
@@ -30,7 +34,7 @@ const ERA={
  {id:'redes',name:'Redes neuronales',cost:{tierras:15,ideas:30},req:[],desc:'Desbloquea el centro de datos, el taller y la cantera mecanizada. Ideas +50%.'},
  {id:'vertical',name:'Cultivo vertical',cost:{madera:30,piedra:15,ideas:35},req:[],desc:'Desbloquea la huerta vertical, que potencia las granjas.'},
  {id:'robotica',name:'Robótica',cost:{tierras:20,ideas:50},req:['redes'],desc:'Desbloquea la fábrica de robots y el centro de supervisión. Los robots juntan solos y no comen, pero a veces se desalinean.'},
- {id:'software',name:'Software en la nube',cost:{madera:40,piedra:20,ideas:65},req:['redes'],desc:'Desbloquea la empresa de software, que da monedas.'},
+ {id:'software',name:'Software en la nube',cost:{madera:40,piedra:20,ideas:65},req:['redes'],desc:'Desbloquea la empresa de software, que da monedas. Con la primera llegan los inversores: se arma la burbuja de la IA.'},
  {id:'alineacion',name:'Alineación',cost:{madera:60,tierras:20,ideas:95},req:['robotica'],desc:'Desbloquea el instituto de alineación. Los robots se desalinean la mitad de seguido.'},
  {id:'lenguaje',name:'Modelos de lenguaje',cost:{monedas:30,ideas:130},req:['software','robotica'],desc:'Desbloquea el laboratorio de IA. Ideas +50%.'},
  {id:'interpretabilidad',name:'Interpretabilidad',cost:{monedas:35,ideas:200},req:['alineacion','lenguaje'],desc:'Entendés qué piensan: se desalinean la mitad de seguido y tardan el doble en convencer a otros.'},
@@ -60,10 +64,10 @@ const ERA={
   text:{
     when:'2012 d.C.',title:'La IA',
     intro:'Las máquinas aprenden. Los robots juntan recursos solos, más rápido que nadie y sin comer, pero a veces se desalinean: dejan de hacerte caso y toman tus centros de datos, empresas y laboratorios para convertir todo en clips. Tocalos para corregirlos, o poné centros de supervisión cerca. La meta: un asistente universal, una IA que ayuda en cualquier tarea.',
-    news:'Novedades: tierras raras, robots que se desalinean y toman edificios, centros de datos, centros de supervisión e institutos de alineación. Ya no hay virus ni ciudades para conectar.',
+    news:'Novedades: tierras raras, robots que se desalinean y toman edificios, centros de datos, centros de supervisión, institutos de alineación y la burbuja de la IA. Ya no hay virus ni ciudades para conectar.',
     legacy:'Lo que trae tu ciudad de la era de Internet',
     noLegacy:'No hay una era de Internet terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
-    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del centro logístico, lo que sobra se pierde. Las fábricas de robots arman robots que juntan solos y no comen, pero a veces se desalinean: caminan hasta un centro de datos, una empresa o un laboratorio y lo usan para convertir tus recursos en clips. Tocá el robot o el edificio para corregirlo antes de que convenza a otros; si no, los ingenieros lo apagan al minuto. El centro de supervisión corrige solos a los que pasan a 4 casilleros. En la compu: flechas o WASD.',
+    menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del centro logístico, lo que sobra se pierde. Las fábricas de robots arman robots que juntan solos y no comen, pero a veces se desalinean: caminan hasta un centro de datos, una empresa o un laboratorio y lo usan para convertir tus recursos en clips. Tocá el robot o el edificio para corregirlo antes de que convenza a otros; si no, los ingenieros lo apagan al minuto. El centro de supervisión corrige solos a los que pasan a 4 casilleros. Con tu primera empresa de software se arma la burbuja de la IA: tocala (o su fila) para invertir monedas y vendé antes de que reviente; si revienta, recuperás la mitad, y si perdés más de lo que ganan tus empresas en 2 minutos, tus centros de datos, empresas y laboratorios paran 45 s. En la compu: flechas o WASD.',
     win:'Era de la IA superada',winText:()=>'Terminaste el asistente universal en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y robots y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ya hay una IA que ayuda en cualquier tarea.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la carrera final: la AGI.'}
 };

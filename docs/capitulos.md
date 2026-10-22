@@ -82,7 +82,7 @@ Los relojes salen del bot encadenado (3 corridas): `node tools/calibrar-capitulo
 |---|---|---|---|
 | Las redes | Investigá las redes neuronales; Construí un centro de datos; Investigá el cultivo vertical | 2:45 | 4:00 |
 | Los robots | Investigá la robótica; Construí una fábrica de robots; Construí un centro de supervisión; Corregí un robot desalineado | 2:45 | 4:15 |
-| La nube | Investigá el software en la nube; Construí una empresa de software; Construí una huerta vertical | 1:30 | 2:15 |
+| La nube | Investigá el software en la nube; Construí una empresa de software; Construí una huerta vertical; Vendé con ganancia en la burbuja | 1:30 | 2:15 |
 | Alinear | Investigá la alineación; Construí un instituto de alineación; Investigá los modelos de lenguaje; Construí un laboratorio de IA | 1:30 | 2:15 |
 | El asistente | Investigá la interpretabilidad; Investigá los chips de IA; Armá el asistente universal | 1:30 | 2:15 |
 

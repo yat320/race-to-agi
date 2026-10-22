@@ -99,3 +99,24 @@ Juani respondió PENDIENTES 3: "sí, llevá los capítulos a las demás eras".
    - Huella: cambian el HUD, el guardado (`cap`) y el estado (las ideas de premio), como se esperaba. Se ganan las 21 eras y las partidas viejas cargan sin errores.
    - Probado en el celular (Playwright 400×850): la fila del capítulo y la hoja se ven bien en las 20 eras.
    - Queda: en la Electricidad, al bot se le traba "Construí una fábrica eléctrica" (no la moderniza). A una persona, la meta le avisa qué hacer.
+
+## 22 de octubre de 2026
+
+Juani preguntó si invertir en IA, recuperar la inversión y reinvertir arma una burbuja. Charlamos que es sano si la IA rinde de verdad y que es burbuja cuando la plata entra por lo que se espera, y que hay quien dice que las empresas con ingresos de verdad pueden absorber la pérdida (IoT Analytics). Juani: "sí, armá la burbuja en la era IA".
+
+### Hecho
+1. **La burbuja de la IA** (`src/mundo/amenazas/burbuja.js`, prendida en `ia.js`; detalle en `docs/eras/09-ia.md`).
+   - Con el software en la nube y la primera empresa de software, se arma una burbuja que flota sobre la empresa y crece cada vez más rápido.
+   - Tocándola, o tocando su fila del HUD, ponés monedas y vendés cuando querés. Después de los primeros 20 s, cada vez es más fácil que reviente.
+   - Cuando revienta, recuperás la mitad. Si perdés más que tu respaldo (lo que ganan tus empresas en 2 min), los centros de datos, las empresas y los laboratorios paran 45 s. Con ingresos detrás, la pérdida se absorbe.
+   - El capítulo "La nube" suma "Vendé con ganancia en la burbuja".
+   - En el motor, ganchos nuevos: `bar` y `barTap` (una fila más del HUD que se toca), `off` (edificios parados sin `o.bug`) y `botStep` (el bot juega lo propio de la mecánica; `sinburbuja` lo apaga).
+   - Lo que encontré probando con el bot:
+     - Si la burbuja se armaba con el invento, el bot (y una persona) todavía no tenía empresa ni monedas. Cuando por fin ponía, la burbuja ya tenía 2 minutos y reventaba. Ahora llegan los inversores con la primera empresa.
+     - La primera burbuja de la era no revienta en 45 s, para aprenderla.
+   - Con el bot (6 corridas, la era sola): 9,1 min, igual que antes, y casi lo mismo corrida por corrida. Encadenada, 3,3, igual que antes.
+   - Huella: las otras eras dan igual (solo el ruido de siempre: el guardado de la Edad Media y el cartel del invento en dos capturas). En la IA cambian los textos, el HUD y el guardado. Sin invertir, el estado es el mismo: la burbuja tiene su propio azar. Las partidas viejas cargan igual en las 21 eras.
+   - Probado en el celular (Playwright 400×850, táctil):
+     - Invertir, vender, vender lo que entra con el depósito casi lleno, la crisis y el guardado en plena crisis.
+     - El botón atrás cierra la hoja.
+     - En la carrera de la IA no está.
