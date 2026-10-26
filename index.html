@@ -84,6 +84,15 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
     <div class="row"><button class="btn" id="iaGo">Probar</button></div>
   </section>
 
+  <!-- Otro juego aparte (octubre de 2026, Juani: "juego realista para recorrer Mar del Plata"): la ciudad real en 3D,
+       con datos abiertos. Es mardelplata.html; ver docs/mardelplata.md. No toca el mundo abierto. -->
+  <section class="legacy" aria-labelledby="mdpTitle">
+    <h2 id="mdpTitle">Aparte: Mar del Plata en 3D</h2>
+    <p>La ciudad de verdad, con sus calles, la costa y sus edificios, para recorrer a pie, en bici o volando como gaviota. Juntá los sellos de la Rambla, el Torreón, la Catedral, el puerto y más.</p>
+    <p class="muted" id="mdpState" hidden></p>
+    <div class="row"><a class="btn" id="mdpGo" href="mardelplata.html" style="text-decoration:none">Recorrer</a></div>
+  </section>
+
   <section class="total" aria-label="Progreso total">
     <div class="total-top"><span>Progreso hacia la AGI</span><span id="pct">0%</span></div>
     <div class="bar" id="bar"><div class="fill" id="fill" style="width:0"></div></div>
@@ -241,6 +250,9 @@ try{const g=k=>JSON.parse(localStorage.getItem(k)||'null'),best=g('rtagi-estrell
   let t='';if(iaFile==='ia2.html')t=(e2&&e2.won?'Etapa 2 terminada':'Etapa 2')+star('ia2')+(best.ia1?' (etapa 1: '+star('ia1').slice(3)+')':'');else if(g('rtagi-ia1-v1'))t='Etapa 1'+star('ia1');
   if(t){$('iaState').textContent=t;$('iaState').hidden=false;}}catch(x){}
 $('iaGo').addEventListener('click',()=>loadPage(iaFile,'Cargando la carrera de la IA…'));
+// Mar del Plata en 3D: cuántos sellos lleva el pasaporte.
+try{const m=JSON.parse(localStorage.getItem('rtagi-mdp-v1')||'null'),n=m&&m.sellos?Object.keys(m.sellos).length:0;
+  if(m&&m.pos){$('mdpState').textContent=n?'Llevás '+n+(m.total?' de '+m.total:'')+' sellos del pasaporte.':'Ya empezaste a recorrer.';$('mdpState').hidden=false;$('mdpGo').textContent='Seguir recorriendo';}}catch(x){}
 $('copy').addEventListener('click',()=>{
   const v=$('code').value;
   const ok=()=>alertMsg('copyMsg','Copiado');
