@@ -36,6 +36,7 @@ Juego de gestión en pixel art: la humanidad avanza de la Prehistoria a la AGI, 
 | `src/mundo/amenazas/` | Las amenazas en archivo propio (desde los dobles): cada una se registra sola en el motor y la prende la era que la usa; `LEEME.md` explica los ganchos | funciona |
 | `docs/eras/` | Un doc por era: qué tiene, qué hereda, su amenaza, cómo se ajustó, cuánto tarda con el bot y su arte. `docs/hoja-de-ruta.md`, las que siguen | |
 | `arbol.html` | Prototipo del árbol de progreso de las 10 eras (sin juego atrás) | prototipo |
+| `mardelplata.html` | Juego aparte: Mar del Plata en 3D, la ciudad real (datos abiertos en `public/mdp/ciudad.bin`, que arma `tools/mdp-datos.py`) para recorrer a pie, en bici o volando como gaviota y juntar los sellos de 17 lugares. Ver `docs/mardelplata.md` | prototipo, probado en celular simulado |
 
 ## Correr
 
@@ -48,6 +49,7 @@ npm run sim:carrera             # 40 partidas rival vs rival del prototipo por t
 npm run huella:mundo            # juega un guion fijo en cada era del mundo abierto y guarda la huella en out/huella
 npm run bot:mundo               # un bot juega las eras del mundo abierto encadenadas, desde la 2 y reporta minutos hasta cada obra
 npm run bot:prehistoria         # un bot juega la Prehistoria del mundo abierto y reporta cuándo saca cada invento y el ábaco
+npm run prueba:mdp              # prueba Mar del Plata 3D en un celular simulado y deja capturas en out/mdp/
 ```
 
 Los bots arman `dist/` y lo sirven solos en un puerto libre; no hace falta tener `npm run serve` corriendo. Al final `bot:era1` y `bot:era2` dicen cuántas misiones ganaron y cuántas quedaron bajo el oro; salen con error si alguna no se gana o hay errores de página. Si ya hay un Chromium instalado y no se puede bajar otro, `PW_CHROMIUM=/ruta/al/chrome npm run bot:era2`.

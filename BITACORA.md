@@ -126,3 +126,13 @@ Juani preguntó si invertir en IA, recuperar la inversión y reinvertir arma una
    - La fila se abre desde adentro de un edificio.
    - Probado con Playwright en `ia1.html`, y de la etapa 1 terminada (con monedas en la burbuja) a la 2, sin errores.
    - La huella del mundo abierto da igual que con la versión anterior, y el bot tarda lo mismo en la IA.
+
+## 26 de octubre de 2026
+
+### Mar del Plata 3D (pedido de Juani: "juego realista para recorrer Mar del Plata")
+
+- Un juego aparte, `mardelplata.html`: la ciudad real en 3D (WebGL2, sin librerías), de La Perla al puerto. Detalle en `docs/mardelplata.md`.
+- Los datos son abiertos: OpenStreetMap no se podía bajar desde la nube de Claude (red bloqueada), pero Overture Maps (que sale de OpenStreetMap) sí, en su S3 público, y el relieve de AWS Terrain Tiles. `tools/mdp-datos.py` los convierte en `public/mdp/ciudad.bin` (1,7 MB).
+- Decidí estimar las alturas de los edificios por zona, porque casi ninguno la trae: es lo que más puede diferir de la ciudad de verdad, y lo dice la pantalla de carga.
+- Los datos de los lugares del pasaporte (fechas, autores) los revisé en la web antes de ponerlos.
+- Probado en un celular simulado con `npm run prueba:mdp` (sin errores; con WebGL por software anda a ~12 cuadros por segundo). Falta medir en un celular de verdad.
