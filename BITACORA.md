@@ -136,3 +136,17 @@ Juani preguntó si invertir en IA, recuperar la inversión y reinvertir arma una
 - Decidí estimar las alturas de los edificios por zona, porque casi ninguno la trae: es lo que más puede diferir de la ciudad de verdad, y lo dice la pantalla de carga.
 - Los datos de los lugares del pasaporte (fechas, autores) los revisé en la web antes de ponerlos.
 - Probado en un celular simulado con `npm run prueba:mdp` (sin errores; con WebGL por software anda a ~12 cuadros por segundo). Falta medir en un celular de verdad.
+
+## 28 de octubre de 2026
+
+Pasada de pulido como jugador nuevo, en lugar de los 30 minutos de Juani: celular y PC con Playwright, y los bots. Detalle, pruebas y lo que queda para elegir en `CAMBIOS-2026-10-28.md`.
+
+### Hecho
+1. La intro de cada era entra en una pantalla: sin la grilla de las 22 eras y con una línea de novedades.
+2. El inicio pone el juego primero: las bloqueadas en una línea, los juegos aparte debajo de las eras y "Qué probar en esta versión", plegado.
+3. Los avisos no se pisan con el cartel del invento ni se repiten.
+4. La pista de abajo sigue la meta que falta del capítulo.
+5. El cartel del invento espera a que cierres la hoja de Inventos.
+
+### Qué sigue
+- Que Juani elija una de las tres cosas para sacar de `CAMBIOS-2026-10-28.md`.
