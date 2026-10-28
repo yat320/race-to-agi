@@ -65,6 +65,9 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
 .others .btn{background:transparent;border:1px solid var(--line);color:var(--bone)}
 #protos{margin-top:18px}
 #iaState{color:var(--signal);font-size:14px;margin-top:-4px}
+.era.more .state{font-size:12px;line-height:1.45}
+.news summary{color:var(--signal)}
+.news ul{margin:6px 0 0;padding-left:18px;display:grid;gap:6px}
 .loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--night);font:600 18px var(--f-display);color:var(--signal)}
 </style>
 
@@ -75,8 +78,27 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
     <p class="lede">De las piedras al ábaco, del ábaco a la AGI y de la AGI a las estrellas. Cada era es una partida larga: cuando terminás su obra pasás a la siguiente con tu gente, tus ideas y tus monedas.</p>
   </header>
 
-  <!-- Un juego aparte con el mismo motor: la carrera de la IA (src/ia/, sale como ia1.html…), en prototipo. Va arriba de las
-       eras porque es en lo que se está trabajando (octubre de 2026): antes quedaba al fondo, debajo de las 22 eras. -->
+  <!-- Qué probar en esta versión: lo nuevo para que Juani lo mire, plegado para no estorbar. Se reescribe en cada pasada. -->
+  <details class="others news" id="news">
+    <summary>Qué probar en esta versión · 28 de octubre</summary>
+    <ul class="note" id="newsList">
+      <li>La intro de cada era entra en una pantalla: sin la grilla de las 22 eras y con una sola línea de novedades.</li>
+      <li>Acá en el inicio, las eras bloqueadas van en una sola línea y la carrera de la IA y Mar del Plata quedan debajo de las eras.</li>
+    </ul>
+  </details>
+
+  <section class="total" aria-label="Progreso total">
+    <div class="total-top"><span>Progreso hacia la AGI</span><span id="pct">0%</span></div>
+    <div class="bar" id="bar"><div class="fill" id="fill" style="width:0"></div></div>
+  </section>
+
+  <section aria-label="Eras">
+    <ol class="eras" id="mundo"></ol>
+  </section>
+
+  <!-- Un juego aparte con el mismo motor: la carrera de la IA (src/ia/, sale como ia1.html…), en prototipo. Va justo debajo de
+       las eras (28 de octubre de 2026): arriba de todo tapaba el Empezar de la Prehistoria a quien abría el juego por primera vez,
+       y ahora que las eras bloqueadas van en una línea queda cerca. -->
   <section class="legacy" aria-labelledby="iaTitle">
     <h2 id="iaTitle">Nuevo: la carrera de la IA</h2>
     <p>Un juego aparte, solo de la IA, en dos etapas con capítulos y estrellas: recorrés tus centros de datos y laboratorios por dentro y le ganás la AGI a un rival. No toca el mundo abierto.</p>
@@ -91,15 +113,6 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
     <p>La ciudad de verdad, con sus calles, la costa y sus edificios, para recorrer a pie, en bici o volando como gaviota. Juntá los sellos de la Rambla, el Torreón, la Catedral, el puerto y más.</p>
     <p class="muted" id="mdpState" hidden></p>
     <div class="row"><a class="btn" id="mdpGo" href="mardelplata.html" style="text-decoration:none">Recorrer</a></div>
-  </section>
-
-  <section class="total" aria-label="Progreso total">
-    <div class="total-top"><span>Progreso hacia la AGI</span><span id="pct">0%</span></div>
-    <div class="bar" id="bar"><div class="fill" id="fill" style="width:0"></div></div>
-  </section>
-
-  <section aria-label="Eras">
-    <ol class="eras" id="mundo"></ol>
   </section>
 
   <section class="legacy" aria-labelledby="legTitle">
@@ -134,6 +147,7 @@ textarea{width:100%;min-height:74px;resize:vertical;background:var(--night);colo
 (function(){
 'use strict';
 const LEG='rtagi-legacy-v1',TEST='rtagi-prueba';
+let allEras=false;
 // Misiones (otro modo, plegado abajo): las dos eras que tienen archivo.
 const ERAS=[
   {n:1,name:'Prehistoria',when:'200.000 – 3.000 a.C.',file:'era1.html',save:'rtagi-era1-misiones-v1'},
@@ -194,8 +208,13 @@ function render(){
   // Modo prueba: todas las eras se pueden abrir; las que no tienen la anterior terminada arrancan sin ciudad.
   const test=get(TEST)==='1';$('test').textContent='Modo prueba: '+(test?'sí':'no');$('test').setAttribute('aria-pressed',String(test));$('test').classList.toggle('on',test);
   const ml=$('mundo');ml.innerHTML='';
+  // Las bloqueadas van en una línea después de la primera (28 de octubre de 2026): eran 21 renglones iguales que había que bajar
+  // para llegar a lo demás. "Ver todas" las abre.
+  const natOf=i=>i===0||!!ms[i]||!!(ms[i-1]&&ms[i-1].won);
+  const firstLocked=test?-1:MUNDO.findIndex((e,i)=>!natOf(i)),rest=firstLocked<0||allEras?[]:MUNDO.slice(firstLocked+1);
   MUNDO.forEach((e,i)=>{
-    const s=ms[i],natural=i===0||!!s||!!(ms[i-1]&&ms[i-1].won),open=test||natural,main=i===cur?'btn':'btn ghost';
+    if(rest.length&&i>firstLocked)return;
+    const s=ms[i],natural=natOf(i),open=test||natural,main=i===cur?'btn':'btn ghost';
     let cls,state,action;
     if(!natural&&open){cls='open';state='Modo prueba: arranca sin la ciudad de la era anterior'+(e.n>=5?', con lo básico ya armado':'');action='<button class="btn ghost" data-mundo="'+i+'">Probar</button>';}
     else if(s&&s.won){cls='done';state=(e.n===10?'Carrera ganada':'Terminada')+' en el día '+s.dia;action='<button class="'+main+'" data-mundo="'+i+'">Jugar</button>';}
@@ -206,6 +225,9 @@ function render(){
     li.innerHTML='<span class="num">'+String(e.n).padStart(2,'0')+'</span><div class="era-body"><span class="name">'+e.name+'</span><span class="when">Obra: '+e.obra+'</span><span class="state">'+state+'</span></div>'+action;
     ml.appendChild(li);
   });
+  if(rest.length){const li=document.createElement('li');li.className='era more';
+    li.innerHTML='<span class="num">+'+rest.length+'</span><div class="era-body"><span class="state">'+rest.slice(0,2).map(e=>e.name).join(', ')+(rest.length>2?' y '+(rest.length-2)+' más':'')+'. Se abren de a una.</span></div><button class="btn ghost" id="allEras">Ver todas</button>';
+    ml.appendChild(li);}
   // Misiones: solo las eras que ya tienen misiones.
   const list=$('eras');list.innerHTML='';
   ERAS.filter(e=>e.file).forEach(e=>{
@@ -239,7 +261,7 @@ function alertMsg(id,txt,err){const m=$(id);m.textContent=txt;m.classList.toggle
 // Si estabas en los otros modos, al volver al inicio el desplegable sigue abierto (solo en esta pestaña).
 $('others').addEventListener('toggle',()=>{try{if($('others').open)sessionStorage.setItem('rtagi-hub-otros','1');else sessionStorage.removeItem('rtagi-hub-otros');}catch(x){}});
 $('eras').addEventListener('click',ev=>{const b=ev.target.closest('[data-go]');if(b)goEra(+b.dataset.go);});
-$('mundo').addEventListener('click',ev=>{const b=ev.target.closest('[data-mundo]');const e=b&&MUNDO[+b.dataset.mundo];if(e)loadPage(e.file,'Cargando '+e.name.toLowerCase()+'…');});
+$('mundo').addEventListener('click',ev=>{if(ev.target.id==='allEras'){allEras=true;render();return;}const b=ev.target.closest('[data-mundo]');const e=b&&MUNDO[+b.dataset.mundo];if(e)loadPage(e.file,'Cargando '+e.name.toLowerCase()+'…');});
 $('protos').addEventListener('click',ev=>{const b=ev.target.closest('[data-proto]');const p=b&&PROTOS.find(x=>x.id===b.dataset.proto);if(p)loadPage(p.file,'Cargando '+p.name.toLowerCase()+'…');});
 // La carrera de la IA: un juego aparte; el botón dice si ya hay una partida.
 // Abre la etapa en la que vas: la 2 si ya terminaste la 1 (o la empezaste).
