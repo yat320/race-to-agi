@@ -2449,7 +2449,10 @@ function capTip(){if(!CAPS||!st.cap||st.cap.i>=CAPS.length)return null;
   if(m.t==='build'&&BUILD[m.id]){const b=BUILD[m.id];if(b.req&&!st.techs[b.req])return techTip(b.req);
     if(OBRAN[m.id])return['Obra de '+b.name.toLowerCase()+':','tocala para levantarla con tu gente.'];
     if((OLDN[m.id]||0)>0)return['Modernizá:','tocá el edificio con ↑ ('+b.name.toLowerCase()+') o construí uno nuevo.'];
-    const f=faltan(buildCost(b));return['Próximo: '+b.name+'.',f.length?'Faltan '+f.join(', ')+'.':'Listo, abrí Construir.'];}
+    // Si alcanza y la era tiene su pista para ese edificio ("con luz", "pegado al agua"), va la de la era.
+    const f=faltan(buildCost(b)),et=(ERA.tips2||[]).find(t=>Array.isArray(t)&&[].concat(t[1]).includes(m.id)&&st.techs[t[0]]);
+    if(!f.length&&et)return['Construí',et[2]];
+    return['Próximo: '+b.name+'.',f.length?'Faltan '+f.join(', ')+'.':'Listo, abrí Construir.'];}
   if(m.t==='lv'){const id=(ERA.niveles||[]).find(id=>counts[id]&&BUILD[id]);return['Mejorá:','tocá '+(id?'tu '+BUILD[id].name.toLowerCase():'un edificio')+': adentro se sube de nivel.'];}
   if(m.t==='of')return['Oficios:','tocá algo que produce y poné a alguien a trabajar adentro.'];
   return null;}
