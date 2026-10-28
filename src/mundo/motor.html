@@ -2226,8 +2226,10 @@ function inBadge(px,py,i){if(!INL.length||!(obj[i].m&&CREW.has(i)||POSTN[i]))ret
 // - Faroles: con el invento de la noche (ERA.nightTech), un farol junto a cada casa, que de noche alumbra.
 let sparks=[],vehicles=[],vehT=0,vehK=0;
 const gearTier=()=>{const n=TECHS.filter(t=>st.techs[t.id]).length;return n>=Math.ceil(TECHS.length*2/3)?2:n>=Math.ceil(TECHS.length/3)?1:0;};
-// El cartel del invento o del capítulo: mientras se ve, los avisos bajan para no quedar abajo de él.
-function invOn(el,ms){const tb=$('toasts');el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
+// El cartel del invento o del capítulo: mientras se ve, los avisos bajan para no quedar abajo de él. Con una hoja abierta
+// (investigaste desde Inventos) espera a que la cierres: si no, tapaba la primera tarjeta de la hoja y no se veía el mapa.
+let invQ=[];
+function invOn(el,ms){if(sheetMode){invQ.push([el.innerHTML,ms]);return;}const tb=$('toasts');el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
   tb.style.setProperty('--inv-h',el.offsetHeight+'px');tb.classList.add('below');
   clearTimeout(el._t);el._t=setTimeout(()=>{if(alive()){el.hidden=true;tb.classList.remove('below');}},ms);}
 function celebrate(id){const t=TECH[id],news=BUILDS.filter(b=>b.req===id&&!b.hidden),hit=[];
@@ -2672,7 +2674,9 @@ function renderSheet(){
   }
 }
 function openSheet(m){if(placing){placing=null;$('place').hidden=true;}else if(!sheetMode)navPush();sheetOpenedAt=performance.now();sheetMode=m;sheetSig='';$('sheet').hidden=false;renderSheet();}
-function closeSheet(fromBack){if(!sheetMode)return;sheetMode=null;inArmed=-1;$('sheet').hidden=true;if(!fromBack)navPop();}
+function closeSheet(fromBack){if(!sheetMode)return;sheetMode=null;inArmed=-1;$('sheet').hidden=true;if(!fromBack)navPop();invFlush();}
+// Los carteles que esperaban a que cerraras la hoja, uno atrás del otro.
+function invFlush(){const q=invQ;invQ=[];q.forEach(([h,ms],k)=>setTimeout(()=>{if(!alive())return;const el=$('invent');el.innerHTML=h;invOn(el,ms);},k*2400));}
 $('sheetClose').onclick=()=>closeSheet();$('sheetBack').onclick=()=>closeSheet();
 $('sheet').addEventListener('click',e=>{if(e.target===$('sheet')&&performance.now()-sheetOpenedAt>450)closeSheet();});
 // Mientras el dedo está apoyado en la hoja no se rehace, así el toque llega al botón que tocaste.
