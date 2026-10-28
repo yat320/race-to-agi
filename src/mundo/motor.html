@@ -131,6 +131,7 @@ table.eco td:first-child{display:flex;align-items:center;gap:6px}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 
 #toasts{position:absolute;left:16px;right:16px;top:var(--hud-h,200px);display:grid;justify-items:center;gap:6px;pointer-events:none;z-index:6}
+#toasts.below{top:calc(var(--hud-h,200px) + var(--inv-h,0px) + 14px)}
 .toast{background:var(--panel);border:1px solid var(--line);padding:6px 12px;font-size:13px;max-width:100%;animation:tin .25s ease-out}
 @keyframes tin{from{opacity:0;transform:translateY(-6px)}}
 #invent{position:absolute;left:16px;right:16px;top:calc(var(--hud-h,200px) + 6px);margin:0 auto;max-width:340px;display:grid;gap:2px;justify-items:center;text-align:center;padding:8px 12px;background:var(--panel);border:1px solid #ffd35a;box-shadow:0 0 0 1px rgba(255,211,90,.25),0 6px 18px rgba(0,0,0,.4);pointer-events:none;z-index:7}
@@ -2225,13 +2226,17 @@ function inBadge(px,py,i){if(!INL.length||!(obj[i].m&&CREW.has(i)||POSTN[i]))ret
 // - Faroles: con el invento de la noche (ERA.nightTech), un farol junto a cada casa, que de noche alumbra.
 let sparks=[],vehicles=[],vehT=0,vehK=0;
 const gearTier=()=>{const n=TECHS.filter(t=>st.techs[t.id]).length;return n>=Math.ceil(TECHS.length*2/3)?2:n>=Math.ceil(TECHS.length/3)?1:0;};
+// El cartel del invento o del capítulo: mientras se ve, los avisos bajan para no quedar abajo de él.
+function invOn(el,ms){const tb=$('toasts');el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');
+  tb.style.setProperty('--inv-h',el.offsetHeight+'px');tb.classList.add('below');
+  clearTimeout(el._t);el._t=setTimeout(()=>{if(alive()){el.hidden=true;tb.classList.remove('below');}},ms);}
 function celebrate(id){const t=TECH[id],news=BUILDS.filter(b=>b.req===id&&!b.hidden),hit=[];
   const boost=id===ERA.boostTech,idea=(ERA.ideaTechs||[]).includes(id);
   obj.forEach((o,i)=>{const b=o&&BUILD[o.t];if(!b||!b.prod)return;if(boost||idea&&b.prod.ideas)hit.push(i);});
   hit.slice(0,24).forEach((i,k)=>sparks.push({x:i%MW,y:(i/MW)|0,t:1.6,d:k*0.06}));
   if(!hit.length)sparks.push({x:P.x,y:P.y,t:1.6,d:0,big:true});
   const el=$('invent');el.innerHTML='<b>'+t.name+'</b><span>'+(news.length?'Nuevo para construir: '+news.map(b=>b.name.toLowerCase()).join(', ')+'.':t.desc)+'</span>';
-  el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');clearTimeout(el._t);el._t=setTimeout(()=>{if(alive())el.hidden=true;},3200);
+  invOn(el,3200);
   if(news.length){const bb=$('bBuild');bb.classList.add('nuevo');clearTimeout(bb._t);bb._t=setTimeout(()=>{if(alive())bb.classList.remove('nuevo');},7000);}}
 function drawSparks(){if(!sparks.length)return;
   for(const s of sparks){const p=1-(s.t-0)/1.6+s.d;if(p<0||p>1)continue;const cx=s.x*T+8,cy=s.y*T+6-p*8,a=Math.min(1,(1-p)*2);
@@ -2592,7 +2597,7 @@ function capTick(quiet){const C=st.cap;if(!CAPS||!C||C.i>=CAPS.length)return;con
 // El cartel: espera a que se vaya el del invento, si hay uno.
 function capShow(c,s,p){const el=$('invent'),nx=CAPS[st.cap.i],go=()=>{if(!alive())return;
     el.innerHTML='<b>'+starTxt(s)+' '+c.name+'</b><span>'+(p?ideaTxt(p/IX)+'. ':'')+(nx?'Ahora: '+nx.name+'.':'¡Cumpliste todos los capítulos!')+'</span>';
-    el.hidden=false;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');clearTimeout(el._t);el._t=setTimeout(()=>{if(alive())el.hidden=true;},3600);};
+    invOn(el,3600);};
   if(el.hidden)go();else setTimeout(go,2400);}
 // La fila del HUD: las estrellas que darías ahora, la primera meta que falta y cuánto queda para perder una estrella.
 function capHud(){const row=$('capRow');if(!CAPS||!st.cap){row.hidden=true;return;}row.hidden=false;const C=st.cap,ck=$('capClock');
@@ -2710,7 +2715,10 @@ function tryPlace(x,y){
 }
 
 /* ---------- avisos y modales ---------- */
-function toast(msg){if(quiet)return;const t=document.createElement('div');t.className='toast';t.textContent=msg;const box=$('toasts');box.appendChild(t);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>t.remove(),2600);}
+// Un aviso que ya se ve no se repite abajo: vuelve a contar sus 2,6 s.
+function toast(msg){if(quiet)return;const box=$('toasts');let t=[...box.children].find(e=>e.textContent===msg);
+  if(!t){t=document.createElement('div');t.className='toast';t.textContent=msg;box.appendChild(t);while(box.children.length>3)box.firstChild.remove();}
+  clearTimeout(t._t);t._t=setTimeout(()=>t.remove(),2600);}
 let resetArmed=false;
 function showModal(html,cls){if($('modal').hidden&&!skipPush)navPush();skipPush=false;modalKind=cls||'';paused=true;resetArmed=false;$('modalCard').innerHTML=html;$('modal').hidden=false;const b=$('modalCard').querySelector('button');if(b)b.focus({preventScroll:true});}
 // El botón que vuelve al inicio: en un juego aparte (la carrera de la IA) no hay eras que listar.

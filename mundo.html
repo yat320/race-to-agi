@@ -1450,7 +1450,10 @@ addEventListener('popstate',()=>{
 });
 
 /* ---------- avisos y modales ---------- */
-function toast(msg,kind){if(!msg)return;const t=document.createElement('div');t.className='toast'+(kind?' '+kind:'');t.textContent=msg;const box=$('toasts');box.appendChild(t);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>t.remove(),kind==='hito'?4200:3000);}
+// Un aviso que ya se ve no se repite abajo: vuelve a contar su tiempo.
+function toast(msg,kind){if(!msg)return;const box=$('toasts');let t=[...box.children].find(e=>e.textContent===msg);
+  if(!t){t=document.createElement('div');t.className='toast'+(kind?' '+kind:'');t.textContent=msg;box.appendChild(t);while(box.children.length>3)box.firstChild.remove();}
+  clearTimeout(t._t);t._t=setTimeout(()=>t.remove(),kind==='hito'?4200:3000);}
 let resetArmed=false;
 function showModal(html,cls){if($('modal').hidden&&!skipPush)navPush();skipPush=false;modalKind=cls||'';paused=true;resetArmed=false;const c=$('modalCard');c.className='modal-card'+(cls?' '+cls:'');c.innerHTML=html;$('modal').hidden=false;const b=c.querySelector('button:not([disabled])');if(b)b.focus({preventScroll:true});}
 function hideModal(fromBack){if($('modal').hidden)return;if(!fromBack)navPop();$('modal').hidden=true;paused=false;last=performance.now();}
