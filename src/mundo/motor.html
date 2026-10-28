@@ -2423,6 +2423,7 @@ function goalText(){
   if(st.gathers===0&&!counts.granja)return['Empezá:',HANDS?'construí una granja y juntá '+ERA.ore.gather+' en las colinas.':'construí una granja. Tocá un recurso y va a buscarlo el aldeano más cercano.'];
   const full=['madera','piedra',ORE,'comida','monedas'].find(k=>st.res[k]>=cap(k));
   if(full)return[ERA.storage.name+(ERA.storage.fem?' llena:':' lleno:'),'no entra más '+RN[full].toLowerCase()+'.'];
+  {const t=capTip();if(t)return t;}
   {const t=tips(ERA.tips2);if(t)return t;}
   {const t=inTip();if(t)return t;}
   // El cuartel, después de las pistas de la era: es otra manera de defenderse, no la primera.
@@ -2433,6 +2434,23 @@ function goalText(){
   const miss=Object.entries(next.cost).filter(([k,v])=>st.res[k]<v).map(([k,v])=>num(Math.ceil(v-st.res[k]))+' '+RN[k].toLowerCase());
   return miss.length?['Próximo: '+next.name+'.','Faltan '+miss.join(', ')+'.']:['Próximo: '+next.name+'.','Listo, abrí Inventos.'];
 }
+// Con capítulos, la pista de abajo apunta a la primera meta que falta del capítulo (28 de octubre de 2026: decía "Próximo:" el
+// invento siguiente de la lista, y la fila del capítulo pedía otra cosa). Si la meta pide un invento o un edificio que todavía
+// no se puede, apunta al invento que lo abre; las metas de otro tipo siguen con la pista de siempre.
+function capTip(){if(!CAPS||!st.cap||st.cap.i>=CAPS.length)return null;
+  const m=CAPS[st.cap.i].metas.find(m=>!capGoal(m)[0]);if(!m)return null;
+  const faltan=c=>Object.entries(c).filter(([k,v])=>st.res[k]<v).map(([k,v])=>num(Math.ceil(v-st.res[k]))+' '+RN[k].toLowerCase());
+  // El primer invento que ya se puede investigar en el camino hacia `id`.
+  const path=id=>{const t=TECH[id];if(!t||st.techs[id])return null;if(t.req.every(r=>st.techs[r]))return t;for(const r of t.req){const q=path(r);if(q)return q;}return null;};
+  const techTip=id=>{const t=path(id);if(!t)return null;const f=faltan(t.cost);return['Próximo: '+t.name+'.',f.length?'Faltan '+f.join(', ')+'.':'Listo, abrí Inventos.'];};
+  if(m.t==='tech')return techTip(m.id);
+  if(m.t==='build'&&BUILD[m.id]){const b=BUILD[m.id];if(b.req&&!st.techs[b.req])return techTip(b.req);
+    if(OBRAN[m.id])return['Obra de '+b.name.toLowerCase()+':','tocala para levantarla con tu gente.'];
+    if((OLDN[m.id]||0)>0)return['Modernizá:','tocá el edificio con ↑ ('+b.name.toLowerCase()+') o construí uno nuevo.'];
+    const f=faltan(buildCost(b));return['Próximo: '+b.name+'.',f.length?'Faltan '+f.join(', ')+'.':'Listo, abrí Construir.'];}
+  if(m.t==='lv'){const id=(ERA.niveles||[]).find(id=>counts[id]&&BUILD[id]);return['Mejorá:','tocá '+(id?'tu '+BUILD[id].name.toLowerCase():'un edificio')+': adentro se sube de nivel.'];}
+  if(m.t==='of')return['Oficios:','tocá algo que produce y poné a alguien a trabajar adentro.'];
+  return null;}
 // La amenaza que está pasando ahora, si hay una: la carrera, un servidor caído o virus, robots desalineados o bichos.
 function threat(){
   if(ERA.rival){if(st.lost)return['Perdiste la carrera:','el rival llegó primero. Podés reintentar la era desde el menú.'];
