@@ -64,9 +64,9 @@ const ERA={
   text:{
     when:'476 d.C.',title:'La Edad Media',
     intro:'Tu pueblo ya es una ciudad. Hay hierro en las colinas, monasterios donde se copian libros y ferias donde se comercia. Pero también hay peste: se contagia entre casas, monasterios, ferias, puertos y universidades, y lo que se enferma rinde la mitad. La meta: construir la imprenta, para que el conocimiento se copie por miles.',
-    news:'Novedades: hierro, monasterios, ferias, molinos de viento, universidades, adentro de cada edificio oficios (copistas, juglares, feriantes…) o mejoras hasta el nivel 3, y la peste: tocá lo que se enferma para curarlo antes de que contagie. Los hospitales cuidan lo que tienen alrededor.',
+    news:'Novedades: hierro y la peste. Tocá lo que se enferma para curarlo antes de que contagie; los hospitales cuidan lo que tienen alrededor.',
     legacy:'Lo que trae tu ciudad de la Antigüedad',
-    noLegacy:'No hay una Antigüedad terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una Antigüedad terminada en este navegador: arrancás con 2 aldeanos.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. A veces brota la peste: lo que se enferma rinde la mitad (en una casa enferma, los aldeanos andan y trabajan a la mitad) y contagia lo que tiene cerca. Tocalo para curarlo; los hospitales cuidan lo que tienen alrededor. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Edad Media superada',winText:()=>'Terminaste la imprenta en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Los libros ya se copian por miles.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan al Renacimiento.'}

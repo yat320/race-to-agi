@@ -59,9 +59,9 @@ const ERA={
   text:{
     when:'1880 d.C.',title:'La Electricidad',
     intro:'Llega la luz eléctrica. Las usinas mueven fábricas, laboratorios y frigoríficos, pero solo si los conectás con postes y cables, y las tormentas tiran rayos que queman la red. La meta: construir la tabuladora eléctrica, la máquina que contó un censo entero.',
-    news:'Novedades: cobre y la red eléctrica. Los edificios con ⚡ andan solo si están cerca de una usina, una represa o un poste conectado. Las usinas echan humo; las represas no. Las tormentas tiran rayos que queman usinas, postes y lo que tiene ⚡: tocá la nube para disiparla y lo quemado para arreglarlo. Los pararrayos se llevan los rayos que caen cerca.',
+    news:'Novedades: la red eléctrica y las tormentas. Lo que tiene ⚡ anda solo cerca de una usina, una represa o un poste conectado. Tocá la nube para disiparla y lo quemado para arreglarlo.',
     legacy:'Lo que trae tu ciudad de la Industria',
-    noLegacy:'No hay una Industria terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una Industria terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del depósito, lo que sobra se pierde. Los edificios con ⚡ necesitan luz: tienen que quedar cerca de una usina, una represa o un poste conectado. Las usinas echan humo: con mucho humo se junta y se cosecha menos, y los parques lo limpian. Las tormentas tiran rayos que queman lo eléctrico y cortan la red: tocá la nube para disiparla y lo quemado para arreglarlo; los pararrayos se llevan los rayos que caen cerca. En la compu: flechas o WASD.',
     win:'Electricidad superada',winText:()=>'Terminaste la tabuladora eléctrica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las máquinas ya cuentan solas.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Computación.'}

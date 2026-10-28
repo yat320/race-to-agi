@@ -68,9 +68,9 @@ const ERA={
   text:{
     when:'Año 1.000.000',title:'La era de la vida',
     intro:'Con la primera luz, el universo nuevo se llena de vida: esporas que brillan, bosques que piensan y bichos de todas las formas. No toda es amiga: del bosque salen polizones, bichitos que se le suben a la cabeza a tu gente y se comen lo que entrega. Tocá a quien lo lleva para bajárselo, o poné arcos de limpieza. La meta: el Edén cósmico, un jardín para todo lo que nace.',
-    news:'Novedades: esporas, arcos de limpieza y polizones. Un bichito sale del bosque y se le sube a la cabeza a alguien de tu gente: se come lo que entrega (se ve el número) y, cuando comió bastante, salta a otro. Tocá a quien lo lleva para espantarlo.',
+    news:'Novedades: esporas y polizones. Un bichito se le sube a la cabeza a alguien de tu gente y se come lo que entrega: tocá a quien lo lleva para espantarlo.',
     legacy:'Lo que trae tu ciudad de la era alfa',
-    noLegacy:'No hay una era alfa terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una era alfa terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o unos hongos con esporas y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Del bosque salen polizones: se le suben a la cabeza a tu gente, se comen lo que entrega y, cuando comieron bastante, saltan a otro que esté cerca. Tocá a quien lo lleva (o al bichito) para espantarlo; si nadie lo toca, al rato se vuelve al bosque, lleno. Los arcos de limpieza limpian a la gente que trabaja cerca. En la compu: flechas o WASD.',
     win:'El Edén cósmico',winText:()=>'Terminaste el Edén cósmico en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ahí crece de todo, y hasta los polizones tienen su rincón (lejos de tu gente).'}
 };

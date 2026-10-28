@@ -56,9 +56,9 @@ const ERA={
   text:{
     when:'3000 d.C.',title:'La era intergaláctica',
     intro:'Con la federación galáctica, la humanidad viaja a otras galaxias por agujeros de gusano, pero cada viaje raja el tiempo. Se abren grietas temporales que hacen retroceder lo que tocan: una holoplaza vuelve a ser centro cultural, después café y al final fogata, y rinde cada vez menos. Tocalas para cerrarlas, o poné anclas temporales cerca. La meta: la red de agujeros de gusano que une las galaxias.',
-    news:'Novedades: materia oscura, anclas temporales y grietas en el tiempo. Una grieta se abre sobre algo que produce, lo hace retroceder una época cada 8 segundos y después salta al de al lado. Lo que retrocedió rinde la mitad por cada época hasta que lo tocás o el tiempo se acomoda solo. Cuanto más avanzás, más seguido se abren.',
+    news:'Novedades: materia oscura y grietas en el tiempo. Una grieta hace retroceder de época lo que produce y después salta al de al lado: tocala para cerrarla.',
     legacy:'Lo que trae tu ciudad de la era galáctica',
-    noLegacy:'No hay una era galáctica terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una era galáctica terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Se abren grietas temporales: hacen retroceder en el tiempo lo que produce, que rinde la mitad por cada época. Tocalas para cerrarlas y tocá lo que retrocedió para traerlo al presente; si no, el tiempo se acomoda solo de a poco. Cerca de un ancla temporal se cierran solas. En la compu: flechas o WASD.',
     win:'La red de agujeros de gusano',winText:()=>'Terminaste la red de agujeros de gusano en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las galaxias quedan a un paso: la humanidad ya puede ir y volver por todo el universo.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era cósmica.'}

@@ -69,9 +69,9 @@ const ERA={
   text:{
     when:'3.000 a.C.',title:'La Antigüedad',
     intro:'Tu tribu ya es un pueblo. Ahora hay cobre en las colinas, comercio por el mar y escribas que anotan todo. Pero el comercio atrae piratas: desembarcan a robar tus monedas y tu cobre. La meta: construir el mecanismo de Anticitera, la primera computadora de la historia.',
-    news:'Novedades: 13 edificios, cobre y monedas, depósitos con capacidad, la hoja Tribu para decidir qué juntan tus aldeanos, adentro de cada edificio oficios (escribas, mercaderes, marineros…) o mejoras hasta el nivel 3, y piratas: tocalos antes de que roben, o antes de que vuelvan al barco para recuperar lo robado. Las atalayas echan a los que pasan cerca.',
+    news:'Novedades: cobre, monedas y piratas. Los piratas desembarcan a robar: tocalos. Y podés entrar a cada edificio a poner gente a trabajar o a mejorarlo.',
     legacy:'Tu legado de la Prehistoria',
-    noLegacy:'No hay legado de la Prehistoria en este navegador: arrancás con 2 aldeanos. Podés cargar un código desde la pantalla de eras.',
+    noLegacy:'No hay legado de la Prehistoria en este navegador: arrancás con 2 aldeanos.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un depósito se llena, lo que sobra se pierde. Cuando tengas monedas llegan piratas por mar: tocalos antes de que roben, o recuperá lo que se llevan tocándolos antes de que lleguen al barco. Las atalayas echan a los que pasan cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Antigüedad superada',winText:()=>'Terminaste el mecanismo de Anticitera en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. La humanidad ya sabe construir máquinas que calculan.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Edad Media.'}

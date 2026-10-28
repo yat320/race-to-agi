@@ -57,9 +57,9 @@ const ERA={
   text:{
     when:'Año 1.000.000',title:'La era multiversal',
     intro:'Con la computadora cósmica, la humanidad descubre que este universo no es el único: hay infinitos, uno al lado del otro, y en cada uno hay otra versión de tu ciudad. Por portales llegan dobles de tu gente, idénticos, que se mezclan y te roban ideas, monedas y materia espejo para llevárselas a su universo. Los delata que titilan cada tanto: tocalos para mandarlos de vuelta, o poné espejos de la verdad. La meta: la puerta al multiverso.',
-    news:'Novedades: materia espejo, espejos de la verdad y dobles. Un doble sale de un portal con la cara de alguien de tu gente, se mezcla en la ciudad y cada tanto roba (se ve el número). Cuando juntó bastante, vuelve a su portal. Lo delata que titila: tocalo y devuelve todo.',
+    news:'Novedades: materia espejo y dobles. Un doble tiene la cara de alguien de tu gente y cada tanto roba (se ve el número). Lo delata que titila: tocalo y devuelve todo.',
     legacy:'Lo que trae tu ciudad de la era cósmica',
-    noLegacy:'No hay una era cósmica terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una era cósmica terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Llegan dobles de tu gente desde otros universos: se mezclan y roban ideas, monedas y materia espejo. Los delatan que titilan cada tanto y el número de lo que roban: tocalos para mandarlos de vuelta con lo robado. Cerca de un espejo de la verdad los desenmascaran solos. En la compu: flechas o WASD.',
     win:'La puerta al multiverso',winText:()=>'Terminaste la puerta al multiverso en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ahora tu ciudad puede ir a visitar a todas sus otras versiones.'}
 };

@@ -57,9 +57,9 @@ const ERA={
   text:{
     when:'10.000 d.C.',title:'La era cósmica',
     intro:'Con la red de agujeros de gusano, la humanidad llega a los confines del universo, y allá manda la gravedad. Aparecen agujeros negros chicos que flotan hacia tu ciudad: atrapan en órbita a tu gente, se tragan lo que tienen cerca y estiran los edificios que pisan. Tocalos para evaporarlos antes de que crezcan, o poné repulsores gravitatorios. La meta: la computadora cósmica, una mente del tamaño del universo para pensar la última pregunta.',
-    news:'Novedades: quarks, repulsores gravitatorios y agujeros negros. Un agujero negro atrapa en órbita a la gente que pasa cerca, se traga árboles y piedras y rompe el edificio que pisa. Cuanto más se traga, más crece y más toques pide; si nadie lo toca, se evapora solo al rato.',
+    news:'Novedades: quarks y agujeros negros. Un agujero negro atrapa a tu gente, se traga lo que hay y rompe lo que pisa; cuanto más traga, más toques pide: tocalo temprano.',
     legacy:'Lo que trae tu ciudad de la era intergaláctica',
-    noLegacy:'No hay una era intergaláctica terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una era intergaláctica terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Aparecen agujeros negros: atrapan en órbita a la gente que pasa cerca y estiran los edificios que pisan. Tocalos para evaporarlos (los grandes piden varios toques) y tocá lo estirado para arreglarlo. A los repulsores gravitatorios no se les acercan. En la compu: flechas o WASD.',
     win:'La computadora cósmica',winText:()=>'Terminaste la computadora cósmica en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Ahora tiene todo el tiempo del universo para pensar la última pregunta.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era multiversal.'}

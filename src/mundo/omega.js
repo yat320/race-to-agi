@@ -63,9 +63,9 @@ const ERA={
   text:{
     when:'El fin de los tiempos',title:'La era omega',
     intro:'Con el universo bebé, la humanidad aprendió a crear universos, pero los viejos se apagan: las estrellas se enfrían y solo quedan chispas, las últimas brasas. Por el mapa cruzan olas de frío, frentes de escarcha que congelan todo lo que pisan. Cada ola lleva en el medio un corazón de hielo que brilla: tocalo y la ola se rompe entera, o poné estufas estelares, que le abren un hueco. La meta: el punto omega, juntar todo el calor que queda en un solo lugar.',
-    news:'Novedades: chispas, estufas estelares y olas de frío. Un frente de escarcha entra por un borde y cruza el mapa: lo que pisa se congela y no produce, y la gente anda más lenta. Tocá el corazón de hielo del medio para romperlo, y lo congelado para descongelarlo.',
+    news:'Novedades: chispas y olas de frío. Un frente de escarcha cruza el mapa y congela lo que pisa. Tocá el corazón de hielo para romperlo y lo congelado para descongelarlo.',
     legacy:'Lo que trae tu ciudad de la era del génesis',
-    noLegacy:'No hay una era del génesis terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una era del génesis terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Cruzan olas de frío: lo que pisan se congela y no produce, y la gente que pisan anda más lenta un rato. Tocá el corazón de hielo para romper la ola y tocá lo congelado para descongelarlo. Las estufas estelares le abren un hueco al frente. En la compu: flechas o WASD.',
     win:'El punto omega',winText:()=>'Terminaste el punto omega en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Todo el calor que quedaba está en un solo punto, y desde ahí puede encenderse un universo nuevo.'}
 };

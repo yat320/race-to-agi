@@ -60,9 +60,9 @@ const ERA={
   text:{
     when:'Año 1.000.000.000',title:'La era del génesis',
     intro:'Con la conciencia compartida, todas las mentes piensan juntas y la humanidad aprende a crear universos. Pero el vacío entre los universos no está vacío: por grietas salen devoradores, bichos de nada que se comen lo que juntaste y cada tanto se dividen en dos. Tocalos antes de que se multipliquen, o poné barreras de vacío. La meta: el universo bebé.',
-    news:'Novedades: polvo primordial, barreras de vacío y devoradores. Por una grieta sale un devorador que se come lo que más tenés (se ve el número). Cada 20 s se divide en dos, hasta ocho: cada toque mata uno, así que tocalo mientras es uno solo.',
+    news:'Novedades: polvo primordial y devoradores. Un devorador se come lo que más tenés y cada 20 s se divide en dos: tocalo mientras es uno solo.',
     legacy:'Lo que trae tu ciudad de la era de la conciencia',
-    noLegacy:'No hay una era de la conciencia terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una era de la conciencia terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o un remolino de polvo y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Por grietas del vacío salen devoradores: van a tu granero o a lo que más produce, se comen lo que más tenés y cada tanto se dividen en dos. Cada toque mata uno; si los dejás, al rato se llenan y se vuelven. Cerca de una barrera de vacío se deshacen solos. En la compu: flechas o WASD.',
     win:'El universo bebé',winText:()=>'Terminaste el universo bebé en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Adentro ya hay polvo, estrellas y, algún día, alguien que va a mirar el cielo.'}
 };

@@ -66,9 +66,9 @@ const ERA={
   text:{
     when:'Año 0, otra vez',title:'La era alfa',
     intro:'Del punto omega nace un universo nuevo, y tu ciudad es lo primero que hay en él. Todo es luz recién hecha, que se junta en fotones: cristales dorados de luz condensada. Pero la luz todavía no se calmó y se arma en torbellinos que pasan por tus edificios, chupan lo que guardaste y lo desparraman en motas de luz. Tocá el torbellino para deshacerlo y juntá las motas antes de que se apaguen, o poné estabilizadores de campo. La meta: la primera luz.',
-    news:'Novedades: fotones, estabilizadores de campo y torbellinos de luz. Un torbellino chupa lo que más tenés y lo desparrama en motas con su número: tocalo para deshacerlo. Las motas vuelven si las tocás o si alguien de tu gente pasa por encima; si no, se apagan.',
+    news:'Novedades: fotones y torbellinos de luz. Un torbellino desparrama lo que más tenés en motas: tocalo para deshacerlo, y tocá las motas o pasá por encima para recuperarlas.',
     legacy:'Lo que trae tu ciudad de la era omega',
-    noLegacy:'No hay una era omega terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una era omega terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o un cristal de fotones y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope de la bóveda de estasis, lo que sobra se pierde. Pasan torbellinos de luz: van a tu bóveda o a lo que más produce, chupan lo que más tenés y lo desparraman en motas con su número. Tocá el torbellino para deshacerlo y tocá las motas para recuperarlas (también vuelven si alguien de tu gente pasa por encima); si nadie las junta, se apagan. Cerca de un estabilizador de campo los torbellinos se deshacen y las motas vuelven solas. En la compu: flechas o WASD.',
     win:'La primera luz',winText:()=>'Encendiste la primera luz en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. El universo nuevo ya tiene con qué verse, y todo lo que venga va a nacer a su luz.'}
 };

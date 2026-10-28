@@ -58,9 +58,9 @@ const ERA={
   text:{
     when:'1450 d.C.',title:'El Renacimiento',
     intro:'Tu ciudad despierta. Hay plata en las colinas, artistas que dibujan en perspectiva, bancos que prestan y carabelas que cruzan el océano. Pero en el campo hay plaga: mangas de langostas que llegan volando a comerse tus granjas y tapan todo lo que tienen alrededor. La meta: construir la pascalina, la primera máquina que suma sola.',
-    news:'Novedades: plata, talleres de artistas, bancos, jardines botánicos, academias y langostas: una manga posada en una granja no deja producir nada a 2 casilleros y se come tu comida. Tocalas para espantarlas; los palomares las espantan solos. Conviene poner las granjas lejos de los talleres y los bancos.',
+    news:'Novedades: plata y langostas. Una manga posada en una granja no deja producir nada cerca y se come tu comida: tocala para espantarla. Los palomares las espantan solos.',
     legacy:'Lo que trae tu ciudad de la Edad Media',
-    noLegacy:'No hay una Edad Media terminada en este navegador: arrancás con 2 aldeanos. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una Edad Media terminada en este navegador: arrancás con 2 aldeanos.',
     menu:'Tocá para moverte y juntar. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del granero, lo que sobra se pierde. Llegan mangas de langostas volando hacia las granjas: mientras comen, nada de lo que tapan produce y se comen la comida guardada. Tocalas para espantarlas; los palomares espantan las que pasan cerca. En la compu: flechas o WASD, E para juntar, F para comer.',
     win:'Renacimiento superado',winText:()=>'Terminaste la pascalina en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Las máquinas ya saben sumar.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la Industria.'}

@@ -62,9 +62,9 @@ const ERA={
   text:{
     when:'1945 d.C.',title:'La Computación',
     intro:'Las primeras computadoras ocupan salas enteras y calculan rapidísimo, pero las polillas las traban: entran volando atraídas por las máquinas. Tocalas en el aire, o tocá la máquina trabada para sacar el bicho. La meta: el microprocesador, toda una computadora en un chip.',
-    news:'Novedades: silicio, computadoras, oficinas y polillas. Llegan volando hacia las máquinas, el doble de noche: tocalas en el aire. Si una entra, la máquina no produce hasta que la tocás o hasta que los programadores la depuran (un minuto). Las trampas de luz atrapan las que pasan cerca. Usinas, represas y postes ya los sabés construir.',
+    news:'Novedades: silicio, computadoras y polillas. Llegan volando hacia las máquinas, más de noche: tocalas en el aire. Las trampas de luz atrapan las que pasan cerca.',
     legacy:'Lo que trae tu ciudad de la Electricidad',
-    noLegacy:'No hay una Electricidad terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar. Podés cargar un código de progreso desde la pantalla de eras.',
+    noLegacy:'No hay una Electricidad terminada en este navegador: arrancás con 4 aldeanos y lo básico para juntar.',
     menu:'Tocá para moverte; tocá un árbol, una piedra o una veta y va a buscarlo el aldeano más cercano. Los edificios producen solos; las casas suman aldeanos que comen 2 de comida por minuto. Si un recurso llega al tope del centro logístico, lo que sobra se pierde. Las polillas llegan volando hacia las computadoras y oficinas, el doble de noche: tocalas en el aire. Si una entra, la máquina se traba: tocala para sacar el bicho, o esperá un minuto a que la depuren. Las trampas de luz atrapan las que pasan cerca. Los edificios con ⚡ necesitan luz: tienen que quedar cerca de una usina, una represa o un poste conectado. Las usinas echan humo: con mucho humo se junta y se cosecha menos, y los parques lo limpian. En la compu: flechas o WASD.',
     win:'Computación superada',winText:()=>'Terminaste el microprocesador en el día '+(Math.floor(st.time/DAY)+1)+' con '+vil.length+' aldeanos y '+Object.values(counts).reduce((a,b)=>a+b,0)+' edificios. Una computadora ya entra en la palma de la mano.',
     winNote:'Tu ciudad, tus ideas y tus monedas pasan a la era de Internet.'}
